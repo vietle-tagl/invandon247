@@ -1,10 +1,8 @@
 export default async function handler(req, res) {
-    // Cho phép gọi API từ mọi nguồn (Bypass CORS)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
 
     try {
-        // Gọi thẳng tới BotDetect Captcha của VNPost
         const captchaUrl = `https://vnpost.vn/captcha/default?${Date.now()}`;
         const response = await fetch(captchaUrl, {
             headers: {
@@ -16,14 +14,14 @@ export default async function handler(req, res) {
 
         if (!response.ok) throw new Error('VNPost Error');
 
-        // Chuyển ảnh thành chuỗi Base64
+        const setCookieHeader = response.headers.get('set-cookie') || '';
         const arrayBuffer = await response.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString('base64');
         const contentType = response.headers.get('content-type') || 'image/png';
 
-        // Trả về ảnh chuẩn Base64 để hiển thị ngay trên web
         res.status(200).json({
-            image: `data:${contentType};base64,${base64}`
+            image: `data:${contentType};base64,${base64}`,
+            cookie: setCookieHeader
         });
     } catch (error) {
         res.status(500).json({ error: 'Lỗi lấy CAPTCHA' });

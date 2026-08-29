@@ -14,14 +14,17 @@ export default async function handler(req, res) {
 
         if (!response.ok) throw new Error('VNPost Error');
 
-        const setCookieHeader = response.headers.get('set-cookie') || '';
+        // Bóc tách đúng cookie session từ header
+        const rawCookies = response.headers.getSetCookie ? response.headers.getSetCookie() : [response.headers.get('set-cookie')];
+        const cookieHeader = rawCookies.filter(Boolean).map(c => c.split(';')[0]).join('; ');
+
         const arrayBuffer = await response.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString('base64');
         const contentType = response.headers.get('content-type') || 'image/png';
 
         res.status(200).json({
             image: `data:${contentType};base64,${base64}`,
-            cookie: setCookieHeader
+            cookie: cookieHeader
         });
     } catch (error) {
         res.status(500).json({ error: 'Lỗi lấy CAPTCHA' });

@@ -3,27 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InVanDon247 - Tra Cứu VNPost (Proxy Session)</title>
+    <title>InVanDon247 - Tra Cứu VNPost</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
         .web-container { max-width: 480px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { color: #003b7a; margin-top: 0; text-align: center; font-size: 20px; }
-        
         .form-group { margin-bottom: 15px; }
         label { font-size: 14px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
         input[type="text"] { width: 100%; padding: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; outline: none; }
-        
         .captcha-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
         .captcha-box { height: 42px; border: 1px solid #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: #eee; min-width: 130px; cursor: pointer; }
         .captcha-box img { height: 100%; width: auto; display: block; }
         .btn-reload { background: #6c757d; color: white; border: none; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-
         .btn-submit { background-color: #003b7a; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; }
         .btn-submit:hover { background-color: #002855; }
 
-        /* GIAO DIỆN BẢN IN A4 */
         #print-area { display: none; background: #fff; }
-
         @media print {
             .no-print { display: none !important; }
             #print-area { display: block !important; }
@@ -56,7 +51,7 @@
         </div>
 
         <div class="form-group">
-            <label>2. Mã xác nhận (CAPTCHA từ VNPost):</label>
+            <label>2. Mã xác nhận (CAPTCHA):</label>
             <input type="text" id="captchaText" placeholder="Nhập chữ trong hình bên dưới">
             <div class="captcha-row">
                 <div class="captcha-box" onclick="loadCaptcha()" title="Click để đổi mã">
@@ -69,89 +64,77 @@
         <button class="btn-submit" id="btnSubmit" onclick="submitTracking()">🚀 Tra Cứu & In A4 Ngay</button>
     </div>
 
-    <!-- Khu vực hiển thị nội dung in A4 -->
     <div id="print-area"></div>
 
     <script>
-        let currentCookie = '';
+        const PROXY = "https://corsproxy.io/?";
+        const CAPTCHA_URL = "https://vnpost.vn/vi/Tracking/GetCaptcha";
+        const TRACK_URL = "https://vnpost.vn/vi/Tracking/Index";
 
-        // 1. Tải CAPTCHA và lưu Session Cookie
         async function loadCaptcha() {
             const img = document.getElementById('captchaImg');
             img.src = '';
             img.alt = "Đang tải...";
 
             try {
-                const res = await fetch('/api/proxy?action=get-captcha');
-                const data = await res.json();
+                // Tải trực tiếp qua CORS Proxy với timestamp chống cache
+                const timestamp = new Date().getTime();
+                const targetUrl = `${PROXY}${encodeURIComponent(CAPTCHA_URL + '?t=' + timestamp)}`;
                 
-                if (data.captcha) {
-                    img.src = data.captcha;
-                    currentCookie = data.cookie || '';
-                } else {
-                    img.alt = "Lỗi CAPTCHA";
-                    alert("Lỗi từ Server Proxy: " + (data.error || "Không thể tải mã CAPTCHA"));
-                }
+                const res = await fetch(targetUrl);
+                const blob = await res.blob();
+                
+                img.src = URL.createObjectURL(blob);
             } catch (e) {
-                img.alt = "Lỗi kết nối";
-                alert('Không thể kết nối API Proxy: ' + e.message);
+                img.alt = "Lỗi tải CAPTCHA";
+                alert('Không thể tải CAPTCHA qua Proxy: ' + e.message);
             }
         }
 
-        // 2. Gửi mã tra cứu kèm Cookie phiên làm việc
         async function submitTracking() {
             const code = document.getElementById('trackingCode').value.trim();
             const captcha = document.getElementById('captchaText').value.trim();
             const btn = document.getElementById('btnSubmit');
 
-            if (!code) {
-                alert('Vui lòng nhập Mã vận đơn!');
-                return;
-            }
-            if (!captcha) {
-                alert('Vui lòng nhập Mã xác nhận (CAPTCHA)!');
+            if (!code || !captcha) {
+                alert('Vui lòng nhập đầy đủ Mã vận đơn và CAPTCHA!');
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "⏳ Đang gửi dữ liệu...";
+            btn.innerText = "⏳ Đang tra cứu...";
 
             try {
-                const res = await fetch('/api/proxy?action=track', {
+                const targetUrl = `${PROXY}${encodeURIComponent(TRACK_URL)}`;
+                const params = new URLSearchParams();
+                params.append('ItemCode', code);
+                params.append('CaptchaText', captcha);
+
+                const res = await fetch(targetUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        trackingCode: code,
-                        captchaText: captcha,
-                        cookie: currentCookie
-                    })
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
                 });
 
-                const data = await res.json();
+                const htmlText = await res.text();
                 btn.disabled = false;
                 btn.innerText = "🚀 Tra Cứu & In A4 Ngay";
 
-                if (data.html) {
-                    if (data.html.includes('Mã xác thực không chính xác') || data.html.includes('CaptchaText')) {
-                        alert('Mã CAPTCHA không chính xác hoặc đã hết hạn. Vui lòng thử lại!');
-                        document.getElementById('captchaText').value = '';
-                        loadCaptcha();
-                    } else {
-                        // Tra cứu thành công, đổ dữ liệu vào trang in
-                        renderPrintForm(data.html, code);
-                        window.print();
-                    }
+                if (htmlText.includes('Mã xác thực không chính xác')) {
+                    alert('Mã CAPTCHA bị sai. Vui lòng nhập lại!');
+                    document.getElementById('captchaText').value = '';
+                    loadCaptcha();
                 } else {
-                    alert('Lỗi tra cứu: ' + (data.error || 'Khái quát lỗi từ server'));
+                    renderPrintForm(htmlText, code);
+                    window.print();
                 }
             } catch (e) {
                 btn.disabled = false;
                 btn.innerText = "🚀 Tra Cứu & In A4 Ngay";
-                alert('Lỗi gửi dữ liệu: ' + e.message);
+                alert('Lỗi tra cứu: ' + e.message);
             }
         }
 
-        // 3. Xử lý dữ liệu trả về và hiển thị bản in A4
         function renderPrintForm(rawText, fallbackCode) {
             let codeMatch = rawText.match(/(?:Bưu gửi số|Mã vận đơn|Mã bưu gửi)\s*:\s*([A-Z0-9]+)/i) || rawText.match(/([A-Z]{2}\d{9}[A-Z]{2})/i);
             let code = codeMatch ? codeMatch[1] : fallbackCode;
@@ -224,7 +207,6 @@
             document.getElementById('print-area').innerHTML = htmlContent;
         }
 
-        // Tự động tải Captcha ngay khi load trang
         window.onload = loadCaptcha;
     </script>
 </body>

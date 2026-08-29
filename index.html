@@ -3,1323 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>InVanDon247 - Tra Cứu & In Phiếu VNPost A4</title>
-
     <style>
-        /* =====================================================
-           GIAO DIỆN WEBSITE
-        ===================================================== */
+        /* ================= GIAO DIỆN MÀN HÌNH WEB ================= */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .web-container { max-width: 480px; margin: 30px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: #0056b3; margin-top: 0; text-align: center; font-size: 22px; }
+        .form-group { margin-bottom: 15px; }
+        label { font-size: 13px; font-weight: bold; color: #495057; display: block; margin-bottom: 6px; }
+        input[type="text"] { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; outline: none; }
+        input[type="text"]:focus { border-color: #0056b3; }
+        .captcha-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+        .captcha-box { height: 42px; border: 1px solid #ced4da; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; min-width: 140px; overflow: hidden; }
+        .captcha-box img { height: 100%; width: auto; object-fit: contain; }
+        .btn-reload { background: #6c757d; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .btn-reload:hover { background: #5a6268; }
+        .btn-submit { background-color: #0056b3; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
+        .btn-submit:hover { background-color: #004085; }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: #f4f6f9;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-
-        .web-container {
-            max-width: 480px;
-            margin: 30px auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
-        h2 {
-            color: #0056b3;
-            margin-top: 0;
-            text-align: center;
-            font-size: 22px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #777;
-            font-size: 13px;
-            margin-top: -8px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            font-size: 13px;
-            font-weight: bold;
-            color: #495057;
-            display: block;
-            margin-bottom: 6px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 10px 12px;
-            font-size: 14px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            outline: none;
-        }
-
-        input[type="text"]:focus {
-            border-color: #0056b3;
-            box-shadow: 0 0 0 2px rgba(0,86,179,0.1);
-        }
-
-        .captcha-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .captcha-box {
-            height: 50px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8f9fa;
-            width: 160px;
-            overflow: hidden;
-        }
-
-        .captcha-box img {
-            height: 100%;
-            width: 100%;
-            object-fit: contain;
-        }
-
-        .btn-reload {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .btn-reload:hover {
-            background: #5a6268;
-        }
-
-        .btn-submit {
-            background-color: #0056b3;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
-            width: 100%;
-            margin-top: 10px;
-            transition: 0.2s;
-        }
-
-        .btn-submit:hover {
-            background-color: #004085;
-        }
-
-        .btn-submit:disabled {
-            background-color: #7aa7d9;
-            cursor: not-allowed;
-        }
-
-        .status-message {
-            margin-top: 12px;
-            text-align: center;
-            font-size: 13px;
-            color: #666;
-            min-height: 20px;
-        }
-
-        /* =====================================================
-           KHU VỰC IN A4
-        ===================================================== */
-
-        #print-area {
-            display: none;
-            background: #fff;
-        }
+        /* ================= GIAO DIỆN BẢN IN A4 ================= */
+        #print-area { display: none; background: #fff; }
 
         @media print {
+            .no-print { display: none !important; }
+            #print-area { display: block !important; }
+            @page { size: A4 portrait; margin: 10mm 12mm; }
+            body { background: #fff; padding: 0; margin: 0; font-size: 9.5pt; color: #1a202c; }
+            
+            .header-table { width: 100%; border-collapse: collapse; border-bottom: 2px solid #0056b3; padding-bottom: 8px; margin-bottom: 12px; }
+            .brand-title { font-size: 16pt; font-weight: bold; color: #0056b3; margin: 0; }
+            .brand-subtitle { font-size: 8pt; color: #4a5568; margin-top: 2px; }
+            .header-meta { text-align: right; font-size: 8pt; color: #718096; }
 
-            .no-print {
-                display: none !important;
-            }
+            .doc-title-box { text-align: center; background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 12px; }
+            .doc-title { font-size: 12pt; font-weight: bold; color: #2d3748; text-transform: uppercase; margin: 0; }
+            .tracking-number { font-size: 14pt; font-weight: bold; color: #d69e2e; letter-spacing: 1px; margin-top: 2px; }
 
-            #print-area {
-                display: block !important;
-            }
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+            .card { border: 1px solid #cbd5e0; border-radius: 5px; padding: 8px 10px; }
+            .card-header { font-size: 8.5pt; font-weight: bold; color: #0056b3; text-transform: uppercase; border-bottom: 1px dashed #cbd5e0; padding-bottom: 4px; margin-bottom: 6px; }
+            .data-row { margin-bottom: 4px; font-size: 9pt; }
+            .label { color: #718096; font-size: 8pt; display: inline-block; width: 85px; }
+            .value { color: #2d3748; font-weight: bold; }
+            .status-badge { display: inline-block; background-color: #c6f6d5; color: #22543d; font-size: 8.5pt; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
 
-            @page {
-                size: A4 portrait;
-                margin: 10mm 12mm;
-            }
-
-            body {
-                background: #fff;
-                padding: 0;
-                margin: 0;
-                font-size: 9.5pt;
-                color: #1a202c;
-            }
-
-            .header-table {
-                width: 100%;
-                border-collapse: collapse;
-                border-bottom: 2px solid #0056b3;
-                padding-bottom: 8px;
-                margin-bottom: 12px;
-            }
-
-            .brand-title {
-                font-size: 16pt;
-                font-weight: bold;
-                color: #0056b3;
-                margin: 0;
-            }
-
-            .brand-subtitle {
-                font-size: 8pt;
-                color: #4a5568;
-                margin-top: 2px;
-            }
-
-            .header-meta {
-                text-align: right;
-                font-size: 8pt;
-                color: #718096;
-            }
-
-            .doc-title-box {
-                text-align: center;
-                background-color: #f7fafc;
-                border: 1px solid #e2e8f0;
-                border-radius: 6px;
-                padding: 8px;
-                margin-bottom: 12px;
-            }
-
-            .doc-title {
-                font-size: 12pt;
-                font-weight: bold;
-                color: #2d3748;
-                text-transform: uppercase;
-                margin: 0;
-            }
-
-            .tracking-number {
-                font-size: 14pt;
-                font-weight: bold;
-                color: #d69e2e;
-                letter-spacing: 1px;
-                margin-top: 2px;
-            }
-
-            .info-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                margin-bottom: 12px;
-            }
-
-            .card {
-                border: 1px solid #cbd5e0;
-                border-radius: 5px;
-                padding: 8px 10px;
-            }
-
-            .card-header {
-                font-size: 8.5pt;
-                font-weight: bold;
-                color: #0056b3;
-                text-transform: uppercase;
-                border-bottom: 1px dashed #cbd5e0;
-                padding-bottom: 4px;
-                margin-bottom: 6px;
-            }
-
-            .data-row {
-                margin-bottom: 4px;
-                font-size: 9pt;
-            }
-
-            .label {
-                color: #718096;
-                font-size: 8pt;
-                display: inline-block;
-                width: 90px;
-            }
-
-            .value {
-                color: #2d3748;
-                font-weight: bold;
-            }
-
-            .status-badge {
-                display: inline-block;
-                background-color: #c6f6d5;
-                color: #22543d;
-                font-size: 8.5pt;
-                font-weight: bold;
-                padding: 2px 6px;
-                border-radius: 4px;
-            }
-
-            .section-heading {
-                font-size: 9.5pt;
-                font-weight: bold;
-                color: #2d3748;
-                margin-bottom: 6px;
-                padding-left: 6px;
-                border-left: 3px solid #0056b3;
-            }
-
-            .history-table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 8pt;
-            }
-
-            .history-table th {
-                background-color: #ebf8ff;
-                color: #2c5282;
-                text-align: left;
-                padding: 5px 6px;
-                font-weight: bold;
-                border-top: 1px solid #bee3f8;
-                border-bottom: 2px solid #90cdf4;
-            }
-
-            .history-table td {
-                padding: 5px 6px;
-                border-bottom: 1px solid #e2e8f0;
-                vertical-align: top;
-            }
-
-            .history-table tr:nth-child(even) {
-                background-color: #f7fafc;
-            }
-
-            .history-table tr.latest-status {
-                background-color: #f0fff4;
-                font-weight: bold;
-                color: #22543d;
-            }
-
-            .footer {
-                margin-top: 15px;
-                border-top: 1px solid #e2e8f0;
-                padding-top: 6px;
-                text-align: center;
-                font-size: 7.5pt;
-                color: #a0aec0;
-            }
+            .section-heading { font-size: 9.5pt; font-weight: bold; color: #2d3748; margin-bottom: 6px; padding-left: 6px; border-left: 3px solid #0056b3; }
+            .history-table { width: 100%; border-collapse: collapse; font-size: 8pt; }
+            .history-table th { background-color: #ebf8ff; color: #2c5282; text-align: left; padding: 5px 6px; font-weight: bold; border-top: 1px solid #bee3f8; border-bottom: 2px solid #90cdf4; }
+            .history-table td { padding: 5px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+            .history-table tr:nth-child(even) { background-color: #f7fafc; }
+            .history-table tr.latest-status { background-color: #f0fff4; font-weight: bold; color: #22543d; }
+            
+            .footer { margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 6px; text-align: center; font-size: 7.5pt; color: #a0aec0; }
         }
     </style>
 </head>
-
 <body>
 
-    <!-- =====================================================
-         KHU VỰC WEBSITE
-    ===================================================== -->
-
+    <!-- MÀN HÌNH WEB -->
     <div class="web-container no-print">
-
-        <h2>InVanDon247</h2>
-
-        <div class="subtitle">
-            Tra cứu & In phiếu VNPost A4
+        <h2>InVanDon247 - Tra Cứu VNPost</h2>
+        
+        <div class="form-group">
+            <label>1. Mã vận đơn VNPost:</label>
+            <input type="text" id="trackingCode" placeholder="Ví dụ: RB608631891VN" value="RB608631891VN">
         </div>
 
-        <!-- MÃ VẬN ĐƠN -->
         <div class="form-group">
-
-            <label for="trackingCode">
-                1. Mã vận đơn VNPost:
-            </label>
-
-            <input
-                type="text"
-                id="trackingCode"
-                placeholder="Ví dụ: RB608631891VN"
-                value="RB608631891VN"
-                autocomplete="off"
-            >
-
-        </div>
-
-
-        <!-- CAPTCHA -->
-        <div class="form-group">
-
-            <label for="captchaText">
-                2. Mã xác thực (CAPTCHA):
-            </label>
-
-            <input
-                type="text"
-                id="captchaText"
-                placeholder="Nhập chữ trong hình"
-                autocomplete="off"
-                autocapitalize="characters"
-            >
-
+            <label>2. Mã xác nhận (CAPTCHA):</label>
+            <input type="text" id="captchaText" placeholder="Nhập mã xác nhận">
             <div class="captcha-row">
-
                 <div class="captcha-box">
-
-                    <img
-                        id="captchaImg"
-                        src=""
-                        alt="Đang tải CAPTCHA..."
-                    >
-
+                    <img id="captchaImg" src="" alt="Đang tải...">
                 </div>
-
-                <button
-                    type="button"
-                    class="btn-reload"
-                    id="btnReload"
-                    onclick="loadCaptcha()"
-                >
-                    🔄 Đổi mã
-                </button>
-
+                <button class="btn-reload" onclick="loadCaptcha()">🔄 Đổi mã</button>
             </div>
-
         </div>
 
-
-        <!-- NÚT TRA CỨU -->
-        <button
-            type="button"
-            class="btn-submit"
-            id="btnSubmit"
-            onclick="submitTracking()"
-        >
-            🚀 Tra Cứu & In A4 Ngay
-        </button>
-
-
-        <!-- THÔNG BÁO -->
-        <div
-            id="statusMessage"
-            class="status-message"
-        ></div>
-
+        <button class="btn-submit" id="btnSubmit" onclick="submitTracking()">🚀 Tra Cứu & In A4 Ngay</button>
     </div>
 
-
-    <!-- =====================================================
-         KHU VỰC PHIẾU A4
-    ===================================================== -->
-
+    <!-- KHU VỰC RENDER TRƯỚC KHI IN A4 -->
     <div id="print-area"></div>
 
-
     <script>
-
-        /* =====================================================
-           BIẾN TOÀN CỤC
-        ===================================================== */
-
         let currentCookie = '';
 
-        let captchaReady = false;
-
-
-        /* =====================================================
-           HÀM HIỂN THỊ THÔNG BÁO
-        ===================================================== */
-
-        function setStatus(message) {
-
-            const status =
-                document.getElementById('statusMessage');
-
-            status.textContent = message;
-        }
-
-
-        /* =====================================================
-           1. LẤY CAPTCHA TỪ PROXY VERCEL
-        ===================================================== */
-
+        // 1. Gọi backend lấy ảnh CAPTCHA Base64 + Cookie
         async function loadCaptcha() {
-
-            const img =
-                document.getElementById('captchaImg');
-
-            const captchaInput =
-                document.getElementById('captchaText');
-
-            const reloadButton =
-                document.getElementById('btnReload');
-
-
-            captchaReady = false;
-
-            currentCookie = '';
-
-            captchaInput.value = '';
-
+            const img = document.getElementById('captchaImg');
             img.src = '';
-
-            img.alt = 'Đang tải CAPTCHA...';
-
-            reloadButton.disabled = true;
-
-            setStatus('⏳ Đang lấy mã CAPTCHA mới...');
-
+            img.alt = "Đang tải...";
 
             try {
-
-                const response = await fetch(
-                    '/api/proxy?action=get-captcha',
-                    {
-                        method: 'GET',
-                        cache: 'no-store'
-                    }
-                );
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        'Proxy trả về HTTP ' +
-                        response.status
-                    );
+                const res = await fetch('/api/proxy?action=get-captcha');
+                const data = await res.json();
+                
+                if (data.captchaUrl) {
+                    img.src = data.captchaUrl; // Nhận chuỗi data:image/png;base64,...
+                    currentCookie = data.cookie || '';
+                } else {
+                    img.alt = "Lỗi tải CAPTCHA";
                 }
-
-
-                const data =
-                    await response.json();
-
-
-                console.log(
-                    'CAPTCHA response:',
-                    data
-                );
-
-
-                /* ---------------------------------------------
-                   KIỂM TRA RESPONSE
-                --------------------------------------------- */
-
-                if (!data || !data.captchaUrl) {
-
-                    throw new Error(
-                        data?.error ||
-                        'Không nhận được CAPTCHA từ VNPost'
-                    );
-                }
-
-
-                if (!data.cookie) {
-
-                    throw new Error(
-                        'Proxy không nhận được Cookie phiên VNPost'
-                    );
-                }
-
-
-                /* ---------------------------------------------
-                   GÁN CAPTCHA
-
-                   captchaUrl bây giờ có thể là:
-
-                   data:image/png;base64,...
-
-                   nên KHÔNG gọi trực tiếp VNPost nữa.
-                --------------------------------------------- */
-
-                img.src = data.captchaUrl;
-
-                img.alt = 'CAPTCHA VNPost';
-
-
-                /* ---------------------------------------------
-                   LƯU COOKIE CỦA SESSION NÀY
-
-                   Khi người dùng nhập CAPTCHA,
-                   Cookie này sẽ được gửi lại cho proxy.
-                --------------------------------------------- */
-
-                currentCookie = data.cookie;
-
-
-                captchaReady = true;
-
-                setStatus(
-                    '✅ CAPTCHA đã sẵn sàng. Hãy nhập mã trong hình.'
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    'Lỗi CAPTCHA:',
-                    error
-                );
-
-                img.src = '';
-
-                img.alt = 'Không tải được CAPTCHA';
-
-                captchaReady = false;
-
-                currentCookie = '';
-
-                setStatus(
-                    '❌ Không tải được CAPTCHA: ' +
-                    error.message
-                );
-
-            } finally {
-
-                reloadButton.disabled = false;
-
+            } catch (e) {
+                img.alt = "Lỗi kết nối";
             }
         }
 
-
-        /* =====================================================
-           2. TRA CỨU VẬN ĐƠN
-        ===================================================== */
-
+        // 2. Gửi dữ liệu đi tra cứu
         async function submitTracking() {
+            const code = document.getElementById('trackingCode').value.trim();
+            const captcha = document.getElementById('captchaText').value.trim();
+            const btn = document.getElementById('btnSubmit');
 
-            const code =
-                document
-                    .getElementById('trackingCode')
-                    .value
-                    .trim()
-                    .toUpperCase();
-
-
-            const captcha =
-                document
-                    .getElementById('captchaText')
-                    .value
-                    .trim();
-
-
-            const btn =
-                document.getElementById('btnSubmit');
-
-
-            /* ---------------------------------------------
-               KIỂM TRA DỮ LIỆU
-            --------------------------------------------- */
-
-            if (!code) {
-
-                alert(
-                    'Vui lòng nhập mã vận đơn!'
-                );
-
+            if (!code || !captcha) {
+                alert('Vui lòng nhập đầy đủ Mã vận đơn và CAPTCHA!');
                 return;
             }
-
-
-            if (!captcha) {
-
-                alert(
-                    'Vui lòng nhập mã CAPTCHA!'
-                );
-
-                return;
-            }
-
-
-            if (!captchaReady || !currentCookie) {
-
-                alert(
-                    'Phiên CAPTCHA chưa sẵn sàng. ' +
-                    'Vui lòng bấm "Đổi mã" và thử lại.'
-                );
-
-                return;
-            }
-
-
-            /* ---------------------------------------------
-               KHÓA NÚT TRONG KHI TRA CỨU
-            --------------------------------------------- */
 
             btn.disabled = true;
-
-            btn.innerText =
-                '⏳ Đang tra cứu dữ liệu...';
-
-            setStatus(
-                '⏳ Đang gửi yêu cầu tới VNPost...'
-            );
-
+            btn.innerText = "⏳ Đang tra cứu dữ liệu...";
 
             try {
+                const res = await fetch('/api/proxy?action=track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        trackingCode: code,
+                        captchaText: captcha,
+                        cookie: currentCookie
+                    })
+                });
 
-                /* -----------------------------------------
-                   GỌI PROXY
-                ----------------------------------------- */
-
-                const response = await fetch(
-                    '/api/proxy?action=track',
-                    {
-                        method: 'POST',
-
-                        headers: {
-                            'Content-Type':
-                                'application/json'
-                        },
-
-                        body: JSON.stringify({
-
-                            trackingCode: code,
-
-                            captchaText: captcha,
-
-                            cookie: currentCookie
-
-                        })
-                    }
-                );
-
-
-                /* -----------------------------------------
-                   ĐỌC RESPONSE
-                ----------------------------------------- */
-
-                const text =
-                    await response.text();
-
-
-                let data;
-
-
-                try {
-
-                    data = JSON.parse(text);
-
-                } catch (jsonError) {
-
-                    console.error(
-                        'Response không phải JSON:',
-                        text
-                    );
-
-                    throw new Error(
-                        'VNPost/Proxy không trả dữ liệu JSON hợp lệ.'
-                    );
-                }
-
-
-                console.log(
-                    'TRACK RESPONSE:',
-                    data
-                );
-
-
-                /* -----------------------------------------
-                   KIỂM TRA HTTP
-                ----------------------------------------- */
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        data?.error ||
-                        'Lỗi HTTP ' +
-                        response.status
-                    );
-                }
-
-
-                /* -----------------------------------------
-                   KIỂM TRA DỮ LIỆU VẬN ĐƠN
-                ----------------------------------------- */
-
-                if (
-                    data &&
-                    data.info &&
-                    data.info.ID
-                ) {
-
-                    setStatus(
-                        '✅ Tra cứu thành công!'
-                    );
-
-
-                    renderA4Form(data);
-
-
-                    /*
-                     * Đợi trình duyệt cập nhật DOM
-                     * trước khi mở hộp thoại in.
-                     */
-
-                    setTimeout(
-                        function () {
-
-                            window.print();
-
-                        },
-                        300
-                    );
-
-
-                } else {
-
-                    console.error(
-                        'Dữ liệu VNPost không hợp lệ:',
-                        data
-                    );
-
-
-                    alert(
-                        data?.error ||
-                        'Mã CAPTCHA không đúng hoặc không tìm thấy dữ liệu vận đơn. Vui lòng thử lại!'
-                    );
-
-
-                    /*
-                     * CAPTCHA thường chỉ sử dụng được
-                     * cho một lần tra cứu.
-                     *
-                     * Vì vậy lấy CAPTCHA mới.
-                     */
-
-                    document
-                        .getElementById('captchaText')
-                        .value = '';
-
-
-                    loadCaptcha();
-
-                }
-
-
-            } catch (error) {
-
-                console.error(
-                    'Lỗi tra cứu:',
-                    error
-                );
-
-
-                alert(
-                    'Lỗi tra cứu: ' +
-                    error.message
-                );
-
-
-                setStatus(
-                    '❌ ' +
-                    error.message
-                );
-
-
-            } finally {
-
+                const data = await res.json();
                 btn.disabled = false;
+                btn.innerText = "🚀 Tra Cứu & In A4 Ngay";
 
-                btn.innerText =
-                    '🚀 Tra Cứu & In A4 Ngay';
-
+                // Kiểm tra nếu API trả về đúng JSON vận đơn
+                if (data && data.info && data.info.ID) {
+                    renderA4Form(data);
+                    window.print(); // Mở cửa sổ in ấn A4
+                } else {
+                    alert('Mã CAPTCHA sai hoặc không tìm thấy thông tin vận đơn. Vui lòng nhập lại!');
+                    document.getElementById('captchaText').value = '';
+                    loadCaptcha(); // Tải lại captcha mới
+                }
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerText = "🚀 Tra Cứu & In A4 Ngay";
+                alert('Lỗi tra cứu: ' + e.message);
             }
         }
 
-
-        /* =====================================================
-           3. ESCAPE HTML
-
-           Tránh dữ liệu từ API làm hỏng giao diện HTML.
-        ===================================================== */
-
-        function escapeHtml(value) {
-
-            if (
-                value === null ||
-                value === undefined
-            ) {
-                return '';
-            }
-
-            return String(value)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-
-        /* =====================================================
-           4. TẠO PHIẾU A4
-        ===================================================== */
-
+        // 3. Đổ JSON vào khung in A4
         function renderA4Form(data) {
+            const info = data.info || {};
+            const locate = data.locate || [];
+            const delivery = (data.delivery && data.delivery.length > 0) ? data.delivery[0] : null;
 
-            const info =
-                data.info || {};
-
-
-            const locate =
-                Array.isArray(data.locate)
-                    ? data.locate
-                    : [];
-
-
-            const delivery =
-                (
-                    Array.isArray(data.delivery) &&
-                    data.delivery.length > 0
-                )
-                    ? data.delivery[0]
-                    : null;
-
-
-            /* ---------------------------------------------
-               TRẠNG THÁI
-            --------------------------------------------- */
-
-            let statusBadge =
-                'ĐANG VẬN CHUYỂN';
-
-
-            if (
-                delivery &&
-                delivery.STATUSTEXT
-            ) {
-
-                statusBadge =
-                    delivery.STATUSTEXT;
-
-            } else if (
-                locate.length > 0
-            ) {
-
-                statusBadge =
-                    locate[locate.length - 1]
-                        .StatusText ||
-                    statusBadge;
-
+            let statusBadge = "ĐANG VẬN CHUYỂN";
+            if (delivery && delivery.STATUSTEXT) {
+                statusBadge = delivery.STATUSTEXT;
+            } else if (locate.length > 0) {
+                statusBadge = locate[locate.length - 1].StatusText;
             }
 
-
-            /* ---------------------------------------------
-               SẮP XẾP LỊCH SỬ
-
-               Mới nhất lên đầu.
-            --------------------------------------------- */
-
-            const sortedLocate =
-                [...locate].reverse();
-
-
-            /* ---------------------------------------------
-               THÔNG TIN
-            --------------------------------------------- */
-
-            const trackingId =
-                escapeHtml(
-                    info.ID || ''
-                );
-
-
-            const weight =
-                escapeHtml(
-                    info.Weight || '0'
-                );
-
-
-            const bcGui =
-                escapeHtml(
-                    info.BC_GUI || '-'
-                );
-
-
-            const bcPhat =
-                escapeHtml(
-                    info.BC_PHAT || '-'
-                );
-
-
-            const nuocChapNhan =
-                escapeHtml(
-                    info.Nuoc_Chapnhan || 'VN'
-                );
-
-
-            const nuocPhat =
-                escapeHtml(
-                    info.Nuoc_Phat || 'VN'
-                );
-
-
-            const status =
-                escapeHtml(
-                    statusBadge
-                );
-
-
-            /* ---------------------------------------------
-               TẠO BẢNG LỊCH SỬ
-            --------------------------------------------- */
-
-            const historyRows =
-                sortedLocate
-                    .map(
-                        (item, index) => {
-
-                            const date =
-                                escapeHtml(
-                                    item.Date || ''
-                                );
-
-
-                            const time =
-                                escapeHtml(
-                                    item.TimeDetail || ''
-                                );
-
-
-                            const statusText =
-                                escapeHtml(
-                                    item.StatusText || ''
-                                );
-
-
-                            const posCode =
-                                escapeHtml(
-                                    item.POSCode || '-'
-                                );
-
-
-                            const position =
-                                escapeHtml(
-                                    typeof item.VI_TRI === 'string'
-                                        ? item.VI_TRI
-                                        : '-'
-                                );
-
-
-                            return `
-                                <tr class="${index === 0 ? 'latest-status' : ''}">
-
-                                    <td>
-                                        ${date}
-                                        ${time}
-                                    </td>
-
-                                    <td>
-                                        ${statusText}
-                                    </td>
-
-                                    <td>
-                                        ${posCode}
-                                    </td>
-
-                                    <td>
-                                        ${position}
-                                    </td>
-
-                                </tr>
-                            `;
-                        }
-                    )
-                    .join('');
-
-
-            /* ---------------------------------------------
-               HTML PHIẾU A4
-            --------------------------------------------- */
+            // Sắp xếp trạng thái mới nhất lên trên
+            const sortedLocate = [...locate].reverse();
 
             const html = `
-
                 <table class="header-table">
-
                     <tr>
-
                         <td>
-
-                            <div class="brand-title">
-                                InVanDon247
-                            </div>
-
-                            <div class="brand-subtitle">
-                                Hệ thống chuyển đổi & In phiếu bưu gửi A4 tự động
-                            </div>
-
+                            <div class="brand-title">InVanDon247</div>
+                            <div class="brand-subtitle">Hệ thống chuyển đổi & In phiếu bưu gửi A4 tự động</div>
                         </td>
-
-
                         <td class="header-meta">
-
-                            <div>
-                                Ngày in:
-                                ${escapeHtml(
-                                    new Date()
-                                        .toLocaleString('vi-VN')
-                                )}
-                            </div>
-
-                            <div>
-                                Đơn vị:
-                                <strong>
-                                    VNPOST (Bưu điện Việt Nam)
-                                </strong>
-                            </div>
-
+                            <div>Ngày in: ${new Date().toLocaleString('vi-VN')}</div>
+                            <div>Đơn vị: <strong>VNPOST (Bưu điện Việt Nam)</strong></div>
                         </td>
-
                     </tr>
-
                 </table>
-
-
-                <!-- TIÊU ĐỀ -->
 
                 <div class="doc-title-box">
-
-                    <div class="doc-title">
-                        XÁC NHẬN HÀNH TRÌNH BƯU GỬI
-                    </div>
-
-                    <div class="tracking-number">
-                        ${trackingId}
-                    </div>
-
+                    <div class="doc-title">XÁC NHẬN HÀNH TRÌNH BƯU GỬI</div>
+                    <div class="tracking-number">${info.ID || ''}</div>
                 </div>
-
-
-                <!-- THÔNG TIN TỔNG QUAN -->
 
                 <div class="info-grid">
-
                     <div class="card">
-
-                        <div class="card-header">
-                            Thông tin tổng quan
-                        </div>
-
-
-                        <div class="data-row">
-
-                            <span class="label">
-                                Mã bưu gửi:
-                            </span>
-
-                            <span class="value">
-                                ${trackingId}
-                            </span>
-
-                        </div>
-
-
-                        <div class="data-row">
-
-                            <span class="label">
-                                Khối lượng:
-                            </span>
-
-                            <span class="value">
-                                ${weight} g
-                            </span>
-
-                        </div>
-
-
-                        <div class="data-row">
-
-                            <span class="label">
-                                Trạng thái:
-                            </span>
-
-                            <span class="status-badge">
-                                ${status}
-                            </span>
-
-                        </div>
-
+                        <div class="card-header">Thông tin tổng quan</div>
+                        <div class="data-row"><span class="label">Mã bưu gửi:</span> <span class="value">${info.ID || '-'}</span></div>
+                        <div class="data-row"><span class="label">Khối lượng:</span> <span class="value">${info.Weight || '0'} g</span></div>
+                        <div class="data-row"><span class="label">Trạng thái:</span> <span class="status-badge">${statusBadge}</span></div>
                     </div>
-
-
                     <div class="card">
-
-                        <div class="card-header">
-                            Tuyến vận chuyển
-                        </div>
-
-
-                        <div class="data-row">
-
-                            <span class="label">
-                                Bưu cục gửi:
-                            </span>
-
-                            <span class="value">
-                                ${bcGui}
-                            </span>
-
-                        </div>
-
-
-                        <div class="data-row">
-
-                            <span class="label">
-                                Bưu cục phát:
-                            </span>
-
-                            <span class="value">
-                                ${bcPhat}
-                            </span>
-
-                        </div>
-
-
-                        <div class="data-row">
-
-                            <span class="label">
-                                Nước gửi/nhận:
-                            </span>
-
-                            <span class="value">
-                                ${nuocChapNhan}
-                                ➔
-                                ${nuocPhat}
-                            </span>
-
-                        </div>
-
+                        <div class="card-header">Tuyến vận chuyển</div>
+                        <div class="data-row"><span class="label">Bưu cục gửi:</span> <span class="value">${info.BC_GUI || '-'}</span></div>
+                        <div class="data-row"><span class="label">Bưu cục phát:</span> <span class="value">${info.BC_PHAT || '-'}</span></div>
+                        <div class="data-row"><span class="label">Nước gửi/nhận:</span> <span class="value">${info.Nuoc_Chapnhan || 'VN'} ➔ ${info.Nuoc_Phat || 'VN'}</span></div>
                     </div>
-
                 </div>
 
-
-                <!-- LỊCH SỬ -->
-
-                <div class="section-heading">
-
-                    Chi tiết lịch sử hành trình
-                    (${locate.length} công đoạn)
-
-                </div>
-
-
+                <div class="section-heading">Chi tiết lịch sử hành trình (${locate.length} công đoạn)</div>
+                
                 <table class="history-table">
-
                     <thead>
-
                         <tr>
-
-                            <th style="width: 110px;">
-                                Thời gian
-                            </th>
-
-                            <th>
-                                Nội dung trạng thái
-                            </th>
-
-                            <th style="width: 60px;">
-                                Mã BC
-                            </th>
-
-                            <th>
-                                Vị trí thực tế
-                            </th>
-
+                            <th style="width: 110px;">Thời gian</th>
+                            <th>Nội dung trạng thái</th>
+                            <th style="width: 60px;">Mã BC</th>
+                            <th>Vị trí thực tế</th>
                         </tr>
-
                     </thead>
-
-
                     <tbody>
-
-                        ${
-                            historyRows ||
-                            `
-                            <tr>
-                                <td colspan="4">
-                                    Không có dữ liệu hành trình.
-                                </td>
+                        ${sortedLocate.map((item, index) => `
+                            <tr class="${index === 0 ? 'latest-status' : ''}">
+                                <td>${item.Date} ${item.TimeDetail}</td>
+                                <td>${item.StatusText}</td>
+                                <td>${item.POSCode || '-'}</td>
+                                <td>${typeof item.VI_TRI === 'string' ? item.VI_TRI : '-'}</td>
                             </tr>
-                            `
-                        }
-
+                        `).join('')}
                     </tbody>
-
                 </table>
 
-
-                <!-- FOOTER -->
-
                 <div class="footer">
-
-                    Dữ liệu được truy xuất từ hệ thống VNPost
-                    qua cổng kết nối InVanDon247
-                    • Trang 1/1
-
+                    Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 • Trang 1/1
                 </div>
-
             `;
 
-
-            document
-                .getElementById('print-area')
-                .innerHTML = html;
+            document.getElementById('print-area').innerHTML = html;
         }
 
-
-        /* =====================================================
-           5. ENTER ĐỂ TRA CỨU
-        ===================================================== */
-
-        document
-            .getElementById('captchaText')
-            .addEventListener(
-                'keydown',
-                function(event) {
-
-                    if (
-                        event.key === 'Enter'
-                    ) {
-
-                        submitTracking();
-
-                    }
-
-                }
-            );
-
-
-        /* =====================================================
-           6. TỰ ĐỘNG LẤY CAPTCHA KHI MỞ TRANG
-        ===================================================== */
-
-        window.addEventListener(
-            'load',
-            function() {
-
-                loadCaptcha();
-
-            }
-        );
-
+        // Tự động lấy CAPTCHA ngay khi mở trang
+        window.onload = loadCaptcha;
     </script>
-
 </body>
 </html>

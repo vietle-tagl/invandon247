@@ -3,20 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InVanDon247.com - Tra Cứu & In A4</title>
+    <title>InVanDon247 - Tra Cứu & In A4</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
-        .web-container { max-width: 500px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .web-container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { color: #003b7a; margin-top: 0; text-align: center; font-size: 20px; }
         
-        .iframe-wrapper { width: 100%; height: 380px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; margin-bottom: 15px; }
-        iframe { width: 100%; height: 100%; border: none; }
+        /* CẮT VÙNG FORM VÀNG CỦA VNPOST */
+        .crop-container {
+            width: 100%;
+            height: 170px; /* Chiều cao vừa đủ gói gọn thanh màu vàng */
+            border: 2px solid #ffc600;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+            background: #ffc600;
+        }
+
+        .crop-container iframe {
+            width: 1300px; /* Đẩy kích thước iframe rộng để tránh vỡ giao diện */
+            height: 1000px;
+            border: none;
+            position: absolute;
+            /* Dịch chuyển để đưa đúng khối form màu vàng vào góc nhìn */
+            top: -160px;  
+            left: -50px;
+            zoom: 0.9; /* Thu nhỏ nhẹ nếu cần */
+        }
 
         .btn-submit { background-color: #003b7a; color: white; padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
         .btn-submit:hover { background-color: #002855; }
-        
-        .instruction { font-size: 13px; color: #555; background: #eef5ff; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
 
+        /* GIAO DIỆN IN A4 */
         #print-area { display: none; background: #fff; }
 
         @media print {
@@ -43,57 +62,62 @@
 <body>
 
     <div class="web-container no-print">
-        <h2>InVanDon247 - Tra Cứu & In A4</h2>
+        <h2>InVanDon247 - Tra Cứu VNPost</h2>
         
-        <div class="instruction">
-            👉 Nhập <b>Mã vận đơn</b> và <b>CAPTCHA</b> trực tiếp khung VNPost bên dưới, sau đó bấm <b>Tra cứu</b> trên khung hoặc bấm nút xanh bên dưới để tự động chuyển sang bản in A4.
+        <!-- Khung hiển thị đúng Form màu vàng -->
+        <div class="crop-container">
+            <iframe id="vnpostFrame" src="https://vnpost.vn/vi"></iframe>
         </div>
 
-        <div class="iframe-wrapper">
-            <iframe id="vnpostFrame" src="https://vnpost.vn/vi/Tracking"></iframe>
-        </div>
-
-        <button class="btn-submit" onclick="captureAndPrint()">🚀 Chuyển Thành Bản In A4 & In</button>
+        <button class="btn-submit" onclick="extractDataAndPrint()">🚀 Đổ Dữ Liệu Tra Cứu Vào Bảng & In A4</button>
     </div>
 
+    <!-- Khu vực hiển thị bản in A4 -->
     <div id="print-area"></div>
 
     <script>
-        function captureAndPrint() {
+        function extractDataAndPrint() {
             try {
                 let frame = document.getElementById('vnpostFrame');
                 let frameDoc = frame.contentDocument || frame.contentWindow.document;
+                
+                // Lấy toàn bộ văn bản từ trang VNPost sau khi bấm Theo dõi
                 let rawText = frameDoc.body.innerText;
 
+                // Kiểm tra xem dữ liệu đã được trả về chưa
                 if (!rawText.includes('Khối lượng') && !rawText.includes('Bưu gửi số')) {
-                    alert('Bạn chưa thực hiện tra cứu thành công trên khung VNPost hoặc thông tin chưa hiển thị. Vui lòng kiểm tra lại CAPTCHA!');
+                    alert('Chưa có dữ liệu tra cứu! Bạn hãy điền Mã + CAPTCHA và bấm "Theo dõi" ở khung màu vàng trước nhé.');
                     return;
                 }
 
-                renderPrintArea(rawText);
+                renderPrintForm(rawText);
                 window.print();
             } catch (e) {
-                // Trường hợp trình duyệt chặn Cross-Origin (CORS) đọc iframe
-                alert('Vui lòng bôi đen toàn bộ kết quả tra cứu trong khung trên, bấm Ctrl+C rồi bấm nút "In A4" lại nhé!');
+                alert('Trình duyệt chặn đọc dữ liệu Cross-Origin từ Iframe! Nếu bị lỗi này, bạn cần bật tiện ích gỡ Cross-Origin (CORS) trên trình duyệt.');
             }
         }
 
-        function renderPrintArea(rawText) {
+        function renderPrintForm(rawText) {
+            // Rút trích Mã vận đơn
             let codeMatch = rawText.match(/(?:Bưu gửi số|Mã vận đơn|Mã bưu gửi)\s*:\s*([A-Z0-9]+)/i) || rawText.match(/([A-Z]{2}\d{9}[A-Z]{2})/i);
             let code = codeMatch ? codeMatch[1] : 'Không xác định';
 
+            // Rút trích Khối lượng
             let weightMatch = rawText.match(/Khối lượng[^:]*:\s*([\d\.,]+)/i);
             let weight = weightMatch ? weightMatch[1] : '0';
 
+            // Rút trích Trạng thái
             let statusMatch = rawText.match(/Trạng thái\s*:\s*([^\n]+)/i);
             let status = statusMatch ? statusMatch[1].trim() : 'Đang cập nhật';
 
-            let fromMatch = rawText.match(/(?:Bưu cục nhận|Nơi gửi)\s*:\s*([^\n]+)/i);
+            // Rút trích Bưu cục nhận / phát
+            let fromMatch = rawText.match(/(?:Bưu cục nhận)\s*:\s*([^\n]+)/i);
             let from = fromMatch ? fromMatch[1].trim() : '-';
 
-            let toMatch = rawText.match(/(?:Bưu cục phát|Nơi nhận)\s*:\s*([^\n]+)/i);
+            let toMatch = rawText.match(/(?:Bưu cục phát)\s*:\s*([^\n]+)/i);
             let to = toMatch ? toMatch[1].trim() : '-';
 
+            // Parse lịch sử hành trình (Timeline)
             let timeline = [];
             let lines = rawText.split('\n');
             for (let i = 0; i < lines.length; i++) {
@@ -104,7 +128,9 @@
                     let j = i + 1;
                     while (j < lines.length && !lines[j].trim().match(/^\d{2}\/\d{2}\/\d{4}/)) {
                         let subLine = lines[j].trim();
-                        if (subLine && !subLine.includes('Chi tiết bưu gửi')) detail.push(subLine);
+                        if (subLine && !subLine.includes('GIẢI QUYẾT KHIẾU NẠI') && !subLine.includes('THÔNG TIN TRẠNG THÁI')) {
+                            detail.push(subLine);
+                        }
                         j++;
                     }
                     timeline.push({ time: time, detail: detail.join(' ') });

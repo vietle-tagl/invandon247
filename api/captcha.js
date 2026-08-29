@@ -1,5 +1,10 @@
 export default async function handler(req, res) {
+    // Cho phép gọi API từ mọi nguồn (Bypass CORS)
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+
     try {
+        // Gọi thẳng tới BotDetect Captcha của VNPost
         const captchaUrl = `https://vnpost.vn/captcha/default?${Date.now()}`;
         const response = await fetch(captchaUrl, {
             headers: {
@@ -9,17 +14,18 @@ export default async function handler(req, res) {
             }
         });
 
-        // Lấy Session Cookie gốc từ phản hồi của VNPost
-        const setCookieHeader = response.headers.get('set-cookie') || '';
+        if (!response.ok) throw new Error('VNPost Error');
 
-        const buffer = await response.arrayBuffer();
-        const base64Image = Buffer.from(buffer).toString('base64');
+        // Chuyển ảnh thành chuỗi Base64
+        const arrayBuffer = await response.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        const contentType = response.headers.get('content-type') || 'image/png';
 
+        // Trả về ảnh chuẩn Base64 để hiển thị ngay trên web
         res.status(200).json({
-            image: `data:image/png;base64,${base64Image}`,
-            cookie: setCookieHeader
+            image: `data:${contentType};base64,${base64}`
         });
     } catch (error) {
-        res.status(500).json({ error: 'Không thể kết nối VNPost' });
+        res.status(500).json({ error: 'Lỗi lấy CAPTCHA' });
     }
 }

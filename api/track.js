@@ -9,6 +9,10 @@ export default async function handler(req, res) {
     const { code, captcha, cookie } = req.body;
 
     try {
+        const params = new URLSearchParams();
+        params.append('ItemCode', code);
+        params.append('CaptchaCode', captcha);
+
         const response = await fetch('https://vnpost.vn/vi/Tracking/TraCuuHanhTrinh', {
             method: 'POST',
             headers: {
@@ -19,10 +23,7 @@ export default async function handler(req, res) {
                 'Origin': 'https://vnpost.vn',
                 'Referer': 'https://vnpost.vn/vi/Tracking'
             },
-            body: new URLSearchParams({
-                'ItemCode': code,
-                'CaptchaCode': captcha
-            })
+            body: params.toString()
         });
 
         const html = await response.text();

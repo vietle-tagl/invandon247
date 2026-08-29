@@ -12,8 +12,8 @@
         .step-box { background: #eef5ff; border: 1px dashed #003b7a; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
         .step-title { font-weight: bold; color: #003b7a; margin-bottom: 8px; font-size: 15px; }
 
-        .btn-open { background-color: #17a2b8; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; font-weight: bold; width: 100%; text-decoration: none; display: block; text-align: center; box-sizing: border-box; }
-        .btn-open:hover { background-color: #138496; }
+        .btn-open { background-color: #ffb800; color: #000; padding: 14px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; text-decoration: none; display: block; text-align: center; box-sizing: border-box; }
+        .btn-open:hover { background-color: #e5a500; }
 
         textarea { width: 100%; height: 160px; padding: 10px; border: 2px dashed #28a745; border-radius: 4px; box-sizing: border-box; font-size: 13px; margin-bottom: 10px; outline: none; }
         textarea:focus { border-color: #1e7e34; background-color: #f9fff9; }
@@ -53,13 +53,13 @@
         <h2>InVanDon247.com - Công Cụ In Vận Đơn A4</h2>
         
         <div class="step-box">
-            <div class="step-title">Bước 1: Mở trang tra cứu chuẩn VNPost</div>
-            <a href="https://vietnampost.vn/tra-cuu-hanh-trinh-buu-gui" target="_blank" class="btn-open">🔗 Mở Trang Tra Cứu VNPost</a>
+            <div class="step-title">Bước 1: Mở trang chủ VNPost để tra cứu</div>
+            <a href="https://vnpost.vn/vi" target="_blank" class="btn-open">🟡 Mở Trang Tra Cứu VNPost (vnpost.vn/vi)</a>
         </div>
 
         <div class="step-box" style="background: #eafaf1; border-color: #28a745;">
-            <div class="step-title" style="color: #28a745;">Bước 2: Dán nội dung tra cứu vào đây (Tự động bật lệnh in A4)</div>
-            <textarea id="rawText" placeholder="Trên trang VNPost sau khi tra xong: Nhấn Ctrl+A rồi Ctrl+C. Quay lại đây dán (Ctrl+V) vào ô này..." oninput="autoProcess(this)"></textarea>
+            <div class="step-title" style="color: #28a745;">Bước 2: Dán nội dung kết quả tra cứu vào đây</div>
+            <textarea id="rawText" placeholder="Sau khi tra cứu xong tại VNPost: Bấm Ctrl+A rồi Ctrl+C. Quay lại đây dán (Ctrl+V) vào ô này..." oninput="autoProcess(this)"></textarea>
             <button class="btn-print" onclick="processManualText()">🚀 Xử Lý Dữ Liệu & In A4</button>
         </div>
     </div>
@@ -67,7 +67,6 @@
     <div id="print-area"></div>
 
     <script>
-        // Tự động nhận diện ngay khi dán dữ liệu vào
         function autoProcess(element) {
             if (element.value.trim().length > 80) {
                 processManualText();
@@ -177,7 +176,7 @@
 
             let htmlContent = `
                 <div class="header-container">
-                    <div><img src="https://vietnampost.vn/images/logo.png" style="height:28px;width:auto;" alt="Vietnam Post"/></div>
+                    <div><img src="https://vnpost.vn/images/logo.png" style="height:28px;width:auto;" alt="Vietnam Post"/></div>
                     <div class="header-title">THÔNG TIN VẬN ĐƠN</div>
                 </div>
                 <div class="box-section">

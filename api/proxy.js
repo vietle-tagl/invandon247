@@ -1,61 +1,64 @@
 export default async function handler(req, res) {
+    // Cho phép CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
 
     const { action } = req.query;
 
     try {
-        // BƯỚC 1: LẤY CAPTCHA
+        // 1. LẤY CAPTCHA VÀ SESSION COOKIE TỪ VNPOST
         if (action === 'get-captcha') {
-            const response = await fetch('https://vnpost.vn/vi/Tracking/GetCaptcha', {
+            const response = await fetch('https://vnpost.vn/handle-captcha/refresh-captcha', {
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
 
-            if (!response.ok) {
-                return res.status(500).json({ error: `VNPost chặn IP Server Vercel (Status ${response.status})` });
-            }
-
-            // Lấy Set-Cookie từ VNPost
+            // Lấy Cookie phiên làm việc (vnpost_session)
             const rawCookies = response.headers.getSetCookie ? response.headers.getSetCookie() : [response.headers.get('set-cookie')];
-            const cookieHeader = rawCookies.filter(Boolean).map(c => c.split(';')[0]).join('; ');
+            const sessionCookie = rawCookies.map(c => c ? c.split(';')[0] : '').join('; ');
 
-            // Chuyển ảnh sang Base64
-            const arrayBuffer = await response.arrayBuffer();
-            const base64Image = Buffer.from(arrayBuffer).toString('base64');
+            const data = await response.json();
 
-            return res.status(200).json({
-                captcha: `data:image/png;base64,${base64Image}`,
-                cookie: cookieHeader
-            });
+            if (data && data.captcha) {
+                return res.status(200).json({
+                    captchaUrl: data.captcha,
+                    cookie: sessionCookie
+                });
+            } else {
+                return res.status(500).json({ error: 'Không lấy được URL CAPTCHA từ VNPost' });
+            }
         }
 
-        // BƯỚC 2: TRA CỨU
-        if (action === 'track') {
+        // 2. TRA CỨU VẬN ĐƠN VỚI MÃ + CAPTCHA + COOKIE
+        if (action === 'track' && req.method === 'POST') {
             const { trackingCode, captchaText, cookie } = req.body;
 
-            const params = new URLSearchParams();
-            params.append('ItemCode', trackingCode);
-            params.append('CaptchaText', captchaText);
+            if (!trackingCode || !captchaText) {
+                return res.status(400).json({ error: 'Thiếu mã vận đơn hoặc mã CAPTCHA' });
+            }
 
-            const response = await fetch('https://vnpost.vn/vi/Tracking/Index', {
-                method: 'POST',
+            const targetUrl = `https://vnpost.vn/postcode/thong-tin?captcha=${encodeURIComponent(captchaText)}&post_code=${encodeURIComponent(trackingCode)}`;
+
+            const response = await fetch(targetUrl, {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Cookie': cookie || '',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Referer': 'https://vnpost.vn/vi/Tracking'
-                },
-                body: params.toString()
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cookie': cookie || ''
+                }
             });
 
-            const html = await response.text();
-            return res.status(200).json({ html });
+            const resultJson = await response.json();
+            return res.status(200).json(resultJson);
         }
 
         return res.status(400).json({ error: 'Action không hợp lệ' });

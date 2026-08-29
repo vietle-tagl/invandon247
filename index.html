@@ -1,789 +1,1885 @@
-javascript:(function(){
-
-    /* ==============================
-       1. LẤY DỮ LIỆU TỪ TRANG VNPOST
-       ============================== */
-
-    let text = document.body.innerText || "";
-
-    function clean(s){
-        return (s || "")
-            .replace(/\s+/g," ")
-            .trim();
-    }
-
-    let codeMatch = text.match(/Bưu gửi số\s*:\s*([A-Z0-9]+)/i);
-    let code = codeMatch ? codeMatch[1] : "VNPOST_VAN_DON";
-
-    let weightMatch = text.match(/Khối lượng[^:]*:\s*([\d\.,]+)/i);
-    let weight = weightMatch ? weightMatch[1] : "";
-
-    let statusMatch = text.match(/Trạng thái\s*:\s*([^\n]+)/i);
-    let status = statusMatch ? clean(statusMatch[1]) : "";
-
-    let fromMatch = text.match(/Bưu cục nhận\s*:\s*([^\n]+)/i);
-    let from = fromMatch ? clean(fromMatch[1]) : "";
-
-    let toMatch = text.match(/Bưu cục phát\s*:\s*([^\n]+)/i);
-    let to = toMatch ? clean(toMatch[1]) : "";
-
-    /* ==============================
-       2. LOGO VIETNAM POST
-       ============================== */
-
-    let logoSrc = "";
-
-    /*
-      Ưu tiên logo đang có trên trang VNPost
-    */
-    let logoCandidates = document.querySelectorAll(
-        'img[src*="logo"], img[alt*="logo" i], header img'
-    );
-
-    for(let i=0;i<logoCandidates.length;i++){
-        let src = logoCandidates[i].src || "";
-        if(src && !src.includes("flag") && !src.includes("exit")){
-            logoSrc = src;
-            break;
-        }
-    }
-
-    /*
-      Nếu không tìm được logo trên trang,
-      dùng logo chính thức Vietnam Post.
-    */
-    if(!logoSrc){
-        logoSrc =
-        "https://vietnampost.vn/uploads/storage/vnp/2025/09/15/3aa71b839430793ee9e4b9f47415c54a878027ec.jpg";
-    }
-
-    /* ==============================
-       3. LẤY THÔNG TIN PHÁT
-       ============================== */
-
-    let deliveryInfo = [];
-
-    let deliverySectionIdx = text.indexOf("THÔNG TIN PHÁT");
-
-    if(deliverySectionIdx !== -1){
-
-        let subText = text.substring(deliverySectionIdx);
-        let lines = subText.split("\n");
-
-        for(let i=0;i<lines.length;i++){
-
-            let line = clean(lines[i]);
-
-            if(line.match(/^\d{2}\/\d{2}\/\d{4}/)){
-
-                let parts = line.split(/\t+|\s{2,}/);
-
-                if(parts.length >= 3){
-
-                    deliveryInfo.push({
-                        date: clean(parts[0]),
-                        office: clean(parts[1]),
-                        detail: clean(parts.slice(2).join(" "))
-                    });
-
-                }else{
-
-                    let date = clean(line);
-                    let office = clean(lines[i+1] || "");
-                    let detail = clean(lines[i+2] || "");
-
-                    deliveryInfo.push({
-                        date: date,
-                        office: office,
-                        detail: detail
-                    });
-
-                    i += 2;
-                }
-            }
-        }
-    }
-
-    /* ==============================
-       4. LẤY LỊCH SỬ HÀNH TRÌNH
-       ============================== */
-
-    let timeline = [];
-
-    let mainText = text;
-
-    if(deliverySectionIdx !== -1){
-        mainText = text.substring(0, deliverySectionIdx);
-    }
-
-    let lines = mainText.split("\n");
-
-    for(let i=0;i<lines.length;i++){
-
-        let line = clean(lines[i]);
-
-        if(line.match(/^\d{2}\/\d{2}\/\d{4}/)){
-
-            let time = line;
-            let detail = [];
-
-            let j = i + 1;
-
-            while(
-                j < lines.length &&
-                !clean(lines[j]).match(/^\d{2}\/\d{2}\/\d{4}/)
-            ){
-
-                let subLine = clean(lines[j]);
-
-                if(
-                    subLine.toUpperCase().includes("DỊCH VỤ THỊNH HÀNH") ||
-                    subLine.toUpperCase().includes("POSTMART") ||
-                    subLine.toUpperCase().includes("ĐỐI TÁC CỦA VIETNAM POST")
-                ){
-                    break;
-                }
-
-                if(subLine){
-                    detail.push(subLine);
-                }
-
-                j++;
-            }
-
-            timeline.push({
-                time: time,
-                detail: clean(detail.join(" "))
-            });
-        }
-    }
-
-    /*
-      QUAN TRỌNG:
-      VNPost trả dữ liệu từ cũ -> mới.
-      Đảo lại để bản in mới nhất nằm trên cùng.
-    */
-    timeline.reverse();
-
-
-    /* ==============================
-       5. TẠO HTML THÔNG TIN PHÁT
-       ============================== */
-
-    let deliveryHtml = "";
-
-    if(deliveryInfo.length > 0){
-
-        deliveryHtml = `
-        <div class="box-section delivery-section">
-
-            <div class="box-title">
-                THÔNG TIN PHÁT
-            </div>
-
-            <table class="delivery-table">
-
-                <thead>
-                    <tr>
-                        <th style="width:20%;">Ngày</th>
-                        <th style="width:28%;">Bưu cục</th>
-                        <th>Chi tiết</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    ${deliveryInfo.map(item => `
-                        <tr>
-                            <td>${item.date}</td>
-                            <td>${item.office}</td>
-                            <td>${item.detail}</td>
-                        </tr>
-                    `).join("")}
-
-                </tbody>
-
-            </table>
-
-        </div>
-        `;
-    }
-
-
-    /* ==============================
-       6. MỞ CỬA SỔ IN
-       ============================== */
-
-    let printWin = window.open(
-        "",
-        "_blank",
-        "width=950,height=1000"
-    );
-
-    if(!printWin){
-
-        alert(
-            "Trình duyệt đã chặn cửa sổ in.\n" +
-            "Hãy cho phép trang web mở cửa sổ mới rồi thử lại."
-        );
-
-        return;
-    }
-
-
-    /* ==============================
-       7. HTML BẢN IN
-       ============================== */
-
-    printWin.document.write(`
-
 <!DOCTYPE html>
-
-<html>
-
+<html lang="vi">
 <head>
-
 <meta charset="UTF-8">
-
-<title>${code}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InVandon247 - Tra cứu vận đơn VNPost</title>
 
 <style>
-
-/* =========================================
-   KHỔ GIẤY
-   ========================================= */
-
-@page{
-    size:A4 portrait;
-    margin:7mm 8mm 9mm 8mm;
-}
-
-html,body{
-    margin:0;
-    padding:0;
-    background:white;
-}
-
-body{
-    font-family:Arial,Helvetica,sans-serif;
-    font-size:8.5px;
-    color:#111;
-    line-height:1.2;
-}
-
-
-/* =========================================
-   HEADER
-   ========================================= */
-
-.header-container{
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:space-between;
-
-    border-bottom:2px solid #173b78;
-
-    padding-bottom:4px;
-
-    margin-bottom:5px;
-
-}
-
-.logo-area{
-    width:150px;
-    display:flex;
-    align-items:center;
-}
-
-.logo-area img{
-
-    width:auto;
-    height:38px;
-
-    max-width:145px;
-
-    object-fit:contain;
-
-    display:block;
-
-}
-
-.header-right{
-
-    text-align:right;
-
-}
-
-.header-title{
-
-    font-size:14px;
-
-    font-weight:bold;
-
-    color:#173b78;
-
-    text-transform:uppercase;
-
-    margin-bottom:2px;
-
-}
-
-.header-subtitle{
-
-    font-size:7.5px;
-
-    color:#666;
-
-}
-
-
-/* =========================================
-   BOX
-   ========================================= */
-
-.box-section{
-
-    border:1px solid #333;
-
-    padding:4px 6px;
-
-    margin-bottom:5px;
-
-    background:#fff;
-
-    break-inside:avoid;
-
-    page-break-inside:avoid;
-
-}
-
-.box-title{
-
-    font-weight:bold;
-
-    font-size:9px;
-
-    color:#173b78;
-
-    text-transform:uppercase;
-
-    border-bottom:1px solid #d5dce5;
-
-    padding-bottom:2px;
-
-    margin-bottom:3px;
-
-}
-
-
-/* =========================================
-   THÔNG TIN BƯU GỬI
-   ========================================= */
-
-.info-grid{
-
-    display:grid;
-
-    grid-template-columns:
-        1.35fr
-        1fr
-        1.45fr;
-
-    gap:2px 10px;
-
-}
-
-.info-item{
-
-    line-height:1.25;
-
-    min-width:0;
-
-}
-
-.info-item strong{
-
-    color:#444;
-
-}
-
-.code{
-
-    font-size:10px;
-
-    font-weight:bold;
-
-    color:#173b78;
-
-}
-
-.status{
-
-    color:#008000;
-
-    font-weight:bold;
-
-}
-
-
-/* =========================================
-   LỊCH SỬ
-   ========================================= */
-
-.timeline-section{
-
-    padding-bottom:3px;
-
-}
-
-.timeline-container{
-
-    column-count:2;
-
-    column-gap:10px;
-
-    column-rule:1px solid #d5d5d5;
-
-    column-fill:auto;
-
-}
-
-
-/*
-   Mỗi sự kiện là một khối không được
-   chia đôi giữa 2 cột / 2 trang.
-*/
-
-.timeline-item{
-
-    display:block;
-
-    break-inside:avoid;
-
-    page-break-inside:avoid;
-
-    margin-bottom:3px;
-
-    padding-bottom:3px;
-
-    border-bottom:1px dotted #d4d4d4;
-
-}
-
-.timeline-time{
-
-    font-weight:bold;
-
-    color:#173b78;
-
-    font-size:8px;
-
-    margin-bottom:1px;
-
-}
-
-.timeline-detail{
-
-    color:#222;
-
-    font-size:8px;
-
-    line-height:1.22;
-
-}
-
-
-/* =========================================
-   THÔNG TIN PHÁT
-   ========================================= */
-
-.delivery-section{
-
-    margin-top:4px;
-
-}
-
-.delivery-table{
-
-    width:100%;
-
-    border-collapse:collapse;
-
-    table-layout:fixed;
-
-    font-size:8px;
-
-}
-
-.delivery-table th,
-.delivery-table td{
-
-    border:1px solid #bfc5cc;
-
-    padding:3px 4px;
-
-    text-align:left;
-
-    vertical-align:top;
-
-}
-
-.delivery-table th{
-
-    background:#f1f4f7;
-
-    color:#173b78;
-
-    font-weight:bold;
-
-}
-
-
-/* =========================================
-   FOOTER
-   ========================================= */
-
-.footer{
-
-    margin-top:5px;
-
-    padding-top:3px;
-
-    border-top:1px solid #d5d5d5;
-
-    text-align:center;
-
-    color:#777;
-
-    font-size:7px;
-
-}
-
-
-/* =========================================
-   IN
-   ========================================= */
-
-@media print{
-
-    body{
-        -webkit-print-color-adjust:exact;
-        print-color-adjust:exact;
+    * {
+        box-sizing: border-box;
     }
 
-    .box-section{
-        break-inside:auto;
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f6f8;
+        color: #111;
     }
 
-    .timeline-item{
-        break-inside:avoid;
-        page-break-inside:avoid;
+    /* =========================
+       GIAO DIỆN TRA CỨU
+       ========================= */
+
+    .app {
+        max-width: 720px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 28px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.08);
     }
 
-}
-
-
-/* =========================================
-   TRÊN MÀN HÌNH
-   ========================================= */
-
-@media screen{
-
-    body{
-        width:194mm;
-        margin:10px auto;
-        padding:10px;
-        box-shadow:0 0 8px #aaa;
+    .app-header {
+        text-align: center;
+        margin-bottom: 25px;
     }
 
-}
+    .app-header img {
+        width: 180px;
+        height: auto;
+        object-fit: contain;
+    }
 
+    .app-header h1 {
+        margin: 12px 0 5px;
+        color: #003b7a;
+        font-size: 24px;
+    }
+
+    .app-header p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 7px;
+        color: #333;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        height: 44px;
+        padding: 0 13px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+        outline: none;
+    }
+
+    input[type="text"]:focus {
+        border-color: #0066b3;
+        box-shadow: 0 0 0 2px rgba(0,102,179,.1);
+    }
+
+    .captcha-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .captcha-image {
+        width: 150px;
+        height: 44px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        object-fit: contain;
+        background: #fff;
+    }
+
+    .btn {
+        border: none;
+        border-radius: 6px;
+        padding: 11px 18px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .btn-refresh {
+        background: #eee;
+        color: #333;
+    }
+
+    .btn-search {
+        width: 100%;
+        margin-top: 10px;
+        background: #003b7a;
+        color: white;
+        height: 46px;
+    }
+
+    .btn-search:hover {
+        background: #002d5d;
+    }
+
+    .status {
+        text-align: center;
+        margin-top: 15px;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .error {
+        color: #c62828;
+        background: #ffebee;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 15px;
+        display: none;
+    }
+
+    /* =========================
+       KHU VỰC IN
+       ========================= */
+
+    #printArea {
+        display: none;
+    }
+
+    /* =========================
+       A4
+       ========================= */
+
+    .print-page {
+        width: 210mm;
+        height: 297mm;
+        background: white;
+        margin: 0 auto 15px;
+        padding: 8mm 9mm 7mm 9mm;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* =========================
+       HEADER
+       ========================= */
+
+    .print-header {
+        height: 18mm;
+        border-bottom: 1.2px solid #003b7a;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-shrink: 0;
+    }
+
+    .logo-wrap {
+        width: 52mm;
+        height: 16mm;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .logo-wrap img {
+        width: 42mm;
+        max-height: 15mm;
+        object-fit: contain;
+        object-position: left top;
+    }
+
+    .header-right {
+        text-align: right;
+        padding-top: 1mm;
+    }
+
+    .header-right .title {
+        font-size: 13px;
+        font-weight: bold;
+        color: #003b7a;
+        text-transform: uppercase;
+    }
+
+    .header-right .subtitle {
+        font-size: 7px;
+        color: #666;
+        margin-top: 2px;
+    }
+
+    /* =========================
+       BOX
+       ========================= */
+
+    .box-section {
+        border: 1px solid #333;
+        padding: 4px 6px;
+        margin-top: 5px;
+        flex-shrink: 0;
+        background: #fff;
+    }
+
+    .box-title {
+        color: #003b7a;
+        font-size: 8.5px;
+        font-weight: bold;
+        text-transform: uppercase;
+        border-bottom: 1px solid #aaa;
+        padding-bottom: 2px;
+        margin-bottom: 3px;
+    }
+
+    /* =========================
+       THÔNG TIN BƯU GỬI
+       ========================= */
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 1fr 1.35fr;
+        column-gap: 8px;
+        row-gap: 2px;
+        font-size: 8px;
+        line-height: 1.25;
+    }
+
+    .info-item {
+        min-width: 0;
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: #444;
+    }
+
+    .info-value {
+        color: #111;
+    }
+
+    .info-value.code {
+        font-weight: bold;
+        font-size: 9px;
+    }
+
+    .status-success {
+        color: #008000;
+        font-weight: bold;
+    }
+
+    /* =========================
+       LỊCH SỬ
+       ========================= */
+
+    .timeline-section {
+        margin-top: 5px;
+        border: 1px solid #333;
+        padding: 4px 6px;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .timeline-title {
+        color: #003b7a;
+        font-size: 8.5px;
+        font-weight: bold;
+        text-transform: uppercase;
+        border-bottom: 1px solid #aaa;
+        padding-bottom: 2px;
+        margin-bottom: 3px;
+        flex-shrink: 0;
+    }
+
+    .timeline-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 8px;
+        row-gap: 0;
+        align-content: start;
+        overflow: hidden;
+    }
+
+    .timeline-item {
+        border-bottom: 1px dashed #d5d5d5;
+        padding: 2.3px 2px 2.3px 0;
+        font-size: 7.2px;
+        line-height: 1.22;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        min-width: 0;
+    }
+
+    .timeline-time {
+        font-weight: bold;
+        color: #174f82;
+        white-space: nowrap;
+        margin-bottom: 1px;
+    }
+
+    .timeline-detail {
+        color: #222;
+        word-break: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .timeline-location {
+        color: #555;
+        margin-top: 1px;
+    }
+
+    /* =========================
+       THÔNG TIN PHÁT
+       ========================= */
+
+    .delivery-section {
+        border: 1px solid #333;
+        padding: 4px 6px;
+        margin-top: 5px;
+        flex-shrink: 0;
+    }
+
+    .delivery-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 7.5px;
+    }
+
+    .delivery-table th,
+    .delivery-table td {
+        border: 1px solid #aaa;
+        padding: 2.5px 4px;
+        text-align: left;
+        vertical-align: top;
+        line-height: 1.2;
+    }
+
+    .delivery-table th {
+        background: #f2f5f8;
+        color: #003b7a;
+        font-weight: bold;
+    }
+
+    .delivery-table th:nth-child(1) {
+        width: 18%;
+    }
+
+    .delivery-table th:nth-child(2) {
+        width: 28%;
+    }
+
+    .delivery-table th:nth-child(3) {
+        width: 54%;
+    }
+
+    /* =========================
+       FOOTER
+       ========================= */
+
+    .print-footer {
+        height: 7mm;
+        flex-shrink: 0;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        font-size: 6.5px;
+        color: #777;
+        padding-top: 3px;
+    }
+
+    .footer-line {
+        width: 100%;
+        border-top: 1px solid #ddd;
+        padding-top: 2px;
+        text-align: center;
+    }
+
+    /* =========================
+       PRINT
+       ========================= */
+
+    @media print {
+
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        html,
+        body {
+            width: 210mm;
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+
+        body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .app {
+            display: none !important;
+        }
+
+        #printArea {
+            display: block !important;
+        }
+
+        .print-page {
+            margin: 0;
+            page-break-after: always;
+            break-after: page;
+            box-shadow: none;
+        }
+
+        .print-page:last-child {
+            page-break-after: auto;
+            break-after: auto;
+        }
+    }
 </style>
-
 </head>
-
 
 <body>
 
+<!-- =========================================================
+     GIAO DIỆN TRA CỨU
+     ========================================================= -->
 
-<!-- ======================================
-     HEADER
-     ====================================== -->
+<div class="app" id="app">
 
-<div class="header-container">
+    <div class="app-header">
 
-    <div class="logo-area">
-
+        <!-- Logo chính thức Vietnam Post -->
         <img
-            src="${logoSrc}"
+            src="https://vietnampost.vn/uploads/storage/vnp/2025/09/15/3aa71b839430793ee9e4b9f47415c54a878027ec.jpg"
             alt="Vietnam Post"
-            onerror="
-                this.onerror=null;
-                this.src='https://vietnampost.vn/uploads/storage/vnp/2025/09/15/3aa71b839430793ee9e4b9f47415c54a878027ec.jpg';
-            "
+        >
+
+        <h1>InVandon247</h1>
+
+        <p>
+            Hệ thống chuyển đổi & in phiếu bưu gửi A4 tự động
+        </p>
+
+    </div>
+
+    <div class="form-group">
+
+        <label for="postCode">
+            1. Mã vận đơn VNPost:
+        </label>
+
+        <input
+            type="text"
+            id="postCode"
+            placeholder="Ví dụ: RB608631891VN"
+            autocomplete="off"
         >
 
     </div>
 
+    <div class="form-group">
 
-    <div class="header-right">
+        <label for="captchaCode">
+            2. Mã xác thực (CAPTCHA):
+        </label>
 
-        <div class="header-title">
-            THÔNG TIN VẬN ĐƠN
-        </div>
+        <div class="captcha-row">
 
-        <div class="header-subtitle">
-            Hệ thống chuyển đổi & in phiếu bưu gửi A4 tự động
+            <input
+                type="text"
+                id="captchaCode"
+                placeholder="Nhập mã CAPTCHA"
+                autocomplete="off"
+            >
+
+            <img
+                id="captchaImage"
+                class="captcha-image"
+                src=""
+                alt="CAPTCHA"
+            >
+
+            <button
+                type="button"
+                class="btn btn-refresh"
+                id="refreshCaptcha"
+            >
+                ↻ Đổi mã
+            </button>
+
         </div>
 
     </div>
+
+    <button
+        type="button"
+        class="btn btn-search"
+        id="searchButton"
+    >
+        🔎 Tra cứu & tạo bản in
+    </button>
+
+    <div
+        id="status"
+        class="status"
+    ></div>
+
+    <div
+        id="error"
+        class="error"
+    ></div>
 
 </div>
 
 
-<!-- ======================================
-     CHI TIẾT BƯU GỬI
-     ====================================== -->
+<!-- =========================================================
+     KHU VỰC IN
+     ========================================================= -->
 
-<div class="box-section">
-
-    <div class="box-title">
-        CHI TIẾT BƯU GỬI
-    </div>
+<div id="printArea"></div>
 
 
-    <div class="info-grid">
+<script>
+
+/* ============================================================
+   CẤU HÌNH
+   ============================================================ */
+
+const VNPOST_BASE = "https://vnpost.vn";
+
+const REFRESH_CAPTCHA_URL =
+    VNPOST_BASE + "/postcode/refresh-captcha";
+
+const TRACKING_URL =
+    VNPOST_BASE + "/postcode/thong-tin";
 
 
-        <div class="info-item">
+/*
+ * Logo chính thức Vietnam Post.
+ * Không lấy logo từ trang đang truy cập vì có thể lấy nhầm
+ * logo của website khác.
+ */
+const VNPOST_LOGO =
+    "https://vietnampost.vn/uploads/storage/vnp/2025/09/15/3aa71b839430793ee9e4b9f47415c54a878027ec.jpg";
 
-            <strong>Mã vận đơn:</strong>
 
-            <span class="code">
-                ${code}
-            </span>
+/* ============================================================
+   DOM
+   ============================================================ */
 
+const postCodeInput =
+    document.getElementById("postCode");
+
+const captchaInput =
+    document.getElementById("captchaCode");
+
+const captchaImage =
+    document.getElementById("captchaImage");
+
+const refreshCaptchaButton =
+    document.getElementById("refreshCaptcha");
+
+const searchButton =
+    document.getElementById("searchButton");
+
+const statusBox =
+    document.getElementById("status");
+
+const errorBox =
+    document.getElementById("error");
+
+const printArea =
+    document.getElementById("printArea");
+
+
+/* ============================================================
+   HÀM HIỂN THỊ TRẠNG THÁI
+   ============================================================ */
+
+function setStatus(text) {
+
+    statusBox.textContent = text;
+
+}
+
+function showError(text) {
+
+    errorBox.textContent = text;
+    errorBox.style.display = "block";
+
+}
+
+function hideError() {
+
+    errorBox.style.display = "none";
+    errorBox.textContent = "";
+
+}
+
+
+/* ============================================================
+   HTML ESCAPE
+   ============================================================ */
+
+function escapeHtml(value) {
+
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* ============================================================
+   FORMAT NGÀY GIỜ
+   ============================================================ */
+
+function formatDateTime(item) {
+
+    if (!item) {
+        return "";
+    }
+
+    const date =
+        item.Date ||
+        "";
+
+    const time =
+        item.TimeDetail ||
+        "";
+
+    if (date && time) {
+        return date + " " + time;
+    }
+
+    return date || time || "";
+
+}
+
+
+/* ============================================================
+   LOAD CAPTCHA
+   ============================================================ */
+
+async function loadCaptcha() {
+
+    try {
+
+        setStatus("Đang lấy mã CAPTCHA...");
+        hideError();
+
+        const response =
+            await fetch(
+                REFRESH_CAPTCHA_URL + "?_=" + Date.now(),
+                {
+                    method: "GET",
+                    credentials: "include",
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Không lấy được CAPTCHA (" +
+                response.status +
+                ")"
+            );
+        }
+
+        const data =
+            await response.json();
+
+        if (!data.captcha) {
+
+            throw new Error(
+                "VNPost không trả về mã CAPTCHA."
+            );
+
+        }
+
+        captchaImage.src =
+            data.captcha +
+            (data.captcha.includes("?") ? "&" : "?") +
+            "_=" +
+            Date.now();
+
+        captchaInput.value = "";
+
+        setStatus("");
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        setStatus("");
+
+        showError(
+            "Không thể tải CAPTCHA. " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   TRA CỨU VNPOST
+   ============================================================ */
+
+async function getTrackingData(
+    postCode,
+    captcha
+) {
+
+    const url =
+        TRACKING_URL +
+        "?captcha=" +
+        encodeURIComponent(captcha) +
+        "&post_code=" +
+        encodeURIComponent(postCode) +
+        "&_=" +
+        Date.now();
+
+    const response =
+        await fetch(
+            url,
+            {
+                method: "GET",
+                credentials: "include",
+                cache: "no-store",
+                headers: {
+                    "Accept":
+                        "application/json, text/plain, */*"
+                }
+            }
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            "VNPost trả về HTTP " +
+            response.status
+        );
+
+    }
+
+    const data =
+        await response.json();
+
+    return data;
+
+}
+
+
+/* ============================================================
+   CHUẨN HÓA DỮ LIỆU
+   ============================================================ */
+
+function normalizeData(data) {
+
+    const info =
+        data &&
+        data.info
+            ? data.info
+            : {};
+
+    let timeline =
+        Array.isArray(data.locate)
+            ? [...data.locate]
+            : [];
+
+    let delivery =
+        Array.isArray(data.delivery)
+            ? [...data.delivery]
+            : [];
+
+
+    /*
+     * QUAN TRỌNG:
+     *
+     * Luôn sắp xếp từ thời gian CŨ → MỚI.
+     *
+     * Ví dụ:
+     *
+     * 24/07 17:44
+     * 24/07 20:31
+     * 24/07 21:01
+     * ...
+     * 25/07 08:38
+     */
+
+    timeline.sort(function(a, b) {
+
+        const ta =
+            new Date(
+                a.TraceDate ||
+                "1970-01-01"
+            ).getTime();
+
+        const tb =
+            new Date(
+                b.TraceDate ||
+                "1970-01-01"
+            ).getTime();
+
+        return ta - tb;
+
+    });
+
+
+    delivery.sort(function(a, b) {
+
+        const ta =
+            new Date(
+                (a.DATE || "") +
+                " " +
+                (a.TIMEDETAIL || "00:00:00")
+            ).getTime();
+
+        const tb =
+            new Date(
+                (b.DATE || "") +
+                " " +
+                (b.TIMEDETAIL || "00:00:00")
+            ).getTime();
+
+        return ta - tb;
+
+    });
+
+
+    let status = "";
+
+    if (timeline.length > 0) {
+
+        const last =
+            timeline[timeline.length - 1];
+
+        status =
+            last.StatusText ||
+            "";
+
+    }
+
+    if (
+        delivery.length > 0 &&
+        delivery[delivery.length - 1].STATUSTEXT
+    ) {
+
+        status =
+            delivery[delivery.length - 1]
+                .STATUSTEXT;
+
+    }
+
+
+    return {
+        info,
+        timeline,
+        delivery,
+        status
+    };
+
+}
+
+
+/* ============================================================
+   TẠO 1 ITEM LỊCH SỬ
+   ============================================================ */
+
+function createTimelineItem(item) {
+
+    const div =
+        document.createElement("div");
+
+    div.className =
+        "timeline-item";
+
+    const time =
+        formatDateTime(item);
+
+    const detail =
+        item.StatusText ||
+        "";
+
+    const location =
+        item.VI_TRI ||
+        "";
+
+    div.innerHTML = `
+
+        <div class="timeline-time">
+            ${escapeHtml(time)}
         </div>
 
-
-        <div class="info-item">
-
-            <strong>Khối lượng:</strong>
-
-            ${weight} gram
-
+        <div class="timeline-detail">
+            ${escapeHtml(detail)}
         </div>
 
+        ${
+            location
+                ? `
+                    <div class="timeline-location">
+                        ${escapeHtml(location)}
+                    </div>
+                  `
+                : ""
+        }
 
-        <div class="info-item">
+    `;
 
-            <strong>Trạng thái:</strong>
+    return div;
 
-            <span class="status">
-                ${status}
-            </span>
-
-        </div>
-
-
-        <div class="info-item">
-
-            <strong>Bưu cục nhận:</strong>
-
-            ${from}
-
-        </div>
+}
 
 
-        <div class="info-item">
+/* ============================================================
+   TẠO HEADER
+   ============================================================ */
 
-            <strong>Bưu cục phát:</strong>
+function createHeader(
+    data,
+    pageNumber,
+    totalPages
+) {
 
-            ${to}
+    const info =
+        data.info || {};
 
-        </div>
+    const page =
+        document.createElement("div");
 
+    page.className =
+        "print-page";
 
-    </div>
+    page.innerHTML = `
 
-</div>
+        <div class="print-header">
 
+            <div class="logo-wrap">
 
-<!-- ======================================
-     LỊCH SỬ HÀNH TRÌNH
-     ====================================== -->
+                <img
+                    src="${VNPOST_LOGO}"
+                    alt="Vietnam Post"
+                >
 
-<div class="box-section timeline-section">
+            </div>
 
-    <div class="box-title">
+            <div class="header-right">
 
-        LỊCH SỬ HÀNH TRÌNH
-        (${timeline.length} SỰ KIỆN)
-
-    </div>
-
-
-    <div class="timeline-container">
-
-        ${timeline.map(item => `
-
-            <div class="timeline-item">
-
-                <div class="timeline-time">
-                    ${item.time}
+                <div class="title">
+                    THÔNG TIN VẬN ĐƠN
                 </div>
 
-                <div class="timeline-detail">
-                    ${item.detail}
+                <div class="subtitle">
+                    Ngày in:
+                    ${escapeHtml(
+                        new Date().toLocaleString("vi-VN")
+                    )}
                 </div>
 
             </div>
 
-        `).join("")}
-
-    </div>
-
-</div>
+        </div>
 
 
-${deliveryHtml}
+        <div class="box-section">
+
+            <div class="box-title">
+                CHI TIẾT BƯU GỬI
+            </div>
+
+            <div class="info-grid">
+
+                <div class="info-item">
+                    <span class="info-label">
+                        Mã vận đơn:
+                    </span>
+
+                    <span class="info-value code">
+                        ${escapeHtml(info.ID || "")}
+                    </span>
+                </div>
 
 
-<!-- ======================================
-     FOOTER
-     ====================================== -->
+                <div class="info-item">
+                    <span class="info-label">
+                        Khối lượng:
+                    </span>
 
-<div class="footer">
-
-    Dữ liệu được trích xuất trực tiếp từ hệ thống VNPost
-    qua công cụ InVanDon247
-
-</div>
+                    <span class="info-value">
+                        ${escapeHtml(info.Weight || "")} gram
+                    </span>
+                </div>
 
 
-</body>
+                <div class="info-item">
 
-</html>
+                    <span class="info-label">
+                        Trạng thái:
+                    </span>
 
-`);
+                    <span class="info-value status-success">
+                        ${escapeHtml(data.status || "")}
+                    </span>
 
-    printWin.document.close();
+                </div>
 
-    printWin.focus();
+
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Bưu cục nhận:
+                    </span>
+
+                    <span class="info-value">
+                        ${escapeHtml(info.BC_GUI || "")}
+                    </span>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Bưu cục phát:
+                    </span>
+
+                    <span class="info-value">
+                        ${escapeHtml(info.BC_PHAT || "")}
+                    </span>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Nước gửi/nhận:
+                    </span>
+
+                    <span class="info-value">
+                        ${escapeHtml(
+                            info.Nuoc_Phat ||
+                            info.Nuoc_Chapnhan ||
+                            ""
+                        )}
+                        →
+                        ${escapeHtml(
+                            info.Nuoc_Chapnhan ||
+                            ""
+                        )}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="timeline-section">
+
+            <div class="timeline-title">
+                LỊCH SỬ HÀNH TRÌNH
+                (<span class="event-count">0</span> SỰ KIỆN)
+            </div>
+
+            <div class="timeline-grid"></div>
+
+        </div>
+
+
+        <div class="print-footer">
+
+            <div class="footer-line">
+
+                Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost
+                qua cổng kết nối InVandon247
+                · Trang ${pageNumber}/${totalPages}
+
+            </div>
+
+        </div>
+
+    `;
+
+    return page;
+
+}
+
+
+/* ============================================================
+   TẠO THÔNG TIN PHÁT
+   ============================================================ */
+
+function createDeliverySection(
+    delivery
+) {
+
+    if (
+        !delivery ||
+        delivery.length === 0
+    ) {
+
+        return null;
+
+    }
+
+
+    const section =
+        document.createElement("div");
+
+    section.className =
+        "delivery-section";
+
+    section.innerHTML = `
+
+        <div class="box-title">
+            THÔNG TIN PHÁT
+        </div>
+
+        <table class="delivery-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Ngày
+                    </th>
+
+                    <th>
+                        Bưu cục
+                    </th>
+
+                    <th>
+                        Chi tiết
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                ${delivery.map(function(item) {
+
+                    return `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHtml(
+                                    item.DATE ||
+                                    ""
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    item.VI_TRI ||
+                                    ""
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    item.STATUSTEXT ||
+                                    ""
+                                )}
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }).join("")}
+
+            </tbody>
+
+        </table>
+
+    `;
+
+    return section;
+
+}
+
+
+/* ============================================================
+   THỬ THÊM ITEM VÀO TRANG
+   ============================================================ */
+
+function tryAddTimelineItem(
+    page,
+    item
+) {
+
+    const grid =
+        page.querySelector(
+            ".timeline-grid"
+        );
+
+    const itemElement =
+        createTimelineItem(item);
+
+    grid.appendChild(itemElement);
 
 
     /*
-       Chờ logo + nội dung render xong rồi mới in
-    */
+     * Nếu grid vượt chiều cao cho phép
+     * thì xóa item vừa thêm và báo false.
+     */
 
-    setTimeout(function(){
-
-        printWin.print();
-
-    },700);
+    const overflow =
+        grid.scrollHeight >
+        grid.clientHeight + 1;
 
 
-})();
+    if (overflow) {
+
+        grid.removeChild(itemElement);
+
+        return false;
+
+    }
+
+
+    return true;
+
+}
+
+
+/* ============================================================
+   TẠO BÁO CÁO
+   ============================================================ */
+
+function buildPrintReport(data) {
+
+    printArea.innerHTML = "";
+
+    const timeline =
+        data.timeline || [];
+
+    const delivery =
+        data.delivery || [];
+
+
+    /*
+     * Trường hợp không có lịch sử
+     */
+
+    if (timeline.length === 0) {
+
+        const page =
+            createHeader(
+                data,
+                1,
+                1
+            );
+
+        page.querySelector(
+            ".event-count"
+        ).textContent = "0";
+
+        printArea.appendChild(page);
+
+        return;
+
+    }
+
+
+    /*
+     * ========================================================
+     * BƯỚC 1:
+     *
+     * Tạo trang đầu tiên.
+     * Sau đó đưa từng sự kiện vào.
+     *
+     * Grid có 2 cột.
+     *
+     * Các sự kiện sẽ đi:
+     *
+     * 1  2
+     * 3  4
+     * 5  6
+     * ...
+     *
+     * Và thứ tự dữ liệu vẫn là:
+     * cũ → mới.
+     * ========================================================
+     */
+
+    const pages = [];
+
+    let currentPage =
+        createHeader(
+            data,
+            0,
+            0
+        );
+
+    printArea.appendChild(
+        currentPage
+    );
+
+    let currentItems = [];
+
+
+    for (
+        let i = 0;
+        i < timeline.length;
+        i++
+    ) {
+
+        const item =
+            timeline[i];
+
+
+        /*
+         * Nếu thêm item vẫn vừa trang
+         */
+        if (
+            tryAddTimelineItem(
+                currentPage,
+                item
+            )
+        ) {
+
+            currentItems.push(item);
+
+            continue;
+
+        }
+
+
+        /*
+         * Không vừa trang:
+         *
+         * Lưu trang hiện tại.
+         */
+
+        pages.push({
+            page: currentPage,
+            items: currentItems
+        });
+
+
+        /*
+         * Tạo trang mới.
+         */
+
+        currentPage =
+            createHeader(
+                data,
+                0,
+                0
+            );
+
+        printArea.appendChild(
+            currentPage
+        );
+
+        currentItems = [];
+
+
+        /*
+         * Item vừa bị tràn phải được đưa
+         * sang trang mới.
+         */
+
+        const success =
+            tryAddTimelineItem(
+                currentPage,
+                item
+            );
+
+
+        if (success) {
+
+            currentItems.push(item);
+
+        }
+
+    }
+
+
+    /*
+     * Lưu trang cuối.
+     */
+
+    if (currentItems.length > 0) {
+
+        pages.push({
+            page: currentPage,
+            items: currentItems
+        });
+
+    }
+
+
+    /*
+     * ========================================================
+     * BƯỚC 2:
+     *
+     * Nếu có THÔNG TIN PHÁT, đưa nó vào trang cuối.
+     *
+     * Nếu không đủ chỗ thì tạo thêm một trang.
+     * ========================================================
+     */
+
+    if (delivery.length > 0) {
+
+        let last =
+            pages[pages.length - 1].page;
+
+
+        const deliverySection =
+            createDeliverySection(
+                delivery
+            );
+
+
+        /*
+         * Thử đưa vào trang cuối.
+         */
+
+        last.appendChild(
+            deliverySection
+        );
+
+
+        /*
+         * Nếu bị tràn:
+         * xóa khỏi trang cuối
+         * và tạo trang mới.
+         */
+
+        if (
+            last.scrollHeight >
+            last.clientHeight + 1
+        ) {
+
+            last.removeChild(
+                deliverySection
+            );
+
+
+            const newPage =
+                createHeader(
+                    data,
+                    0,
+                    0
+                );
+
+
+            printArea.appendChild(
+                newPage
+            );
+
+
+            newPage.appendChild(
+                deliverySection
+            );
+
+
+            pages.push({
+                page: newPage,
+                items: []
+            });
+
+        }
+
+    }
+
+
+    /*
+     * ========================================================
+     * BƯỚC 3:
+     *
+     * Cập nhật tổng số trang.
+     * ========================================================
+     */
+
+    const totalPages =
+        pages.length;
+
+
+    pages.forEach(function(pageData, index) {
+
+        const page =
+            pageData.page;
+
+        const pageNumber =
+            index + 1;
+
+
+        /*
+         * Cập nhật số sự kiện.
+         */
+
+        const eventCount =
+            page.querySelector(
+                ".event-count"
+            );
+
+        if (eventCount) {
+
+            eventCount.textContent =
+                pageData.items.length;
+
+        }
+
+
+        /*
+         * Cập nhật số trang.
+         */
+
+        const footerLine =
+            page.querySelector(
+                ".footer-line"
+            );
+
+        if (footerLine) {
+
+            footerLine.innerHTML = `
+
+                Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost
+                qua cổng kết nối InVandon247
+                · Trang ${pageNumber}/${totalPages}
+
+            `;
+
+        }
+
+    });
+
+
+    /*
+     * ========================================================
+     * XỬ LÝ TRANG CHỈ CÓ THÔNG TIN PHÁT
+     *
+     * Nếu trang cuối không có timeline,
+     * tiêu đề lịch sử sẽ được ẩn.
+     * ========================================================
+     */
+
+    pages.forEach(function(pageData) {
+
+        if (
+            pageData.items.length === 0
+        ) {
+
+            const timelineSection =
+                pageData.page.querySelector(
+                    ".timeline-section"
+                );
+
+            if (timelineSection) {
+
+                timelineSection.style.display =
+                    "none";
+
+            }
+
+        }
+
+    });
+
+}
+
+
+/* ============================================================
+   IN
+   ============================================================ */
+
+function printReport() {
+
+    /*
+     * Cho browser có thời gian tải logo,
+     * dựng toàn bộ DOM trước khi mở hộp thoại in.
+     */
+
+    setTimeout(function() {
+
+        window.print();
+
+    }, 500);
+
+}
+
+
+/* ============================================================
+   NÚT ĐỔI CAPTCHA
+   ============================================================ */
+
+refreshCaptchaButton.addEventListener(
+    "click",
+    function() {
+
+        loadCaptcha();
+
+    }
+);
+
+
+/* ============================================================
+   NÚT TRA CỨU
+   ============================================================ */
+
+searchButton.addEventListener(
+    "click",
+    async function() {
+
+        hideError();
+
+
+        const postCode =
+            postCodeInput.value
+                .trim()
+                .toUpperCase();
+
+
+        const captcha =
+            captchaInput.value
+                .trim();
+
+
+        if (!postCode) {
+
+            showError(
+                "Vui lòng nhập mã vận đơn."
+            );
+
+            postCodeInput.focus();
+
+            return;
+
+        }
+
+
+        if (!captcha) {
+
+            showError(
+                "Vui lòng nhập mã CAPTCHA."
+            );
+
+            captchaInput.focus();
+
+            return;
+
+        }
+
+
+        searchButton.disabled =
+            true;
+
+        searchButton.textContent =
+            "⏳ Đang tra cứu...";
+
+
+        try {
+
+            setStatus(
+                "Đang tra cứu dữ liệu VNPost..."
+            );
+
+
+            const rawData =
+                await getTrackingData(
+                    postCode,
+                    captcha
+                );
+
+
+            console.log(
+                "VNPost response:",
+                rawData
+            );
+
+
+            /*
+             * Nếu CAPTCHA sai hoặc VNPost không trả
+             * dữ liệu vận đơn.
+             */
+
+            if (
+                !rawData ||
+                !rawData.info
+            ) {
+
+                throw new Error(
+                    "Mã CAPTCHA không đúng hoặc không tìm thấy dữ liệu vận đơn."
+                );
+
+            }
+
+
+            const data =
+                normalizeData(
+                    rawData
+                );
+
+
+            setStatus(
+                "Đã lấy dữ liệu. Đang tạo bản in A4..."
+            );
+
+
+            /*
+             * Hiện khu vực in.
+             */
+
+            printArea.style.display =
+                "block";
+
+
+            /*
+             * Tạo báo cáo.
+             */
+
+            buildPrintReport(
+                data
+            );
+
+
+            /*
+             * Ẩn giao diện tra cứu
+             * khi chuẩn bị in.
+             */
+
+            document.getElementById(
+                "app"
+            ).style.display =
+                "none";
+
+
+            /*
+             * In.
+             */
+
+            printReport();
+
+
+        }
+        catch (error) {
+
+            console.error(
+                "Tracking error:",
+                error
+            );
+
+
+            /*
+             * Hiện lại CAPTCHA mới.
+             */
+
+            loadCaptcha();
+
+
+            showError(
+                error.message ||
+                "Mã CAPTCHA không đúng hoặc không tìm thấy dữ liệu vận đơn. Vui lòng thử lại!"
+            );
+
+
+            setStatus("");
+
+        }
+        finally {
+
+            searchButton.disabled =
+                false;
+
+            searchButton.textContent =
+                "🔎 Tra cứu & tạo bản in";
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   ENTER ĐỂ TRA CỨU
+   ============================================================ */
+
+captchaInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            searchButton.click();
+
+        }
+
+    }
+);
+
+postCodeInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            captchaInput.focus();
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   KHI IN XONG / HỦY IN
+   ============================================================ */
+
+window.addEventListener(
+    "afterprint",
+    function() {
+
+        /*
+         * Trả lại giao diện tra cứu.
+         */
+
+        document.getElementById(
+            "app"
+        ).style.display =
+            "block";
+
+        printArea.style.display =
+            "none";
+
+        setStatus("");
+
+    }
+);
+
+
+/* ============================================================
+   LOAD CAPTCHA LẦN ĐẦU
+   ============================================================ */
+
+loadCaptcha();
+
+</script>
+
+</body>
+</html>

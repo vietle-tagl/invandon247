@@ -73,36 +73,22 @@
     <div id="print-area"></div>
 
     <script>
-        let currentCookie = '';
+        const PROXY = "https://api.allorigins.win/raw?url=";
 
         window.onload = loadCaptcha;
 
-        async function loadCaptcha() {
+        function loadCaptcha() {
             let img = document.getElementById('captchaImg');
             img.style.opacity = '0.3';
-            img.alt = 'Đang tải...';
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-            try {
-                let res = await fetch('/api/captcha?t=' + Date.now(), { signal: controller.signal });
-                clearTimeout(timeoutId);
-                
-                let data = await res.json();
-                if (data.image) {
-                    img.src = data.image;
-                    currentCookie = data.cookie;
-                } else {
-                    img.alt = 'Lỗi tải ảnh';
-                    alert('Không thể lấy CAPTCHA từ VNPost!');
-                }
-            } catch (e) {
-                clearTimeout(timeoutId);
-                img.alt = 'Lỗi kết nối';
-                alert('Tải CAPTCHA thất bại hoặc server bị chặn IP!');
-            }
-            img.style.opacity = '1';
+            // Lấy ảnh CAPTCHA thông qua proxy công cộng bypass CORS trực tiếp trên Browser
+            let targetUrl = encodeURIComponent('https://vnpost.vn/captcha/default?' + Date.now());
+            img.src = PROXY + targetUrl;
+            img.onload = () => { img.style.opacity = '1'; };
+            img.onerror = () => {
+                // Fallback direct URL
+                img.src = 'https://vnpost.vn/captcha/default?' + Date.now();
+                img.style.opacity = '1';
+            };
         }
 
         async function submitTrack() {
@@ -116,19 +102,23 @@
             }
 
             btn.disabled = true;
-            btn.innerText = '⏳ Đang kết nối VNPost...';
+            btn.innerText = '⏳ Đang gửi dữ liệu...';
 
             try {
-                let res = await fetch('/api/track', {
+                let targetUrl = 'https://vnpost.vn/vi/Tracking/TraCuuHanhTrinh';
+                let formData = new URLSearchParams();
+                formData.append('ItemCode', code);
+                formData.append('CaptchaCode', captcha);
+
+                let res = await fetch(PROXY + encodeURIComponent(targetUrl), {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, captcha, cookie: currentCookie })
+                    body: formData
                 });
 
                 let htmlText = await res.text();
 
                 if (htmlText.includes('không đúng') || htmlText.includes('Captcha')) {
-                    alert('Mã CAPTCHA không chính xác, vui lòng thử lại mã mới!');
+                    alert('Mã CAPTCHA sai hoặc hết hạn. Vui lòng thử lại mã mới!');
                     loadCaptcha();
                     document.getElementById('captchaInput').value = '';
                 } else {
@@ -136,7 +126,7 @@
                     window.print();
                 }
             } catch (e) {
-                alert('Lỗi tra cứu dữ liệu!');
+                alert('Lỗi tra cứu! VNPost đang chặn kết nối IP trung gian.');
             }
 
             btn.disabled = false;
@@ -148,7 +138,7 @@
             let doc = parser.parseFromString(text, 'text/html');
             let rawText = doc.body ? doc.body.innerText : text;
 
-            let codeMatch = rawText.match(/(?:Bưu gửi số|Mã vận đơn|Mã bưu gửi)\s*:\s*([A-Z0-9]+)/i) || rawText.match(/([A-Z]{2}\d{9}[A-Z]{2})/i);
+            let codeMatch = rawText.match(/(?:Bưu gửi số|Mã vận đơn|Mã bưu gửi)\s*:\s*([A-Z0-9]+)/i) || rawText.match/([A-Z]{2}\d{9}[A-Z]{2})/i);
             let code = codeMatch ? codeMatch[1] : inputCode;
 
             let weightMatch = rawText.match/Khối lượng[^:]*:\s*([\d\.,]+)/i);

@@ -82,29 +82,31 @@
             btn.innerText = '⌛ Đang cào dữ liệu VNPost...';
 
             try {
-                let res = await fetch(`/api/track?code=${encodeURIComponent(code)}`);
+                let targetUrl = `https://vietnampost.vn/vi-vn/dinh-vi/buu-gui?key=${encodeURIComponent(code)}`;
+                let proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                
+                let res = await fetch(proxyUrl);
                 let data = await res.json();
 
-                if (data.error || !data.rawHtml) {
-                    alert('Không tìm thấy dữ liệu vận đơn hoặc lỗi kết nối VNPost!');
+                if (!data || !data.contents) {
+                    alert('Không kết nối được tới hệ thống VNPost!');
                     return;
                 }
 
                 let parser = new DOMParser();
-                let doc = parser.parseFromString(data.rawHtml, 'text/html');
+                let doc = parser.parseFromString(data.contents, 'text/html');
                 let extractedText = doc.body.innerText;
 
-                if (!extractedText || extractedText.length < 50) {
-                    alert('Mã vận đơn chưa có dữ liệu trên hệ thống VNPost!');
+                if (!extractedText || extractedText.includes('Không tìm thấy') || extractedText.length < 300) {
+                    alert('Mã vận đơn không tồn tại hoặc chưa có dữ liệu trên VNPost!');
                     return;
                 }
 
-                // Truyền cả mã vận đơn nhập vào để không bị mất mã
                 renderPrintArea(extractedText, code);
                 window.print();
 
             } catch (err) {
-                alert('Lỗi hệ thống: ' + err.message);
+                alert('Lỗi kết nối: ' + err.message);
             } finally {
                 btn.disabled = false;
                 btn.innerText = '🚀 Lấy Dữ Liệu & In';

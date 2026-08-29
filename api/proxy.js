@@ -1,34 +1,33 @@
-const https = require('https');
-const axios = require('axios'); // Thêm axios vào package.json hoặc dùng fetch/https native
-
 export default async function handler(req, res) {
-    // Cấu hình CORS để trang web của bạn gọi được API
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-vnpost-cookie');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
     const { action } = req.query;
 
     try {
-        // BƯỚC 1: LẤY CAPTCHA VÀ TRẢ COOKIE VỀ CHO TRÌNH DUYỆT
+        // BƯỚC 1: LẤY CAPTCHA
         if (action === 'get-captcha') {
-            const response = await axios.get('https://vnpost.vn/vi/Tracking/GetCaptcha', {
-                responseType: 'arraybuffer',
+            const response = await fetch('https://vnpost.vn/vi/Tracking/GetCaptcha', {
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
                 }
             });
 
-            // Lấy cookie phiên làm việc từ VNPost
-            const rawCookies = response.headers['set-cookie'] || [];
-            const cookieHeader = rawCookies.map(c => c.split(';')[0]).join('; ');
+            if (!response.ok) {
+                return res.status(500).json({ error: `VNPost chặn IP Server Vercel (Status ${response.status})` });
+            }
 
-            // Chuyển ảnh Captcha sang mã Base64
-            const base64Image = Buffer.from(response.data, 'binary').toString('base64');
+            // Lấy Set-Cookie từ VNPost
+            const rawCookies = response.headers.getSetCookie ? response.headers.getSetCookie() : [response.headers.get('set-cookie')];
+            const cookieHeader = rawCookies.filter(Boolean).map(c => c.split(';')[0]).join('; ');
+
+            // Chuyển ảnh sang Base64
+            const arrayBuffer = await response.arrayBuffer();
+            const base64Image = Buffer.from(arrayBuffer).toString('base64');
 
             return res.status(200).json({
                 captcha: `data:image/png;base64,${base64Image}`,
@@ -36,36 +35,32 @@ export default async function handler(req, res) {
             });
         }
 
-        // BƯỚC 2: GỬI MÃ VẬN ĐƠN + CAPTCHA + COOKIE SANG VNPOST
+        // BƯỚC 2: TRA CỨU
         if (action === 'track') {
             const { trackingCode, captchaText, cookie } = req.body;
 
-            if (!trackingCode || !captchaText || !cookie) {
-                return res.status(400).json({ error: 'Thiếu thông tin tra cứu hoặc Cookie phiên làm việc!' });
-            }
+            const params = new URLSearchParams();
+            params.append('ItemCode', trackingCode);
+            params.append('CaptchaText', captchaText);
 
-            // Gửi request tra cứu kèm Cookie phiên làm việc ban đầu
-            const response = await axios.post(
-                'https://vnpost.vn/vi/Tracking/Index',
-                new URLSearchParams({
-                    'ItemCode': trackingCode,
-                    'CaptchaText': captchaText
-                }).toString(),
-                {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Cookie': cookie,
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        'Referer': 'https://vnpost.vn/vi/Tracking'
-                    }
-                }
-            );
+            const response = await fetch('https://vnpost.vn/vi/Tracking/Index', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Cookie': cookie || '',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Referer': 'https://vnpost.vn/vi/Tracking'
+                },
+                body: params.toString()
+            });
 
-            return res.status(200).json({ html: response.data });
+            const html = await response.text();
+            return res.status(200).json({ html });
         }
 
         return res.status(400).json({ error: 'Action không hợp lệ' });
+
     } catch (error) {
-        return res.status(500).json({ error: 'Lỗi kết nối tới VNPost Server', detail: error.message });
+        return res.status(500).json({ error: 'Lỗi Proxy Server: ' + error.message });
     }
 }

@@ -54,7 +54,7 @@
     <div class="web-container no-print">
         <h2>InVanDon247.com - Phase 2 (Tự Động)</h2>
         
-        <p style="font-size: 13px; color: #333; font-weight: bold; margin-bottom: 5px;">Cách 1: Nhập Mã vận đơn (Tự động cào dữ liệu VNPost)</p>
+        <p style="font-size: 13px; color: #333; font-weight: bold; margin-bottom: 5px;">Cách 1: Nhập Mã vận đơn (Tự động tra cứu VNPost)</p>
         <div class="search-box">
             <input type="text" id="trackCode" class="input-code" placeholder="Ví dụ: RB608631891VN" />
             <button class="btn-auto" id="btnFetch" onclick="fetchAndPrint()">🚀 Lấy Dữ Liệu & In</button>
@@ -70,8 +70,9 @@
     <div id="print-area"></div>
 
     <script>
+        // Gọi API tra cứu
         async function fetchAndPrint() {
-            let code = document.getElementById('trackCode').value.trim();
+            let code = document.getElementById('trackCode').value.trim().toUpperCase();
             if (!code) {
                 alert('Vui lòng nhập mã vận đơn!');
                 return;
@@ -79,30 +80,31 @@
 
             let btn = document.getElementById('btnFetch');
             btn.disabled = true;
-            btn.innerText = '⌛ Đang cào dữ liệu VNPost...';
+            btn.innerText = '⌛ Đang lấy dữ liệu VNPost...';
+
+            // Dùng proxy hỗ trợ render HTML từ VNPost
+            let proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://vietnampost.vn/vi-vn/dinh-vi/buu-gui?key=' + code)}`;
 
             try {
-                let targetUrl = `https://vietnampost.vn/vi-vn/dinh-vi/buu-gui?key=${encodeURIComponent(code)}`;
-                let proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-                
                 let res = await fetch(proxyUrl);
-                let data = await res.json();
+                let htmlText = await res.text();
 
-                if (!data || !data.contents) {
-                    alert('Không kết nối được tới hệ thống VNPost!');
+                if (!htmlText || htmlText.length < 500) {
+                    alert('Không lấy được dữ liệu. Vui lòng thử dùng Cách 2 (Dán thủ công)!');
                     return;
                 }
 
                 let parser = new DOMParser();
-                let doc = parser.parseFromString(data.contents, 'text/html');
-                let extractedText = doc.body.innerText;
+                let doc = parser.parseFromString(htmlText, 'text/html');
+                let textContent = doc.body.innerText;
 
-                if (!extractedText || extractedText.includes('Không tìm thấy') || extractedText.length < 300) {
-                    alert('Mã vận đơn không tồn tại hoặc chưa có dữ liệu trên VNPost!');
+                if (textContent.includes('Không tìm thấy') || !textContent.includes(code)) {
+                    // Nếu không tìm thấy bằng cào tự động, gợi ý chuyển sang dán thủ công
+                    alert('Mã vận đơn chưa có trên hệ thống hoặc VNPost yêu cầu xác minh. Hãy mở trang vnpost.vn copy rồi dán vào Cách 2 bên dưới nhé!');
                     return;
                 }
 
-                renderPrintArea(extractedText, code);
+                renderPrintArea(textContent, code);
                 window.print();
 
             } catch (err) {

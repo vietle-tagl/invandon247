@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InVanDon247.com - Công cụ in vận đơn A4 siêu tốc</title>
     <style>
-        /* Giao diện nhập liệu trên Web */
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
         .web-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h2 { color: #003b7a; margin-top: 0; }
@@ -24,10 +23,8 @@
         .btn-print { background-color: #003b7a; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; width: 100%; }
         .btn-print:hover { background-color: #002855; }
         
-        /* Khu vực hiển thị bản in Preview */
         #print-area { display: none; background: #fff; }
 
-        /* CSS DÀNH RIÊNG CHO MÁY IN (@media print) */
         @media print {
             .no-print { display: none !important; }
             #print-area { display: block !important; }
@@ -35,7 +32,6 @@
             body { background: #fff; padding: 0; margin: 0; }
         }
 
-        /* Style cấu trúc tờ đơn A4 */
         .header-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .header-title { font-size: 14px; font-weight: bold; color: #003b7a; text-transform: uppercase; margin: 0; }
         .box-section { border: 1px solid #333; padding: 4px 8px; margin-bottom: 6px; background: #fff; }
@@ -55,11 +51,9 @@
 </head>
 <body>
 
-    <!-- Giao diện Nhập dữ liệu -->
     <div class="web-container no-print">
         <h2>InVanDon247.com - Phase 2 (Tự Động)</h2>
         
-        <!-- BẬC 1: TỰ ĐỘNG THEO MÃ -->
         <p style="font-size: 13px; color: #333; font-weight: bold; margin-bottom: 5px;">Cách 1: Nhập Mã vận đơn (Tự động cào dữ liệu VNPost)</p>
         <div class="search-box">
             <input type="text" id="trackCode" class="input-code" placeholder="Ví dụ: RB608631891VN" />
@@ -68,17 +62,14 @@
 
         <div class="divider">HOẶC DÁN THỦ CÔNG</div>
 
-        <!-- BẬC 2: DÁN THỦ CÔNG -->
         <p style="font-size: 13px; color: #666; margin-bottom: 5px;">Cách 2: Dán trực tiếp nội dung tra cứu vào ô bên dưới:</p>
         <textarea id="rawText" placeholder="Dán văn bản tra cứu vào đây..."></textarea>
         <button class="btn-print" onclick="processManualText()">Xử lý văn bản dán & In A4</button>
     </div>
 
-    <!-- Khu vực dàn trang in A4 -->
     <div id="print-area"></div>
 
     <script>
-        // 1. Hàm tự động lấy dữ liệu từ API
         async function fetchAndPrint() {
             let code = document.getElementById('trackCode').value.trim();
             if (!code) {
@@ -99,7 +90,6 @@
                     return;
                 }
 
-                // Trích xuất văn bản từ HTML nhận được
                 let parser = new DOMParser();
                 let doc = parser.parseFromString(data.rawHtml, 'text/html');
                 let extractedText = doc.body.innerText;
@@ -109,8 +99,8 @@
                     return;
                 }
 
-                // Chạy hàm Render in ấn
-                renderPrintArea(extractedText);
+                // Truyền cả mã vận đơn nhập vào để không bị mất mã
+                renderPrintArea(extractedText, code);
                 window.print();
 
             } catch (err) {
@@ -121,21 +111,19 @@
             }
         }
 
-        // 2. Hàm xử lý khi dán thủ công
         function processManualText() {
             let text = document.getElementById('rawText').value;
             if (!text.trim()) {
                 alert('Vui lòng dán nội dung tra cứu vào ô!');
                 return;
             }
-            renderPrintArea(text);
+            renderPrintArea(text, '');
             window.print();
         }
 
-        // 3. Hàm phân tích dữ liệu và dàn trang A4
-        function renderPrintArea(text) {
+        function renderPrintArea(text, inputCode = '') {
             let codeMatch = text.match(/(?:Bưu gửi số|Mã vận đơn|Mã bưu gửi)\s*:\s*([A-Z0-9]+)/i) || text.match(/([A-Z]{2}\d{9}[A-Z]{2})/i);
-            let code = codeMatch ? codeMatch[1] : 'CHƯA_XÁC_ĐỊNH';
+            let code = codeMatch ? codeMatch[1] : (inputCode.toUpperCase() || 'CHƯA_XÁC_ĐỊNH');
 
             let weightMatch = text.match(/Khối lượng[^:]*:\s*([\d\.,]+)/i);
             let weight = weightMatch ? weightMatch[1] : '0';
@@ -149,7 +137,6 @@
             let toMatch = text.match(/(?:Bưu cục phát|Nơi nhận)\s*:\s*([^\n]+)/i);
             let to = toMatch ? toMatch[1].trim() : '-';
 
-            // Tách Thông tin phát
             let deliveryInfo = [];
             let deliverySectionIdx = text.indexOf('THÔNG TIN PHÁT');
 
@@ -172,7 +159,6 @@
                 }
             }
 
-            // Tách Lịch sử hành trình
             let timeline = [];
             let mainText = deliverySectionIdx !== -1 ? text.substring(0, deliverySectionIdx) : text;
             let lines = mainText.split('\n');

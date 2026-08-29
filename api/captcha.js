@@ -1,8 +1,6 @@
 export default async function handler(req, res) {
     try {
-        // Đường dẫn chuẩn lấy CAPTCHA BotDetect của VNPost
         const captchaUrl = `https://vnpost.vn/captcha/default?${Date.now()}`;
-        
         const response = await fetch(captchaUrl, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -11,19 +9,17 @@ export default async function handler(req, res) {
             }
         });
 
-        if (!response.ok) throw new Error('VNPost Blocked');
-
-        const cookies = response.headers.getSetCookie ? response.headers.getSetCookie() : [response.headers.get('set-cookie')];
-        const cookieHeader = cookies.filter(Boolean).map(c => c.split(';')[0]).join('; ');
+        // Lấy Session Cookie gốc từ phản hồi của VNPost
+        const setCookieHeader = response.headers.get('set-cookie') || '';
 
         const buffer = await response.arrayBuffer();
         const base64Image = Buffer.from(buffer).toString('base64');
 
         res.status(200).json({
             image: `data:image/png;base64,${base64Image}`,
-            cookie: cookieHeader
+            cookie: setCookieHeader
         });
     } catch (error) {
-        res.status(500).json({ error: 'Không lấy được CAPTCHA từ VNPost' });
+        res.status(500).json({ error: 'Không thể kết nối VNPost' });
     }
 }

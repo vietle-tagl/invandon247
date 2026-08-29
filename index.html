@@ -7,23 +7,21 @@
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
         .web-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { color: #003b7a; margin-top: 0; }
+        h2 { color: #003b7a; margin-top: 0; text-align: center; }
         
+        .step-box { background: #eef5ff; border: 1px dashed #003b7a; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .step-title { font-weight: bold; color: #003b7a; margin-bottom: 8px; font-size: 15px; }
+
         .search-box { display: flex; gap: 10px; margin-bottom: 10px; }
         .input-code { flex: 1; padding: 12px; font-size: 16px; border: 2px solid #003b7a; border-radius: 4px; outline: none; text-transform: uppercase; font-weight: bold; }
-        .btn-auto { background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; font-weight: bold; }
-        .btn-auto:hover { background-color: #218838; }
         
-        .btn-quick-open { background-color: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; width: 100%; margin-bottom: 15px; }
-        .btn-quick-open:hover { background-color: #138496; }
+        .btn-open { background-color: #17a2b8; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; font-weight: bold; width: 100%; }
+        .btn-open:hover { background-color: #138496; }
 
-        .divider { text-align: center; margin: 15px 0; font-size: 13px; color: #777; font-weight: bold; position: relative; }
-        .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 35%; height: 1px; background: #ccc; }
-        .divider::before { left: 0; }
-        .divider::after { right: 0; }
+        textarea { width: 100%; height: 140px; padding: 10px; border: 2px dashed #28a745; border-radius: 4px; box-sizing: border-box; font-size: 13px; margin-bottom: 10px; outline: none; }
+        textarea:focus { border-color: #1e7e34; background-color: #f9fff9; }
 
-        textarea { width: 100%; height: 120px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 13px; margin-bottom: 10px; }
-        .btn-print { background-color: #003b7a; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; width: 100%; }
+        .btn-print { background-color: #003b7a; color: white; padding: 14px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
         .btn-print:hover { background-color: #002855; }
         
         #print-area { display: none; background: #fff; }
@@ -55,21 +53,21 @@
 <body>
 
     <div class="web-container no-print">
-        <h2>InVanDon247.com - Phase 2 (Tự Động & Dự Phòng)</h2>
+        <h2>InVanDon247.com - Công Cụ In Vận Đơn A4</h2>
         
-        <p style="font-size: 13px; color: #333; font-weight: bold; margin-bottom: 5px;">Cách 1: Nhập Mã vận đơn (Tự động cào dữ liệu)</p>
-        <div class="search-box">
-            <input type="text" id="trackCode" class="input-code" placeholder="Ví dụ: RB608631891VN" />
-            <button class="btn-auto" id="btnFetch" onclick="fetchAndPrint()">🚀 Lấy Dữ Liệu & In</button>
+        <div class="step-box">
+            <div class="step-title">Bước 1: Nhập mã & Mở tra cứu VNPost</div>
+            <div class="search-box">
+                <input type="text" id="trackCode" class="input-code" placeholder="Ví dụ: RB608631891VN" />
+            </div>
+            <button class="btn-open" onclick="openVNPostTab()">🔗 Mở Tra Cứu VNPost (Tab Mới)</button>
         </div>
-        
-        <button class="btn-quick-open" onclick="openVNPostTab()">🔗 Mở trang tra cứu VNPost (Trường hợp proxy bị nghẽn)</button>
 
-        <div class="divider">HOẶC DÁN THỦ CÔNG DỰ PHÒNG</div>
-
-        <p style="font-size: 13px; color: #666; margin-bottom: 5px;">Cách 2: Nhấn Ctrl+A rồi Ctrl+C tại web VNPost và dán vào đây:</p>
-        <textarea id="rawText" placeholder="Dán văn bản tra cứu vào đây..."></textarea>
-        <button class="btn-print" onclick="processManualText()">Xử lý văn bản dán & In A4</button>
+        <div class="step-box" style="background: #eafaf1; border-color: #28a745;">
+            <div class="step-title" style="color: #28a745;">Bước 2: Dán nội dung vừa copy vào đây (Tự động mở lệnh in)</div>
+            <textarea id="rawText" placeholder="Tại tab VNPost: Bấm Ctrl+A rồi Ctrl+C. Quay lại đây dán (Ctrl+V) vào ô này..." oninput="autoProcess(this)"></textarea>
+            <button class="btn-print" onclick="processManualText()">🚀 Xử Lý Dữ Liệu & In A4</button>
+        </div>
     </div>
 
     <div id="print-area"></div>
@@ -77,64 +75,19 @@
     <script>
         function openVNPostTab() {
             let code = document.getElementById('trackCode').value.trim().toUpperCase();
-            let url = code ? `https://vietnampost.vn/vi-vn/dinh-vi/buu-gui?key=${encodeURIComponent(code)}` : 'https://vietnampost.vn/vi-vn/dinh-vi/buu-gui';
+            if (!code) {
+                alert('Vui lòng nhập mã vận đơn trước!');
+                return;
+            }
+            let url = `https://vietnampost.vn/vi-vn/dinh-vi/buu-gui?key=${encodeURIComponent(code)}`;
             window.open(url, '_blank');
         }
 
-        async function fetchAndPrint() {
-            let code = document.getElementById('trackCode').value.trim().toUpperCase();
-            if (!code) {
-                alert('Vui lòng nhập mã vận đơn!');
-                return;
+        // Tự động nhận diện khi người dùng vừa dán text vào ô
+        function autoProcess(element) {
+            if (element.value.trim().length > 100) {
+                processManualText();
             }
-
-            let btn = document.getElementById('btnFetch');
-            btn.disabled = true;
-            btn.innerText = '⌛ Đang cào dữ liệu...';
-
-            let targetUrl = `https://vietnampost.vn/vi-vn/dinh-vi/buu-gui?key=${encodeURIComponent(code)}`;
-            
-            // Danh sách các CORS Proxy dự phòng
-            let proxyList = [
-                `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
-                `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
-            ];
-
-            let htmlText = '';
-
-            for (let proxy of proxyList) {
-                try {
-                    let res = await fetch(proxy);
-                    if (res.ok) {
-                        if (proxy.includes('allorigins')) {
-                            let json = await res.json();
-                            htmlText = json.contents;
-                        } else {
-                            htmlText = await res.text();
-                        }
-                        if (htmlText && htmlText.length > 500) break;
-                    }
-                } catch (e) {
-                    console.log('Proxy lỗi, chuyển proxy tiếp theo...');
-                }
-            }
-
-            if (!htmlText || htmlText.length < 500) {
-                alert('Các Server Proxy tự động đang bị VNPost chặn IP. Vui lòng bấm nút "Mở trang tra cứu VNPost" màu xanh lam ở trên để copy dán vào ô bên dưới nhé!');
-                btn.disabled = false;
-                btn.innerText = '🚀 Lấy Dữ Liệu & In';
-                return;
-            }
-
-            let parser = new DOMParser();
-            let doc = parser.parseFromString(htmlText, 'text/html');
-            let textContent = doc.body.innerText;
-
-            renderPrintArea(textContent, code);
-            window.print();
-
-            btn.disabled = false;
-            btn.innerText = '🚀 Lấy Dữ Liệu & In';
         }
 
         function processManualText() {
@@ -143,7 +96,9 @@
                 alert('Vui lòng dán nội dung tra cứu vào ô!');
                 return;
             }
-            renderPrintArea(text, '');
+            
+            let inputCode = document.getElementById('trackCode').value.trim();
+            renderPrintArea(text, inputCode);
             window.print();
         }
 

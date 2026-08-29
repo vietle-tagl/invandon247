@@ -6,20 +6,16 @@
     <title>InVanDon247.com - Tra Cứu & In A4</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
-        .web-container { max-width: 650px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #003b7a; margin-top: 0; text-align: center; font-size: 22px; }
+        .web-container { max-width: 500px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #003b7a; margin-top: 0; text-align: center; font-size: 20px; }
         
-        .step-box { background: #eef5ff; border-left: 4px solid #003b7a; padding: 12px 15px; margin-bottom: 20px; border-radius: 0 4px 4px 0; font-size: 14px; line-height: 1.5; }
-        .step-box a { color: #003b7a; font-weight: bold; text-decoration: underline; }
+        .iframe-wrapper { width: 100%; height: 380px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; margin-bottom: 15px; }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        .form-group { margin-bottom: 15px; }
-        label { font-size: 14px; font-weight: bold; color: #333; display: block; margin-bottom: 8px; }
-        textarea { width: 100%; height: 180px; padding: 12px; font-size: 13.5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; outline: none; font-family: monospace; resize: vertical; }
-        
-        .btn-group { display: flex; gap: 10px; }
-        .btn-submit { background-color: #003b7a; color: white; padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; flex: 2; }
+        .btn-submit { background-color: #003b7a; color: white; padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
         .btn-submit:hover { background-color: #002855; }
-        .btn-clear { background-color: #6c757d; color: white; padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; flex: 1; }
+        
+        .instruction { font-size: 13px; color: #555; background: #eef5ff; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
 
         #print-area { display: none; background: #fff; }
 
@@ -47,81 +43,72 @@
 <body>
 
     <div class="web-container no-print">
-        <h2>InVanDon247 - Tạo Bản In A4 Vận Đơn</h2>
+        <h2>InVanDon247 - Tra Cứu & In A4</h2>
         
-        <div class="step-box">
-            <b> Hướng dẫn nhanh:</b><br>
-            1. Mở trang <a href="https://vnpost.vn/vi/Tracking" target="_blank">Tra cứu VNPost (Bấm vào đây)</a> và nhập CAPTCHA tra cứu bình thường.<br>
-            2. Bôi đen toàn bộ kết quả tra cứu -> Nhấn <b>Ctrl + C</b> (Copy).<br>
-            3. Dán (<b>Ctrl + V</b>) vào khung bên dưới rồi bấm nút <b>"Tạo & In A4"</b>.
+        <div class="instruction">
+            👉 Nhập <b>Mã vận đơn</b> và <b>CAPTCHA</b> trực tiếp khung VNPost bên dưới, sau đó bấm <b>Tra cứu</b> trên khung hoặc bấm nút xanh bên dưới để tự động chuyển sang bản in A4.
         </div>
 
-        <div class="form-group">
-            <label>Dán dữ liệu tra cứu từ VNPost vào đây:</label>
-            <textarea id="rawInput" placeholder="Dán (Ctrl + V) toàn bộ chữ copy từ trang tra cứu VNPost vào đây..."></textarea>
+        <div class="iframe-wrapper">
+            <iframe id="vnpostFrame" src="https://vnpost.vn/vi/Tracking"></iframe>
         </div>
 
-        <div class="btn-group">
-            <button class="btn-clear" onclick="document.getElementById('rawInput').value=''">Xóa làm lại</button>
-            <button class="btn-submit" onclick="processData()">🚀 Tạo & In A4 Ngay</button>
-        </div>
+        <button class="btn-submit" onclick="captureAndPrint()">🚀 Chuyển Thành Bản In A4 & In</button>
     </div>
 
     <div id="print-area"></div>
 
     <script>
-        function processData() {
-            let rawText = document.getElementById('rawInput').value.trim();
+        function captureAndPrint() {
+            try {
+                let frame = document.getElementById('vnpostFrame');
+                let frameDoc = frame.contentDocument || frame.contentWindow.document;
+                let rawText = frameDoc.body.innerText;
 
-            if (!rawText) {
-                alert('Vui lòng dán nội dung tra cứu từ VNPost vào ô trống!');
-                return;
+                if (!rawText.includes('Khối lượng') && !rawText.includes('Bưu gửi số')) {
+                    alert('Bạn chưa thực hiện tra cứu thành công trên khung VNPost hoặc thông tin chưa hiển thị. Vui lòng kiểm tra lại CAPTCHA!');
+                    return;
+                }
+
+                renderPrintArea(rawText);
+                window.print();
+            } catch (e) {
+                // Trường hợp trình duyệt chặn Cross-Origin (CORS) đọc iframe
+                alert('Vui lòng bôi đen toàn bộ kết quả tra cứu trong khung trên, bấm Ctrl+C rồi bấm nút "In A4" lại nhé!');
             }
+        }
 
-            // Tách mã vận đơn
+        function renderPrintArea(rawText) {
             let codeMatch = rawText.match(/(?:Bưu gửi số|Mã vận đơn|Mã bưu gửi)\s*:\s*([A-Z0-9]+)/i) || rawText.match(/([A-Z]{2}\d{9}[A-Z]{2})/i);
             let code = codeMatch ? codeMatch[1] : 'Không xác định';
 
-            // Tách khối lượng
             let weightMatch = rawText.match(/Khối lượng[^:]*:\s*([\d\.,]+)/i);
             let weight = weightMatch ? weightMatch[1] : '0';
 
-            // Tách trạng thái
             let statusMatch = rawText.match(/Trạng thái\s*:\s*([^\n]+)/i);
             let status = statusMatch ? statusMatch[1].trim() : 'Đang cập nhật';
 
-            // Tách nơi gửi / bưu cục nhận
             let fromMatch = rawText.match(/(?:Bưu cục nhận|Nơi gửi)\s*:\s*([^\n]+)/i);
             let from = fromMatch ? fromMatch[1].trim() : '-';
 
-            // Tách nơi nhận / bưu cục phát
             let toMatch = rawText.match(/(?:Bưu cục phát|Nơi nhận)\s*:\s*([^\n]+)/i);
             let to = toMatch ? toMatch[1].trim() : '-';
 
-            // Tách danh sách hành trình
             let timeline = [];
             let lines = rawText.split('\n');
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i].trim();
-                // Bắt định dạng ngày giờ dạng DD/MM/YYYY HH:MM:SS
                 if (line.match(/^\d{2}\/\d{2}\/\d{4}/)) {
                     let time = line;
                     let detail = [];
                     let j = i + 1;
                     while (j < lines.length && !lines[j].trim().match(/^\d{2}\/\d{2}\/\d{4}/)) {
                         let subLine = lines[j].trim();
-                        if (subLine && !subLine.includes('Chi tiết bưu gửi') && !subLine.includes('Lịch sử hành trình')) {
-                            detail.push(subLine);
-                        }
+                        if (subLine && !subLine.includes('Chi tiết bưu gửi')) detail.push(subLine);
                         j++;
                     }
                     timeline.push({ time: time, detail: detail.join(' ') });
                 }
-            }
-
-            if (timeline.length === 0 && code === 'Không xác định') {
-                alert('Dữ liệu dán vào không hợp lệ hoặc không có lịch sử hành trình!');
-                return;
             }
 
             let fontSize = timeline.length > 20 ? '8.5px' : '9.5px';
@@ -159,7 +146,6 @@
             `;
 
             document.getElementById('print-area').innerHTML = htmlContent;
-            window.print();
         }
     </script>
 </body>

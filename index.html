@@ -73,6 +73,8 @@
     <div id="print-area"></div>
 
     <script>
+        let currentCookie = '';
+
         window.onload = loadCaptcha;
 
         async function loadCaptcha() {
@@ -84,6 +86,7 @@
                 let data = await res.json();
                 if (data.image) {
                     img.src = data.image;
+                    currentCookie = data.cookie || '';
                 } else {
                     alert('Lỗi lấy ảnh CAPTCHA, bấm 🔄 để thử lại!');
                 }
@@ -107,12 +110,26 @@
             btn.innerText = '⏳ Đang gửi dữ liệu...';
 
             try {
-                // Gửi request trực tiếp qua proxy đơn giản
-                let res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://vnpost.vn/vi/Tracking/TraCuuHanhTrinh')}`);
-                let data = await res.json();
-                
-                renderPrintArea(data.contents || '', code);
-                window.print();
+                let res = await fetch('/api/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: code,
+                        captcha: captcha,
+                        cookie: currentCookie
+                    })
+                });
+
+                let htmlText = await res.text();
+
+                if (htmlText.includes('không đúng') || htmlText.includes('Captcha')) {
+                    alert('Mã CAPTCHA sai hoặc hết hạn. Vui lòng thử lại mã mới!');
+                    loadCaptcha();
+                    document.getElementById('captchaInput').value = '';
+                } else {
+                    renderPrintArea(htmlText, code);
+                    window.print();
+                }
             } catch (e) {
                 alert('Lỗi khi tải trang in!');
             }

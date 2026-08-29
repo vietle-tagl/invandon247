@@ -3,58 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InVanDon247 - Tra Cứu VNPost</title>
+    <title>InVanDon247 - Tra Cứu & In Phiếu VNPost A4</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
-        .web-container { max-width: 480px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #003b7a; margin-top: 0; text-align: center; font-size: 20px; }
+        /* GIAO DIỆN TRÊN WEB */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .web-container { max-width: 480px; margin: 30px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: #0056b3; margin-top: 0; text-align: center; font-size: 22px; }
         .form-group { margin-bottom: 15px; }
-        label { font-size: 14px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
-        input[type="text"] { width: 100%; padding: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; outline: none; }
+        label { font-size: 13px; font-weight: bold; color: #495057; display: block; margin-bottom: 6px; }
+        input[type="text"] { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; outline: none; }
+        input[type="text"]:focus { border-color: #0056b3; }
         .captcha-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
-        .captcha-box { height: 42px; border: 1px solid #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: #eee; min-width: 130px; cursor: pointer; }
-        .captcha-box img { height: 100%; width: auto; display: block; }
-        .btn-reload { background: #6c757d; color: white; border: none; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-        .btn-submit { background-color: #003b7a; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; }
-        .btn-submit:hover { background-color: #002855; }
+        .captcha-box { height: 42px; border: 1px solid #ced4da; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; min-width: 140px; overflow: hidden; }
+        .captcha-box img { height: 100%; width: auto; object-fit: contain; }
+        .btn-reload { background: #6c757d; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .btn-submit { background-color: #0056b3; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
+        .btn-submit:hover { background-color: #004085; }
 
+        /* GIAO DIỆN PHIẾU IN A4 */
         #print-area { display: none; background: #fff; }
+
         @media print {
             .no-print { display: none !important; }
             #print-area { display: block !important; }
-            @page { size: A4 portrait; margin: 6mm 8mm 12mm 8mm; }
-            body { background: #fff; padding: 0; margin: 0; }
-        }
+            @page { size: A4 portrait; margin: 10mm 12mm; }
+            body { background: #fff; padding: 0; margin: 0; font-size: 9.5pt; color: #1a202c; }
+            
+            .header-table { width: 100%; border-collapse: collapse; border-bottom: 2px solid #0056b3; padding-bottom: 8px; margin-bottom: 12px; }
+            .brand-title { font-size: 16pt; font-weight: bold; color: #0056b3; margin: 0; }
+            .brand-subtitle { font-size: 8pt; color: #4a5568; margin-top: 2px; }
+            .header-meta { text-align: right; font-size: 8pt; color: #718096; }
 
-        .header-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-        .header-title { font-size: 14px; font-weight: bold; color: #003b7a; text-transform: uppercase; margin: 0; }
-        .box-section { border: 1px solid #333; padding: 4px 8px; margin-bottom: 6px; background: #fff; }
-        .box-title { font-weight: bold; font-size: 10px; color: #003b7a; margin-bottom: 3px; text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 1px; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px 8px; }
-        .info-item { line-height: 1.2; font-size: 9.5px; }
-        .info-item strong { color: #444; }
-        .timeline-container { column-count: 2; column-gap: 10px; column-rule: 1px solid #ccc; margin-top: 2px; }
-        .timeline-item { border-bottom: 1px dashed #ddd; break-inside: avoid; page-break-inside: avoid; line-height: 1.2; }
-        .timeline-time { font-weight: bold; color: #d9534f; }
-        .timeline-detail { color: #222; margin-top: 1px; }
-        .footer-print { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 8pt; color: #444; border-top: 1px solid #aaa; padding-top: 3px; background: #fff; }
+            .doc-title-box { text-align: center; background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 12px; }
+            .doc-title { font-size: 12pt; font-weight: bold; color: #2d3748; text-transform: uppercase; margin: 0; }
+            .tracking-number { font-size: 14pt; font-weight: bold; color: #d69e2e; letter-spacing: 1px; margin-top: 2px; }
+
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+            .card { border: 1px solid #cbd5e0; border-radius: 5px; padding: 8px 10px; }
+            .card-header { font-size: 8.5pt; font-weight: bold; color: #0056b3; text-transform: uppercase; border-bottom: 1px dashed #cbd5e0; padding-bottom: 4px; margin-bottom: 6px; }
+            .data-row { margin-bottom: 4px; font-size: 9pt; }
+            .label { color: #718096; font-size: 8pt; display: inline-block; width: 85px; }
+            .value { color: #2d3748; font-weight: bold; }
+            .status-badge { display: inline-block; background-color: #c6f6d5; color: #22543d; font-size: 8.5pt; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
+
+            .section-heading { font-size: 9.5pt; font-weight: bold; color: #2d3748; margin-bottom: 6px; padding-left: 6px; border-left: 3px solid #0056b3; }
+            .history-table { width: 100%; border-collapse: collapse; font-size: 8pt; }
+            .history-table th { background-color: #ebf8ff; color: #2c5282; text-align: left; padding: 5px 6px; font-weight: bold; border-top: 1px solid #bee3f8; border-bottom: 2px solid #90cdf4; }
+            .history-table td { padding: 5px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+            .history-table tr:nth-child(even) { background-color: #f7fafc; }
+            .history-table tr.latest-status { background-color: #f0fff4; font-weight: bold; color: #22543d; }
+            
+            .footer { margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 6px; text-align: center; font-size: 7.5pt; color: #a0aec0; }
+        }
     </style>
 </head>
 <body>
 
+    <!-- KHU VỰC TRANG WEB -->
     <div class="web-container no-print">
         <h2>InVanDon247 - Tra Cứu VNPost</h2>
         
         <div class="form-group">
-            <label>1. Nhập Mã vận đơn:</label>
+            <label>1. Mã vận đơn VNPost:</label>
             <input type="text" id="trackingCode" placeholder="Ví dụ: RB608631891VN" value="RB608631891VN">
         </div>
 
         <div class="form-group">
-            <label>2. Mã xác nhận (CAPTCHA):</label>
-            <input type="text" id="captchaText" placeholder="Nhập chữ trong hình bên dưới">
+            <label>2. Mã xác thực (CAPTCHA):</label>
+            <input type="text" id="captchaText" placeholder="Nhập chữ trong hình dưới">
             <div class="captcha-row">
-                <div class="captcha-box" onclick="loadCaptcha()" title="Click để đổi mã">
+                <div class="captcha-box">
                     <img id="captchaImg" src="" alt="Đang tải...">
                 </div>
                 <button class="btn-reload" onclick="loadCaptcha()">🔄 Đổi mã</button>
@@ -64,33 +82,34 @@
         <button class="btn-submit" id="btnSubmit" onclick="submitTracking()">🚀 Tra Cứu & In A4 Ngay</button>
     </div>
 
+    <!-- KHU VỰC HIỂN THỊ PHIẾU IN A4 -->
     <div id="print-area"></div>
 
     <script>
-        const PROXY = "https://corsproxy.io/?";
-        const CAPTCHA_URL = "https://vnpost.vn/vi/Tracking/GetCaptcha";
-        const TRACK_URL = "https://vnpost.vn/vi/Tracking/Index";
+        let currentCookie = '';
 
+        // 1. Tải CAPTCHA từ Proxy Vercel
         async function loadCaptcha() {
             const img = document.getElementById('captchaImg');
             img.src = '';
             img.alt = "Đang tải...";
 
             try {
-                // Tải trực tiếp qua CORS Proxy với timestamp chống cache
-                const timestamp = new Date().getTime();
-                const targetUrl = `${PROXY}${encodeURIComponent(CAPTCHA_URL + '?t=' + timestamp)}`;
+                const res = await fetch('/api/proxy?action=get-captcha');
+                const data = await res.json();
                 
-                const res = await fetch(targetUrl);
-                const blob = await res.blob();
-                
-                img.src = URL.createObjectURL(blob);
+                if (data.captchaUrl) {
+                    img.src = data.captchaUrl;
+                    currentCookie = data.cookie || '';
+                } else {
+                    img.alt = "Lỗi tải CAPTCHA";
+                }
             } catch (e) {
-                img.alt = "Lỗi tải CAPTCHA";
-                alert('Không thể tải CAPTCHA qua Proxy: ' + e.message);
+                img.alt = "Lỗi kết nối";
             }
         }
 
+        // 2. Tra cứu dữ liệu từ Proxy
         async function submitTracking() {
             const code = document.getElementById('trackingCode').value.trim();
             const captcha = document.getElementById('captchaText').value.trim();
@@ -102,31 +121,31 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "⏳ Đang tra cứu...";
+            btn.innerText = "⏳ Đang tra cứu dữ liệu...";
 
             try {
-                const targetUrl = `${PROXY}${encodeURIComponent(TRACK_URL)}`;
-                const params = new URLSearchParams();
-                params.append('ItemCode', code);
-                params.append('CaptchaText', captcha);
-
-                const res = await fetch(targetUrl, {
+                const res = await fetch('/api/proxy?action=track', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: params.toString()
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        trackingCode: code,
+                        captchaText: captcha,
+                        cookie: currentCookie
+                    })
                 });
 
-                const htmlText = await res.text();
+                const data = await res.json();
                 btn.disabled = false;
                 btn.innerText = "🚀 Tra Cứu & In A4 Ngay";
 
-                if (htmlText.includes('Mã xác thực không chính xác')) {
-                    alert('Mã CAPTCHA bị sai. Vui lòng nhập lại!');
+                // Kiểm tra xem phản hồi có hợp lệ không
+                if (data && data.info && data.info.ID) {
+                    renderA4Form(data);
+                    window.print(); // Mở cửa sổ in ấn A4 lập tức
+                } else {
+                    alert('Mã CAPTCHA không đúng hoặc không tìm thấy dữ liệu vận đơn. Vui lòng thử lại!');
                     document.getElementById('captchaText').value = '';
                     loadCaptcha();
-                } else {
-                    renderPrintForm(htmlText, code);
-                    window.print();
                 }
             } catch (e) {
                 btn.disabled = false;
@@ -135,78 +154,89 @@
             }
         }
 
-        function renderPrintForm(rawText, fallbackCode) {
-            let codeMatch = rawText.match(/(?:Bưu gửi số|Mã vận đơn|Mã bưu gửi)\s*:\s*([A-Z0-9]+)/i) || rawText.match(/([A-Z]{2}\d{9}[A-Z]{2})/i);
-            let code = codeMatch ? codeMatch[1] : fallbackCode;
+        // 3. Đổ dữ liệu JSON vào Template A4 chuẩn
+        function renderA4Form(data) {
+            const info = data.info || {};
+            const locate = data.locate || [];
+            const delivery = (data.delivery && data.delivery.length > 0) ? data.delivery[0] : null;
 
-            let weightMatch = rawText.match(/Khối lượng[^:]*:\s*([\d\.,]+)/i);
-            let weight = weightMatch ? weightMatch[1] : '0';
-
-            let statusMatch = rawText.match(/Trạng thái\s*:\s*([^\n]+)/i);
-            let status = statusMatch ? statusMatch[1].trim() : 'Đang cập nhật';
-
-            let fromMatch = rawText.match(/(?:Bưu cục nhận|Nơi gửi)\s*:\s*([^\n]+)/i);
-            let from = fromMatch ? fromMatch[1].trim() : '-';
-
-            let toMatch = rawText.match(/(?:Bưu cục phát|Nơi nhận)\s*:\s*([^\n]+)/i);
-            let to = toMatch ? toMatch[1].trim() : '-';
-
-            let timeline = [];
-            let lines = rawText.split('\n');
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i].trim();
-                if (line.match(/^\d{2}\/\d{2}\/\d{4}/)) {
-                    let time = line;
-                    let detail = [];
-                    let j = i + 1;
-                    while (j < lines.length && !lines[j].trim().match(/^\d{2}\/\d{2}\/\d{4}/)) {
-                        let subLine = lines[j].trim();
-                        if (subLine && !subLine.includes('GIẢI QUYẾT KHIẾU NẠI') && !subLine.includes('THÔNG TIN TRẠNG THÁI')) {
-                            detail.push(subLine);
-                        }
-                        j++;
-                    }
-                    timeline.push({ time: time, detail: detail.join(' ') });
-                }
+            // Xác định trạng thái phát thành công
+            let statusBadge = "ĐANG VẬN CHUYỂN";
+            if (delivery && delivery.STATUSTEXT) {
+                statusBadge = delivery.STATUSTEXT;
+            } else if (locate.length > 0) {
+                statusBadge = locate[locate.length - 1].StatusText;
             }
 
-            let fontSize = timeline.length > 20 ? '8.5px' : '9.5px';
+            // Sắp xếp lịch sử mới nhất lên đầu
+            const sortedLocate = [...locate].reverse();
 
-            let htmlContent = `
-                <div class="header-container">
-                    <div><img src="https://vnpost.vn/images/logo.png" style="height:28px;width:auto;" alt="VNPost"/></div>
-                    <div class="header-title">THÔNG TIN VẬN ĐƠN</div>
+            const html = `
+                <table class="header-table">
+                    <tr>
+                        <td>
+                            <div class="brand-title">InVanDon247</div>
+                            <div class="brand-subtitle">Hệ thống chuyển đổi & In phiếu bưu gửi A4 tự động</div>
+                        </td>
+                        <td class="header-meta">
+                            <div>Ngày in: ${new Date().toLocaleString('vi-VN')}</div>
+                            <div>Đơn vị: <strong>VNPOST (Bưu điện Việt Nam)</strong></div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="doc-title-box">
+                    <div class="doc-title">XÁC NHẬN HÀNH TRÌNH BƯU GỬI</div>
+                    <div class="tracking-number">${info.ID || ''}</div>
                 </div>
-                <div class="box-section">
-                    <div class="box-title">CHI TIẾT BƯU GỬI</div>
-                    <div class="info-grid">
-                        <div class="info-item"><strong>Mã vận đơn:</strong> <b style="font-size:10.5px;">${code}</b></div>
-                        <div class="info-item"><strong>Khối lượng:</strong> ${weight} gram</div>
-                        <div class="info-item"><strong>Trạng thái:</strong> <span style="color:green;font-weight:bold;">${status}</span></div>
-                        <div class="info-item"><strong>Bưu cục nhận:</strong> ${from}</div>
-                        <div class="info-item" style="grid-column: span 2;"><strong>Bưu cục phát:</strong> ${to}</div>
+
+                <div class="info-grid">
+                    <div class="card">
+                        <div class="card-header">Thông tin tổng quan</div>
+                        <div class="data-row"><span class="label">Mã bưu gửi:</span> <span class="value">${info.ID || '-'}</span></div>
+                        <div class="data-row"><span class="label">Khối lượng:</span> <span class="value">${info.Weight || '0'} g</span></div>
+                        <div class="data-row"><span class="label">Trạng thái:</span> <span class="status-badge">${statusBadge}</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">Tuyến vận chuyển</div>
+                        <div class="data-row"><span class="label">Bưu cục gửi:</span> <span class="value">${info.BC_GUI || '-'}</span></div>
+                        <div class="data-row"><span class="label">Bưu cục phát:</span> <span class="value">${info.BC_PHAT || '-'}</span></div>
+                        <div class="data-row"><span class="label">Nước gửi/nhận:</span> <span class="value">${info.Nuoc_Chapnhan || 'VN'} ➔ ${info.Nuoc_Phat || 'VN'}</span></div>
                     </div>
                 </div>
-                <div class="box-section">
-                    <div class="box-title">LỊCH SỬ HÀNH TRÌNH (${timeline.length} SỰ KIỆN)</div>
-                    <div class="timeline-container" style="font-size:${fontSize}">
-                        ${timeline.map(item => `
-                            <div class="timeline-item">
-                                <div class="timeline-time">⏱ ${item.time}</div>
-                                <div class="timeline-detail">${item.detail}</div>
-                            </div>
+
+                <div class="section-heading">Chi tiết lịch sử hành trình (${locate.length} công đoạn)</div>
+                
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 110px;">Thời gian</th>
+                            <th>Nội dung trạng thái</th>
+                            <th style="width: 60px;">Mã BC</th>
+                            <th>Vị trí thực tế</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sortedLocate.map((item, index) => `
+                            <tr class="${index === 0 ? 'latest-status' : ''}">
+                                <td>${item.Date} ${item.TimeDetail}</td>
+                                <td>${item.StatusText}</td>
+                                <td>${item.POSCode || '-'}</td>
+                                <td>${typeof item.VI_TRI === 'string' ? item.VI_TRI : '-'}</td>
+                            </tr>
                         `).join('')}
-                    </div>
-                </div>
-                <div class="footer-print">
-                    <div>Xuất từ InVanDon247.com</div>
-                    <div><b>Mã vận đơn:</b> ${code}</div>
+                    </tbody>
+                </table>
+
+                <div class="footer">
+                    Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 • Trang 1/1
                 </div>
             `;
 
-            document.getElementById('print-area').innerHTML = htmlContent;
+            document.getElementById('print-area').innerHTML = html;
         }
 
+        // Tự động lấy CAPTCHA ngay khi mở trang
         window.onload = loadCaptcha;
     </script>
 </body>

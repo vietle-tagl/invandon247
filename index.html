@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InVanDon247.com - Tra cứu & In A4</title>
+    <title>InVanDon247.com - Tra Cứu & In A4</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
         .web-container { max-width: 500px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -16,11 +16,12 @@
         .captcha-box { display: flex; gap: 10px; align-items: center; }
         .captcha-box input { flex: 1; }
         .captcha-img-wrapper { display: flex; align-items: center; gap: 5px; }
-        .captcha-img-wrapper img { height: 42px; width: 130px; border: 1px solid #ccc; border-radius: 4px; background: #eee; cursor: pointer; object-fit: contain; }
+        .captcha-img-wrapper img { height: 42px; min-width: 130px; max-width: 150px; border: 1px solid #ccc; border-radius: 4px; background: #eee; cursor: pointer; object-fit: contain; }
         .btn-refresh { background: #eee; border: 1px solid #ccc; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 16px; }
 
         .btn-submit { background-color: #003b7a; color: white; padding: 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; }
         .btn-submit:hover { background-color: #002855; }
+        .btn-submit:disabled { background-color: #888; cursor: not-allowed; }
         
         #print-area { display: none; background: #fff; }
 
@@ -79,15 +80,27 @@
         async function loadCaptcha() {
             let img = document.getElementById('captchaImg');
             img.style.opacity = '0.3';
+            img.alt = 'Đang tải...';
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
             try {
-                let res = await fetch('/api/captcha?t=' + Date.now());
+                let res = await fetch('/api/captcha?t=' + Date.now(), { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
                 let data = await res.json();
                 if (data.image) {
                     img.src = data.image;
                     currentCookie = data.cookie;
+                } else {
+                    img.alt = 'Lỗi tải ảnh';
+                    alert('Không thể lấy CAPTCHA từ VNPost!');
                 }
             } catch (e) {
-                alert('Không lấy được CAPTCHA từ VNPost, vui lòng thử lại!');
+                clearTimeout(timeoutId);
+                img.alt = 'Lỗi kết nối';
+                alert('Tải CAPTCHA thất bại hoặc server bị chặn IP!');
             }
             img.style.opacity = '1';
         }
@@ -115,7 +128,7 @@
                 let htmlText = await res.text();
 
                 if (htmlText.includes('không đúng') || htmlText.includes('Captcha')) {
-                    alert('Mã CAPTCHA chưa đúng, hệ thống đã tải mã mới!');
+                    alert('Mã CAPTCHA không chính xác, vui lòng thử lại mã mới!');
                     loadCaptcha();
                     document.getElementById('captchaInput').value = '';
                 } else {
@@ -123,7 +136,7 @@
                     window.print();
                 }
             } catch (e) {
-                alert('Lỗi tra cứu, vui lòng thử lại!');
+                alert('Lỗi tra cứu dữ liệu!');
             }
 
             btn.disabled = false;
@@ -138,10 +151,10 @@
             let codeMatch = rawText.match(/(?:Bưu gửi số|Mã vận đơn|Mã bưu gửi)\s*:\s*([A-Z0-9]+)/i) || rawText.match(/([A-Z]{2}\d{9}[A-Z]{2})/i);
             let code = codeMatch ? codeMatch[1] : inputCode;
 
-            let weightMatch = rawText.match(/Khối lượng[^:]*:\s*([\d\.,]+)/i);
+            let weightMatch = rawText.match/Khối lượng[^:]*:\s*([\d\.,]+)/i);
             let weight = weightMatch ? weightMatch[1] : '0';
 
-            let statusMatch = rawText.match(/Trạng thái\s*:\s*([^\n]+)/i);
+            let statusMatch = rawText.match/Trạng thái\s*:\s*([^\n]+)/i);
             let status = statusMatch ? statusMatch[1].trim() : 'Đang cập nhật';
 
             let fromMatch = rawText.match(/(?:Bưu cục nhận|Nơi gửi)\s*:\s*([^\n]+)/i);

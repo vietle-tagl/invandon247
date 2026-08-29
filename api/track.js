@@ -7,9 +7,10 @@ export default async function handler(req, res) {
         const response = await fetch('https://vnpost.vn/vi/Tracking/TraCuuHanhTrinh', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 'Cookie': cookie || '',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: new URLSearchParams({
                 'ItemCode': code,
@@ -20,6 +21,6 @@ export default async function handler(req, res) {
         const html = await response.text();
         res.status(200).send(html);
     } catch (error) {
-        res.status(500).json({ error: 'Lỗi truy vấn dữ liệu từ VNPost' });
+        res.status(500).json({ error: 'Lỗi gửi dữ liệu' });
     }
 }

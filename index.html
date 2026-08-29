@@ -12,7 +12,7 @@
         .form-group { margin-bottom: 15px; }
         label { font-size: 13px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
         
-        /* Mã vận đơn tự viết hoa, Ô Captcha giữ nguyên chữ hoa/thường */
+        /* Đã tách riêng biệt 2 ô */
         #trackCode { width: 100%; padding: 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; outline: none; text-transform: uppercase; font-weight: bold; }
         #captchaInput { width: 100%; padding: 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; outline: none; font-weight: bold; }
         
@@ -101,7 +101,6 @@
 
         async function submitTrack() {
             let code = document.getElementById('trackCode').value.trim().toUpperCase();
-            // Lấy chính xác chữ hoa/thường người dùng nhập, không dùng toUpperCase()
             let captcha = document.getElementById('captchaInput').value.trim();
             let btn = document.getElementById('btnSubmit');
 
@@ -126,7 +125,6 @@
 
                 let htmlText = await res.text();
 
-                // Kiểm tra xem phản hồi có dữ liệu thật không hay bị lỗi CAPTCHA/Trống
                 if (htmlText.includes('không đúng') || htmlText.includes('Captcha') || htmlText.includes('0 SỰ KIỆN') || !htmlText.includes('Khối lượng')) {
                     alert('Mã CAPTCHA không chính xác hoặc đã hết hạn. Vui lòng thử lại!');
                     loadCaptcha();

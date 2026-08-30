@@ -500,7 +500,7 @@ body{
 @media print{
     body{ background:#fff; }
     .no-print, .topbar, .page>.search-card, .result-head, .result-card{ display:none!important; }
-    #print-area{ display:block!important; }
+    if-print-area{ display:block!important; }
 }
 </style>
 </head>
@@ -509,8 +509,8 @@ body{
 
 <header class="topbar no-print">
     <div class="brand">
-        <!-- LOGO VIETNAM POST CHUẨN ĐƯỜNG LINK HAITRIEU -->
-        <img class="brand-logo-img" src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png" alt="Logo Vietnam Post" crossorigin="anonymous">
+        <!-- LOGO NHÚNG BASE64 TRỰC TIẾP (KHÔNG LO LỖI CORS HAY CHẶN LINK) -->
+        <img class="brand-logo-img" id="main-logo" src="" alt="Logo Vietnam Post">
 
         <div>
             <strong>InVanDon247</strong>
@@ -566,6 +566,13 @@ body{
 <div id="print-area"></div>
 
 <script>
+// Chuỗi Base64 Logo VNPost chuẩn chính thức
+const LOGO_BASE64 = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 100'><g fill='%23F6A000'><polygon points='80,10 230,10 200,28 50,28'/><polygon points='62,32 212,32 182,50 32,50'/><polygon points='44,54 194,54 164,72 14,72'/><polygon points='26,76 176,76 146,94 -4,94'/><path d='M-4,94 L60,10 L100,50 L40,94 Z'/></g><text x='115' y='92' font-family='Arial' font-weight='900' font-size='22' fill='%2307579b'>VIETNAM POST</text></svg>";
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById('main-logo').src = LOGO_BASE64;
+});
+
 let currentCookie = '';
 let currentTrackingCode = '';
 let currentData = null;
@@ -910,7 +917,7 @@ function renderPrint(data){
     <div class="print-page">
         <div class="p-header">
             <div>
-                <img class="p-logo-img" src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png" alt="Logo Vietnam Post" crossorigin="anonymous">
+                <img class="p-logo-img" src="${LOGO_BASE64}" alt="Logo Vietnam Post">
             </div>
             <div class="p-main-title">THÔNG TIN VẬN ĐƠN</div>
         </div>

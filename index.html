@@ -1,2571 +1,3428 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>InVanDon247 - Tra cứu vận đơn VNPost</title>
-
-<!-- PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<style>
-/* =========================================================
-   BIẾN MÀU
-========================================================= */
-:root{
-    --blue:#005baa;
-    --blue-dark:#004681;
-    --blue-light:#eef6ff;
-    --orange:#f59d18;
-    --green:#149447;
-    --red:#d93025;
-    --text:#343a40;
-    --muted:#6c757d;
-    --border:#dfe4ea;
-    --bg:#f3f5f7;
-}
-
-/* =========================================================
-   RESET
-========================================================= */
-*{
-    box-sizing:border-box;
-}
-
-html{
-    scroll-behavior:smooth;
-}
-
-body{
-    margin:0;
-    font-family:"Segoe UI",Arial,Tahoma,sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    font-size:14px;
-}
-
-button,
-input{
-    font-family:inherit;
-}
-
-/* =========================================================
-   HEADER WEBSITE
-========================================================= */
-.site-header{
-    height:64px;
-    background:#fff;
-    border-bottom:1px solid #ddd;
-    box-shadow:0 2px 8px rgba(0,0,0,.08);
-    display:flex;
-    align-items:center;
-    position:sticky;
-    top:0;
-    z-index:100;
-}
-
-.site-header-inner{
-    width:min(1180px,calc(100% - 30px));
-    margin:auto;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-}
-
-.brand{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-
-.brand img{
-    width:58px;
-    height:auto;
-    object-fit:contain;
-}
-
-.brand-text{
-    line-height:1.15;
-}
-
-.brand-name{
-    color:var(--blue);
-    font-size:19px;
-    font-weight:800;
-}
-
-.brand-desc{
-    color:#777;
-    font-size:10px;
-    margin-top:3px;
-}
-
-.nav{
-    display:flex;
-    gap:25px;
-    font-size:13px;
-}
-
-.nav a{
-    color:#444;
-    text-decoration:none;
-}
-
-.nav a:hover{
-    color:var(--blue);
-}
-
-/* =========================================================
-   CONTAINER
-========================================================= */
-.container{
-    width:min(1180px,calc(100% - 30px));
-    margin:20px auto 50px;
-}
-
-/* =========================================================
-   FORM TRA CỨU
-========================================================= */
-.search-box{
-    background:#fff;
-    border:1px solid #e0e5ea;
-    border-radius:9px;
-    padding:22px 24px;
-    box-shadow:0 3px 14px rgba(0,0,0,.07);
-}
-
-.search-title{
-    text-align:center;
-    color:var(--blue);
-    font-size:20px;
-    font-weight:800;
-    margin:0;
-}
-
-.search-subtitle{
-    text-align:center;
-    color:#777;
-    font-size:11px;
-    margin:5px 0 18px;
-}
-
-.search-grid{
-    display:grid;
-    grid-template-columns:1.15fr .85fr;
-    gap:12px;
-}
-
-.form-label{
-    display:block;
-    font-size:12px;
-    font-weight:700;
-    margin-bottom:6px;
-}
-
-.form-input{
-    width:100%;
-    height:40px;
-    border:1px solid #cfd6dd;
-    border-radius:5px;
-    padding:0 11px;
-    font-size:13px;
-    outline:none;
-}
-
-.form-input:focus{
-    border-color:var(--blue);
-    box-shadow:0 0 0 2px rgba(0,91,170,.08);
-}
-
-.captcha-row{
-    display:flex;
-    gap:6px;
-}
-
-.captcha-input{
-    flex:1;
-}
-
-.captcha-image-wrap{
-    width:100px;
-    height:40px;
-    border:1px solid #ced4da;
-    border-radius:5px;
-    overflow:hidden;
-    background:#f8f9fa;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.captcha-image-wrap img{
-    width:100%;
-    height:100%;
-    object-fit:contain;
-}
-
-.btn-reload{
-    width:65px;
-    border:0;
-    border-radius:5px;
-    background:#eee;
-    cursor:pointer;
-    font-weight:700;
-}
-
-.btn-reload:hover{
-    background:#ddd;
-}
-
-.btn-search{
-    width:100%;
-    height:40px;
-    margin-top:12px;
-    border:0;
-    border-radius:5px;
-    background:var(--blue);
-    color:#fff;
-    font-size:13px;
-    font-weight:700;
-    cursor:pointer;
-}
-
-.btn-search:hover{
-    background:var(--blue-dark);
-}
-
-.btn-search:disabled{
-    opacity:.65;
-    cursor:wait;
-}
-
-.message{
-    display:none;
-    margin-top:12px;
-    padding:10px 12px;
-    border-radius:5px;
-    font-size:13px;
-}
-
-.message.error{
-    background:#fff0f0;
-    color:#b42318;
-}
-
-.message.success{
-    background:#eefbf3;
-    color:#137333;
-}
-
-/* =========================================================
-   THANH NÚT KẾT QUẢ
-========================================================= */
-.result-actions{
-    display:none;
-    justify-content:flex-end;
-    gap:8px;
-    margin:10px 0 8px;
-}
-
-.action-btn{
-    height:34px;
-    border:0;
-    border-radius:5px;
-    padding:0 16px;
-    color:#fff;
-    font-size:12px;
-    font-weight:700;
-    cursor:pointer;
-}
-
-.btn-print{
-    background:#168b50;
-}
-
-.btn-print:hover{
-    background:#10743f;
-}
-
-.btn-pdf{
-    background:var(--blue);
-}
-
-.btn-pdf:hover{
-    background:var(--blue-dark);
-}
-
-/* =========================================================
-   KHUNG KẾT QUẢ WEB
-========================================================= */
-.result-card{
-    display:none;
-    background:#fff;
-    border:1px solid #e0e5ea;
-    border-radius:8px;
-    box-shadow:0 3px 15px rgba(0,0,0,.07);
-    overflow:hidden;
-}
-
-.result-top{
-    background:#f5f7f9;
-    min-height:54px;
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    align-items:center;
-    padding:8px 14px;
-    border-bottom:1px solid #e0e5ea;
-}
-
-.top-item{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-size:12px;
-    padding:0 8px;
-}
-
-.top-icon{
-    font-size:18px;
-}
-
-.top-label{
-    color:#68717a;
-}
-
-.top-value{
-    color:#004f8d;
-    font-weight:700;
-}
-
-.status-success{
-    color:#138a46;
-    font-weight:700;
-}
-
-.result-body{
-    padding:13px 14px 15px;
-}
-
-.route-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:6px 40px;
-    margin-bottom:14px;
-}
-
-.route-item{
-    font-size:12px;
-    line-height:1.5;
-}
-
-.route-label{
-    font-weight:700;
-    display:inline-block;
-    min-width:120px;
-}
-
-.section-title{
-    font-size:12px;
-    font-weight:800;
-    color:#505860;
-    margin:14px 0 8px;
-    text-transform:uppercase;
-}
-
-/* =========================================================
-   LỊCH TRÌNH WEB - GIỐNG VNPOST
-========================================================= */
-.timeline{
-    border-left:2px solid #aeb5bc;
-    margin-left:9px;
-}
-
-.timeline-row{
-    display:grid;
-    grid-template-columns:175px minmax(0,1.45fr) minmax(260px,1fr) 30px;
-    position:relative;
-    min-height:54px;
-    padding:5px 0 5px 15px;
-    border-bottom:0;
-}
-
-.timeline-row::before{
-    content:"";
-    position:absolute;
-    left:-6px;
-    top:13px;
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:#6d7378;
-    border:2px solid #fff;
-    box-shadow:0 0 0 1px #6d7378;
-}
-
-.timeline-row.latest::before{
-    background:#16a05d;
-    box-shadow:0 0 0 1px #16a05d;
-}
-
-.timeline-time{
-    font-size:11px;
-    color:#4e5962;
-    padding-right:8px;
-}
-
-.timeline-detail{
-    font-size:11px;
-    color:#3f4850;
-    line-height:1.4;
-    padding-right:12px;
-}
-
-.timeline-detail.latest{
-    color:#128344;
-    font-weight:700;
-}
-
-.timeline-code{
-    display:block;
-    font-size:10px;
-    color:#70777d;
-    margin-top:3px;
-    font-weight:600;
-}
-
-.timeline-location{
-    font-size:11px;
-    color:#50575e;
-    line-height:1.4;
-    padding-right:6px;
-}
-
-.timeline-map-btn{
-    width:25px;
-    height:25px;
-    border:0;
-    background:transparent;
-    color:#496eff;
-    font-size:19px;
-    cursor:pointer;
-    font-weight:700;
-}
-
-.timeline-map-btn:hover{
-    color:#1748ff;
-    transform:scale(1.08);
-}
-
-/* =========================================================
-   THÔNG TIN PHÁT
-========================================================= */
-.delivery-table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:11px;
-}
-
-.delivery-table th{
-    background:#edf2f7;
-    color:#4d5660;
-    text-align:left;
-    padding:8px 9px;
-    font-weight:700;
-}
-
-.delivery-table td{
-    border:1px solid #e2e7ec;
-    padding:8px 9px;
-    vertical-align:top;
-}
-
-.delivery-table th:first-child{
-    width:20%;
-}
-
-.delivery-table th:nth-child(2){
-    width:25%;
-}
-
-/* =========================================================
-   BẢN ĐỒ
-========================================================= */
-.map-section{
-    display:none;
-    margin-top:15px;
-    border:1px solid #dce2e7;
-    border-radius:5px;
-    overflow:hidden;
-}
-
-.map-head{
-    min-height:40px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:7px 10px;
-    background:#fff;
-    border-bottom:1px solid #dce2e7;
-    font-size:11px;
-    color:#3d4650;
-}
-
-.map-title{
-    font-weight:700;
-    line-height:1.35;
-}
-
-.map-google{
-    color:#0066cc;
-    text-decoration:none;
-    white-space:nowrap;
-    margin-left:10px;
-}
-
-.map-frame{
-    width:100%;
-    height:430px;
-    border:0;
-    display:block;
-}
-
-.result-footer{
-    border-top:1px solid #e2e7ec;
-    margin-top:12px;
-    padding-top:7px;
-    text-align:center;
-    color:#9aa1a8;
-    font-size:9px;
-}
-
-/* =========================================================
-   PRINT DOCUMENT - ẨN TRÊN WEB
-========================================================= */
-#print-document{
-    display:none;
-}
-
-/* =========================================================
-   BẢN A4
-========================================================= */
-.print-page{
-    width:210mm;
-    min-height:297mm;
-    height:297mm;
-    background:#fff;
-    padding:7mm 8mm 6mm;
-    margin:0 auto;
-    color:#20262b;
-    font-family:Arial,"Segoe UI",sans-serif;
-    overflow:hidden;
-    position:relative;
-    box-sizing:border-box;
-}
-
-.print-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    border-bottom:1.5px solid #005baa;
-    padding-bottom:4px;
-    margin-bottom:5px;
-}
-
-.print-logo{
-    width:38mm;
-    height:auto;
-    object-fit:contain;
-}
-
-.print-header-right{
-    text-align:right;
-    font-size:7.5pt;
-    color:#777;
-    line-height:1.4;
-}
-
-.print-header-right strong{
-    color:#333;
-}
-
-.print-title{
-    border:1px solid #ccd4db;
-    text-align:center;
-    padding:4px 6px;
-    margin-bottom:5px;
-}
-
-.print-title-main{
-    color:#333;
-    font-size:10.5pt;
-    font-weight:800;
-    text-transform:uppercase;
-}
-
-.print-tracking{
-    color:#a56b00;
-    font-size:12pt;
-    font-weight:800;
-    letter-spacing:.7px;
-    margin-top:1px;
-}
-
-.print-info-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:5px;
-    margin-bottom:5px;
-}
-
-.print-card{
-    border:1px solid #cbd3da;
-    padding:5px 7px;
-}
-
-.print-card-title{
-    color:#005baa;
-    font-size:7.7pt;
-    font-weight:800;
-    text-transform:uppercase;
-    border-bottom:1px dashed #cbd3da;
-    padding-bottom:2px;
-    margin-bottom:3px;
-}
-
-.print-line{
-    font-size:7.4pt;
-    line-height:1.35;
-    margin:1px 0;
-}
-
-.print-label{
-    color:#666;
-}
-
-.print-value{
-    font-weight:700;
-}
-
-.print-status{
-    color:#168544;
-    font-weight:700;
-}
-
-.print-section-title{
-    color:#37414a;
-    font-size:8pt;
-    font-weight:800;
-    border-left:3px solid #005baa;
-    padding-left:5px;
-    margin:5px 0 3px;
-}
-
-/*
-   2 cột thật sự.
-   Mỗi trang chia các sự kiện thành 2 nửa.
-*/
-.print-timeline-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:0 7mm;
-    align-items:start;
-}
-
-.print-timeline-col{
-    min-width:0;
-}
-
-.print-event{
-    display:grid;
-    grid-template-columns:28mm minmax(0,1fr);
-    gap:2mm;
-    padding:2.2px 0;
-    border-bottom:1px dotted #d5d9dd;
-    break-inside:avoid;
-}
-
-.print-event-time{
-    font-size:6.8pt;
-    color:#454d54;
-    line-height:1.25;
-}
-
-.print-event-content{
-    font-size:6.8pt;
-    line-height:1.25;
-    color:#333;
-}
-
-.print-event-content strong{
-    font-weight:700;
-}
-
-.print-event-code{
-    color:#555;
-    font-size:6.3pt;
-    font-weight:700;
-}
-
-.print-event.latest{
-    background:#f1fbf5;
-}
-
-.print-event.latest .print-event-content{
-    color:#137d40;
-    font-weight:700;
-}
-
-.print-delivery{
-    margin-top:5px;
-}
-
-.print-delivery-table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:6.8pt;
-}
-
-.print-delivery-table th{
-    background:#edf2f7;
-    text-align:left;
-    padding:3.5px 5px;
-    color:#49535d;
-}
-
-.print-delivery-table td{
-    border:1px solid #d9dfe4;
-    padding:3.5px 5px;
-    vertical-align:top;
-}
-
-.print-footer{
-    position:absolute;
-    left:8mm;
-    right:8mm;
-    bottom:4mm;
-    border-top:1px solid #dfe3e6;
-    padding-top:2.5px;
-    text-align:center;
-    font-size:6.3pt;
-    color:#92999f;
-}
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-@media(max-width:800px){
-
-    .nav{
-        display:none;
-    }
-
-    .search-grid{
-        grid-template-columns:1fr;
-    }
-
-    .result-top{
-        grid-template-columns:1fr;
-        gap:8px;
-    }
-
-    .route-grid{
-        grid-template-columns:1fr;
-    }
-
-    .timeline-row{
-        grid-template-columns:105px minmax(0,1fr) 25px;
-    }
-
-    .timeline-location{
-        display:none;
-    }
-
-    .timeline-detail{
-        padding-right:4px;
-    }
-
-    .map-frame{
-        height:350px;
-    }
-}
-
-/* =========================================================
-   PRINT
-========================================================= */
-@media print{
-
-    html,
-    body{
-        margin:0 !important;
-        padding:0 !important;
-        background:#fff !important;
-    }
-
-    body > *{
-        display:none !important;
-    }
-
-    #print-document{
-        display:block !important;
-    }
-
-    .print-page{
-        margin:0 !important;
-        box-shadow:none !important;
-        page-break-after:always;
-        break-after:page;
-    }
-
-    .print-page:last-child{
-        page-break-after:auto;
-        break-after:auto;
-    }
-
-    @page{
-        size:A4 portrait;
-        margin:0;
-    }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>InVanDon247 - Tra cứu VNPost</title>
+
+    <!-- Thư viện xuất PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* =========================================================
+           BIẾN MÀU
+        ========================================================= */
+        :root {
+            --blue: #0056a6;
+            --blue-dark: #003f7d;
+            --blue-light: #eaf3fb;
+            --orange: #f5a400;
+            --green: #008a4b;
+            --green-light: #e8f7ef;
+            --text: #343a40;
+            --muted: #6c757d;
+            --border: #d8dee5;
+            --bg: #f3f5f7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, "Segoe UI", sans-serif;
+            font-size: 14px;
+        }
+
+        button,
+        input {
+            font-family: inherit;
+        }
+
+        /* =========================================================
+           HEADER WEBSITE
+        ========================================================= */
+
+        .site-header {
+            height: 64px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            display: flex;
+            align-items: center;
+        }
+
+        .site-header-inner {
+            width: 1120px;
+            max-width: calc(100% - 30px);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .vnpost-logo {
+            width: 54px;
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .brand-text strong {
+            display: block;
+            color: var(--blue);
+            font-size: 18px;
+            line-height: 20px;
+        }
+
+        .brand-text span {
+            display: block;
+            color: #777;
+            font-size: 10px;
+            margin-top: 2px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .nav a {
+            color: #444;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .nav a:hover {
+            color: var(--blue);
+        }
+
+        /* =========================================================
+           CONTAINER
+        ========================================================= */
+
+        .container {
+            width: 1120px;
+            max-width: calc(100% - 30px);
+            margin: 18px auto 40px;
+        }
+
+        /* =========================================================
+           FORM TRA CỨU
+        ========================================================= */
+
+        .search-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+            box-shadow: 0 3px 14px rgba(0,0,0,.06);
+            padding: 18px 20px;
+        }
+
+        .search-title {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .search-title h1 {
+            color: var(--blue);
+            font-size: 21px;
+            margin: 0 0 4px;
+        }
+
+        .search-title p {
+            margin: 0;
+            color: #777;
+            font-size: 12px;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .input {
+            width: 100%;
+            height: 38px;
+            border: 1px solid #cfd5da;
+            border-radius: 5px;
+            padding: 0 11px;
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+        }
+
+        .input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 2px rgba(0,86,166,.08);
+        }
+
+        .captcha-row {
+            display: flex;
+            gap: 7px;
+        }
+
+        .captcha-input {
+            flex: 1;
+        }
+
+        .captcha-box {
+            width: 105px;
+            height: 38px;
+            border: 1px solid #cfd5da;
+            border-radius: 5px;
+            background: #f7f7f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .captcha-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .btn-reload {
+            width: 75px;
+            border: none;
+            border-radius: 5px;
+            background: #f0f1f2;
+            color: #333;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .btn-reload:hover {
+            background: #e3e5e7;
+        }
+
+        .btn-submit {
+            margin-top: 12px;
+            width: 100%;
+            height: 39px;
+            border: none;
+            border-radius: 5px;
+            background: var(--blue);
+            color: #fff;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover {
+            background: var(--blue-dark);
+        }
+
+        .btn-submit:disabled {
+            opacity: .7;
+            cursor: wait;
+        }
+
+        /* =========================================================
+           ACTION BAR
+        ========================================================= */
+
+        .action-bar {
+            display: none;
+            justify-content: flex-end;
+            gap: 8px;
+            margin: 10px 0 10px;
+        }
+
+        .action-btn {
+            height: 34px;
+            padding: 0 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .btn-print {
+            background: #16834c;
+        }
+
+        .btn-print:hover {
+            background: #116d3f;
+        }
+
+        .btn-pdf {
+            background: var(--blue);
+        }
+
+        .btn-pdf:hover {
+            background: var(--blue-dark);
+        }
+
+        /* =========================================================
+           KẾT QUẢ WEB
+        ========================================================= */
+
+        #result-wrapper {
+            display: none;
+        }
+
+        .result-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e0e4e8;
+            box-shadow: 0 3px 15px rgba(0,0,0,.06);
+            padding: 14px 16px 18px;
+        }
+
+        /* Thanh tổng quan giống VNPost */
+
+        .result-summary {
+            background: #f5f6f7;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.25fr;
+            gap: 15px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+        }
+
+        .summary-item {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+        }
+
+        .summary-icon {
+            font-size: 20px;
+            width: 25px;
+            text-align: center;
+        }
+
+        .summary-label {
+            color: #666;
+        }
+
+        .summary-value {
+            font-weight: bold;
+            color: #164a73;
+        }
+
+        .summary-status {
+            color: var(--green);
+        }
+
+        /* Thông tin cơ bản */
+
+        .route-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 45px;
+            row-gap: 12px;
+            padding: 2px 12px 15px;
+        }
+
+        .route-item {
+            font-size: 12px;
+        }
+
+        .route-item strong {
+            display: inline-block;
+            min-width: 120px;
+            color: #444;
+        }
+
+        /* =========================================================
+           LỊCH SỬ HÀNH TRÌNH WEB
+        ========================================================= */
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #4d555d;
+            margin: 10px 0 12px;
+            text-transform: uppercase;
+        }
+
+        .timeline {
+            position: relative;
+            margin: 0 8px 16px 8px;
+        }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 9px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: #b9bec4;
+        }
+
+        .timeline-row {
+            position: relative;
+            display: grid;
+            grid-template-columns: 20px 125px minmax(300px, 1fr) minmax(270px, 1fr) 30px;
+            column-gap: 10px;
+            align-items: start;
+            min-height: 52px;
+            padding: 6px 0;
+        }
+
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border: 2px solid #777;
+            border-radius: 50%;
+            background: #fff;
+            margin-top: 7px;
+            z-index: 2;
+        }
+
+        .timeline-row.latest .timeline-dot {
+            border-color: var(--green);
+            background: #fff;
+            box-shadow: 0 0 0 2px #d9f2e5;
+        }
+
+        .timeline-time {
+            font-size: 11px;
+            color: #555;
+            padding-top: 3px;
+            white-space: nowrap;
+        }
+
+        .timeline-main {
+            font-size: 11px;
+            line-height: 1.4;
+            color: #3f454a;
+        }
+
+        .timeline-row.latest .timeline-main {
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        .timeline-poscode {
+            margin-top: 4px;
+            font-size: 10px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .timeline-location {
+            font-size: 11px;
+            line-height: 1.4;
+            color: #5e656c;
+            padding-top: 3px;
+        }
+
+        .map-button {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: #4568df;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .map-button:hover {
+            background: #edf1ff;
+        }
+
+        /* =========================================================
+           THÔNG TIN PHÁT
+        ========================================================= */
+
+        .delivery-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 15px;
+        }
+
+        .delivery-table th {
+            background: #edf1f5;
+            color: #555e68;
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: bold;
+        }
+
+        .delivery-table td {
+            border: 1px solid #e0e5e9;
+            padding: 10px 12px;
+            vertical-align: top;
+        }
+
+        .delivery-success {
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        /* =========================================================
+           BẢN ĐỒ
+        ========================================================= */
+
+        .map-section {
+            display: none;
+            margin-top: 12px;
+            border: 1px solid #d9dee3;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .map-header {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .map-header a {
+            color: #0067b8;
+            text-decoration: none;
+            font-weight: normal;
+        }
+
+        .map-frame {
+            width: 100%;
+            height: 400px;
+            border: 0;
+            display: block;
+        }
+
+        .map-placeholder {
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #777;
+            background: #f6f7f8;
+            padding: 20px;
+        }
+
+        /* =========================================================
+           FOOTER WEB
+        ========================================================= */
+
+        .web-footer {
+            margin-top: 15px;
+            padding-top: 9px;
+            border-top: 1px solid #e3e6e9;
+            text-align: center;
+            font-size: 9px;
+            color: #9aa0a6;
+        }
+
+        /* =========================================================
+           PRINT CONTENT
+           Nội dung này chỉ dùng cho A4/PDF
+        ========================================================= */
+
+        #print-content {
+            display: none;
+        }
+
+        .print-page {
+            width: 186mm;
+            min-height: 273mm;
+            margin: 0 auto;
+            padding: 0;
+            background: #fff;
+            color: #111;
+            position: relative;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        .print-page:last-child {
+            page-break-after: auto;
+            break-after: auto;
+        }
+
+        .print-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            border-bottom: 2px solid #0056a6;
+            padding-bottom: 4mm;
+            margin-bottom: 3mm;
+        }
+
+        .print-brand {
+            display: flex;
+            align-items: center;
+            gap: 7mm;
+        }
+
+        .print-logo {
+            width: 28mm;
+            height: 18mm;
+            object-fit: contain;
+        }
+
+        .print-brand-title {
+            color: #0056a6;
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .print-brand-subtitle {
+            color: #666;
+            font-size: 7px;
+            margin-top: 2px;
+        }
+
+        .print-meta {
+            text-align: right;
+            font-size: 7px;
+            line-height: 1.55;
+            color: #555;
+        }
+
+        .print-title-box {
+            border: 1px solid #bfc8d1;
+            text-align: center;
+            padding: 2.5mm 2mm;
+            margin-bottom: 3mm;
+        }
+
+        .print-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .print-code {
+            color: #b06b00;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 1px;
+            letter-spacing: .7px;
+        }
+
+        .print-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3mm;
+            margin-bottom: 3mm;
+        }
+
+        .print-card {
+            border: 1px solid #c6cdd4;
+            padding: 2.5mm 3mm;
+            min-height: 27mm;
+        }
+
+        .print-card-title {
+            color: #0056a6;
+            font-size: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px dashed #cfd5db;
+            padding-bottom: 1.5mm;
+            margin-bottom: 1.5mm;
+        }
+
+        .print-info-row {
+            font-size: 7px;
+            line-height: 1.4;
+            margin-bottom: 1mm;
+        }
+
+        .print-info-label {
+            color: #777;
+            display: inline-block;
+            width: 27mm;
+        }
+
+        .print-info-value {
+            font-weight: bold;
+            color: #222;
+        }
+
+        .print-status {
+            color: #008548;
+            font-weight: bold;
+        }
+
+        .print-section-title {
+            font-size: 8.5px;
+            font-weight: bold;
+            color: #333;
+            border-left: 1mm solid #0056a6;
+            padding-left: 1.5mm;
+            margin: 2.5mm 0 1.5mm;
+        }
+
+        /* Hai cột cân bằng */
+
+        .print-history-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 4mm;
+            align-items: start;
+        }
+
+        .print-history-col {
+            min-width: 0;
+        }
+
+        .print-history-item {
+            display: grid;
+            grid-template-columns: 26mm 1fr;
+            column-gap: 2mm;
+            border-bottom: 1px dotted #cdd2d7;
+            padding: 1.15mm 0;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            min-height: 9mm;
+        }
+
+        .print-time {
+            font-size: 6.5px;
+            color: #555;
+            line-height: 1.25;
+        }
+
+        .print-event {
+            font-size: 6.5px;
+            line-height: 1.28;
+            color: #222;
+        }
+
+        .print-event.latest {
+            color: #008548;
+            font-weight: bold;
+        }
+
+        .print-pos {
+            display: block;
+            color: #555;
+            font-weight: bold;
+            margin-top: .7mm;
+        }
+
+        .print-delivery-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 6.8px;
+        }
+
+        .print-delivery-table th {
+            background: #edf1f5;
+            text-align: left;
+            padding: 1.8mm;
+            color: #555;
+        }
+
+        .print-delivery-table td {
+            border: 1px solid #d8dde2;
+            padding: 1.8mm;
+            vertical-align: top;
+        }
+
+        .print-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-top: 1px solid #ddd;
+            padding-top: 2mm;
+            text-align: center;
+            color: #999;
+            font-size: 6px;
+        }
+
+        /* =========================================================
+           THÔNG BÁO
+        ========================================================= */
+
+        .message {
+            display: none;
+            margin-top: 10px;
+            padding: 9px 11px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .message.error {
+            display: block;
+            background: #fdebed;
+            color: #a51d2d;
+        }
+
+        .message.success {
+            display: block;
+            background: #e9f8ef;
+            color: #126b3d;
+        }
+
+        /* =========================================================
+           MOBILE
+        ========================================================= */
+
+        @media (max-width: 800px) {
+
+            .site-header {
+                height: auto;
+                padding: 8px 0;
+            }
+
+            .nav {
+                display: none;
+            }
+
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .route-grid {
+                grid-template-columns: 1fr;
+                gap: 9px;
+            }
+
+            .timeline-row {
+                grid-template-columns: 18px 105px minmax(0,1fr) 26px;
+            }
+
+            .timeline-location {
+                grid-column: 3 / 5;
+                padding-left: 0;
+                margin-top: 3px;
+            }
+
+            .map-frame,
+            .map-placeholder {
+                height: 300px;
+            }
+
+            .action-bar {
+                justify-content: stretch;
+            }
+
+            .action-btn {
+                flex: 1;
+            }
+        }
+
+        /* =========================================================
+           IN A4
+        ========================================================= */
+
+        @media print {
+
+            @page {
+                size: A4 portrait;
+                margin: 8mm 10mm 8mm 10mm;
+            }
+
+            html,
+            body {
+                background: #fff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body > * {
+                display: none !important;
+            }
+
+            #print-content {
+                display: block !important;
+            }
+
+            .print-page {
+                display: block !important;
+                width: 186mm;
+                min-height: 273mm;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- =========================================================
-     HEADER
-========================================================= -->
-<header class="site-header no-print">
-    <div class="site-header-inner">
+    <!-- =========================================================
+         HEADER
+    ========================================================= -->
 
-        <div class="brand">
+    <header class="site-header no-print">
+        <div class="site-header-inner">
 
-            <img
-                src="https://vietnampost.vn/uploads/storage/vnp/2025/09/15/3aa71b839430793ee9e4b9f47415c54a878027ec.jpg"
-                alt="Vietnam Post"
-            >
+            <div class="brand">
 
-            <div class="brand-text">
-                <div class="brand-name">InVanDon247</div>
-                <div class="brand-desc">
-                    Công cụ tra cứu và tạo phiếu vận đơn A4
+                <!-- Logo VNPOST dạng SVG nội bộ -->
+                <svg class="vnpost-logo" viewBox="0 0 220 150"
+                     xmlns="http://www.w3.org/2000/svg">
+
+                    <g fill="#f6a000">
+                        <path d="M28 55 L92 20 L125 20 L93 55 L58 55 L82 72 L55 90 L28 72 L28 55Z"/>
+                        <path d="M91 30 L155 30 L140 45 L76 45 Z"/>
+                        <path d="M112 48 L177 48 L162 63 L97 63 Z"/>
+                        <path d="M128 67 L190 67 L176 82 L113 82 Z"/>
+                    </g>
+
+                    <path d="M30 57 L65 57 L65 92 L30 68 Z"
+                          fill="#fff"/>
+
+                    <text x="27" y="120"
+                          font-family="Arial"
+                          font-size="21"
+                          font-weight="bold"
+                          fill="#29327d">
+                        VIETNAM POST
+                    </text>
+                </svg>
+
+                <div class="brand-text">
+                    <strong>InVanDon247</strong>
+                    <span>Công cụ tra cứu và tạo phiếu vận đơn A4</span>
                 </div>
+
             </div>
 
+            <nav class="nav">
+                <a href="#">Trang chủ</a>
+                <a href="#search">Tra cứu</a>
+                <a href="#">Hướng dẫn</a>
+                <a href="#">Giới thiệu</a>
+            </nav>
+
         </div>
-
-        <nav class="nav">
-            <a href="#">Trang chủ</a>
-            <a href="#tra-cuu">Tra cứu</a>
-            <a href="#">Hướng dẫn</a>
-            <a href="#">Giới thiệu</a>
-        </nav>
-
-    </div>
-</header>
+    </header>
 
 
-<!-- =========================================================
-     MAIN
-========================================================= -->
-<main class="container no-print">
+    <main class="container">
 
-    <!-- FORM -->
-    <section class="search-box" id="tra-cuu">
+        <!-- =====================================================
+             FORM
+        ====================================================== -->
 
-        <h1 class="search-title">TRA CỨU VẬN ĐƠN</h1>
+        <section class="search-card no-print" id="search">
 
-        <div class="search-subtitle">
-            Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi
-        </div>
-
-        <div class="search-grid">
-
-            <div>
-                <label class="form-label">
-                    1. Mã vận đơn VNPost
-                </label>
-
-                <input
-                    id="trackingCode"
-                    class="form-input"
-                    type="text"
-                    placeholder="Ví dụ: RB608631891VN"
-                    value=""
-                >
+            <div class="search-title">
+                <h1>TRA CỨU VẬN ĐƠN</h1>
+                <p>Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi</p>
             </div>
 
+            <div class="search-grid">
 
-            <div>
-
-                <label class="form-label">
-                    2. Mã xác thực (CAPTCHA)
-                </label>
-
-                <div class="captcha-row">
+                <div class="form-group">
+                    <label for="trackingCode">
+                        1. Mã vận đơn VNPost
+                    </label>
 
                     <input
-                        id="captchaText"
-                        class="form-input captcha-input"
                         type="text"
-                        placeholder="Nhập CAPTCHA"
+                        class="input"
+                        id="trackingCode"
+                        placeholder="Ví dụ: RB608631891VN"
+                        autocomplete="off"
                     >
+                </div>
 
-                    <div class="captcha-image-wrap">
-                        <img
-                            id="captchaImg"
-                            src=""
-                            alt="CAPTCHA"
+                <div class="form-group">
+
+                    <label for="captchaText">
+                        2. Mã xác thực (CAPTCHA)
+                    </label>
+
+                    <div class="captcha-row">
+
+                        <input
+                            type="text"
+                            class="input captcha-input"
+                            id="captchaText"
+                            placeholder="Nhập CAPTCHA"
+                            autocomplete="off"
                         >
+
+                        <div class="captcha-box">
+                            <img
+                                id="captchaImg"
+                                src=""
+                                alt="CAPTCHA"
+                            >
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn-reload"
+                            onclick="loadCaptcha()"
+                        >
+                            ↻ Đổi mã
+                        </button>
+
                     </div>
 
-                    <button
-                        class="btn-reload"
-                        type="button"
-                        onclick="loadCaptcha()"
-                    >
-                        Đổi mã
-                    </button>
-
                 </div>
 
             </div>
 
+            <button
+                type="button"
+                class="btn-submit"
+                id="btnSubmit"
+                onclick="submitTracking()"
+            >
+                🔎 Tra cứu vận đơn
+            </button>
+
+            <div id="message" class="message"></div>
+
+        </section>
+
+
+        <!-- =====================================================
+             NÚT IN / PDF
+        ====================================================== -->
+
+        <div
+            class="action-bar no-print"
+            id="actionBar"
+        >
+
+            <button
+                type="button"
+                class="action-btn btn-print"
+                onclick="printA4()"
+            >
+                🖨 In A4
+            </button>
+
+            <button
+                type="button"
+                class="action-btn btn-pdf"
+                onclick="downloadPDF()"
+            >
+                📥 Tải xuống PDF
+            </button>
+
         </div>
 
-        <button
-            id="btnSubmit"
-            class="btn-search"
-            type="button"
-            onclick="submitTracking()"
+
+        <!-- =====================================================
+             KẾT QUẢ TRA CỨU
+        ====================================================== -->
+
+        <section
+            id="result-wrapper"
+            class="no-print"
         >
-            🔎 Tra cứu vận đơn
-        </button>
 
-        <div id="message" class="message"></div>
+            <div class="result-card">
 
-    </section>
-
-
-    <!-- ACTION -->
-    <div
-        id="actionBar"
-        class="result-actions"
-    >
-
-        <button
-            class="action-btn btn-print"
-            onclick="printA4()"
-        >
-            🖨️ In A4
-        </button>
-
-        <button
-            class="action-btn btn-pdf"
-            onclick="downloadPDF()"
-        >
-            📥 Tải xuống PDF
-        </button>
-
-    </div>
+                <!-- Thanh tổng quan -->
+                <div
+                    class="result-summary"
+                    id="resultSummary"
+                ></div>
 
 
-    <!-- RESULT -->
-    <section
-        id="resultCard"
-        class="result-card"
-    >
-
-        <div id="resultContent"></div>
-
-    </section>
-
-</main>
+                <!-- Thông tin tuyến -->
+                <div
+                    class="route-grid"
+                    id="routeInfo"
+                ></div>
 
 
-<!-- =========================================================
-     PRINT DOCUMENT
-========================================================= -->
-<div id="print-document"></div>
+                <!-- Lịch sử -->
+                <div class="section-title">
+                    THÔNG TIN TRẠNG THÁI
+                </div>
+
+                <div
+                    class="timeline"
+                    id="timeline"
+                ></div>
 
 
-<script>
-/* =========================================================
-   BIẾN TOÀN CỤC
-========================================================= */
+                <!-- Thông tin phát -->
+                <div class="section-title">
+                    THÔNG TIN PHÁT
+                </div>
 
-let currentCookie = "";
-let currentTrackingCode = "";
-let currentData = null;
-let currentMapItem = null;
+                <div id="deliveryInfo"></div>
 
 
-/* =========================================================
-   ESCAPE HTML
-   Tránh dữ liệu API chứa ký tự HTML làm vỡ giao diện
-========================================================= */
+                <!-- Bản đồ -->
+                <div
+                    class="map-section"
+                    id="mapSection"
+                >
 
-function escapeHtml(value){
+                    <div class="map-header">
 
-    if(value === null || value === undefined){
-        return "";
-    }
+                        <span id="mapTitle">
+                            Vị trí bưu cục
+                        </span>
 
-    return String(value)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-}
+                        <a
+                            id="mapGoogleLink"
+                            href="#"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Mở Google Maps ↗
+                        </a>
+
+                    </div>
+
+                    <div id="mapContainer"></div>
+
+                </div>
 
 
-/* =========================================================
-   LẤY GIÁ TRỊ AN TOÀN
-========================================================= */
+                <div class="web-footer">
+                    Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247
+                </div>
 
-function firstValue(obj, keys){
+            </div>
 
-    for(const key of keys){
+        </section>
 
-        if(
-            obj &&
-            obj[key] !== undefined &&
-            obj[key] !== null &&
-            String(obj[key]).trim() !== ""
-        ){
-            return obj[key];
+    </main>
+
+
+    <!-- =========================================================
+         KHU VỰC DÀNH RIÊNG CHO IN A4 / PDF
+    ====================================================== -->
+
+    <div id="print-content"></div>
+
+
+    <script>
+
+        /* =========================================================
+           BIẾN TOÀN CỤC
+        ========================================================= */
+
+        let currentCookie = "";
+        let currentTrackingCode = "";
+        let currentData = null;
+
+        let selectedMapItem = null;
+
+
+        /* =========================================================
+           HÀM ESCAPE HTML
+           Tránh dữ liệu API làm hỏng HTML
+        ========================================================= */
+
+        function escapeHtml(value) {
+
+            if (value === null || value === undefined) {
+                return "";
+            }
+
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
-    }
 
-    return "";
-}
+        /* =========================================================
+           LẤY GIÁ TRỊ AN TOÀN
+        ========================================================= */
 
+        function val(obj, keys, fallback = "") {
 
-/* =========================================================
-   LẤY TỌA ĐỘ
+            if (!obj) {
+                return fallback;
+            }
 
-   API có thể dùng nhiều tên khác nhau.
-========================================================= */
+            for (const key of keys) {
 
-function getCoordinates(item){
+                if (
+                    obj[key] !== undefined &&
+                    obj[key] !== null &&
+                    String(obj[key]).trim() !== ""
+                ) {
+                    return obj[key];
+                }
+            }
 
-    const lat = firstValue(item,[
-        "LAT",
-        "Lat",
-        "lat",
-        "LATITUDE",
-        "Latitude",
-        "latitude",
-        "Y"
-    ]);
-
-    const lng = firstValue(item,[
-        "LNG",
-        "Lng",
-        "lng",
-        "LONGITUDE",
-        "Longitude",
-        "longitude",
-        "LON",
-        "Lon",
-        "lon",
-        "X"
-    ]);
-
-    if(lat !== "" && lng !== ""){
-
-        const a = parseFloat(String(lat).replace(",","."));
-        const b = parseFloat(String(lng).replace(",",".")); 
-
-        if(
-            Number.isFinite(a) &&
-            Number.isFinite(b) &&
-            Math.abs(a) <= 90 &&
-            Math.abs(b) <= 180
-        ){
-            return {
-                lat:a,
-                lng:b
-            };
+            return fallback;
         }
-    }
 
-    /* Một số API có trường tọa độ chung */
 
-    const coordinate = firstValue(item,[
-        "COORDINATE",
-        "Coordinate",
-        "coordinate",
-        "GPS",
-        "gps",
-        "LOCATION"
-    ]);
+        /* =========================================================
+           NGÀY + GIỜ
+        ========================================================= */
 
-    if(coordinate){
+        function getDateTime(item) {
 
-        const match = String(coordinate).match(
-            /(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/
-        );
+            const date = val(
+                item,
+                ["Date", "date", "DATE", "Ngay", "NGAY"],
+                ""
+            );
 
-        if(match){
+            const time = val(
+                item,
+                [
+                    "TimeDetail",
+                    "timeDetail",
+                    "Time",
+                    "time",
+                    "TIME",
+                    "Gio",
+                    "GIO"
+                ],
+                ""
+            );
 
-            const a = parseFloat(match[1]);
-            const b = parseFloat(match[2]);
+            return `${date}${time ? " " + time : ""}`.trim();
+        }
 
-            if(
-                Math.abs(a)<=90 &&
-                Math.abs(b)<=180
-            ){
+
+        /* =========================================================
+           MÃ BƯU CỤC
+        ========================================================= */
+
+        function getPOSCode(item) {
+
+            return val(
+                item,
+                [
+                    "POSCode",
+                    "POSCODE",
+                    "PosCode",
+                    "posCode",
+                    "BCCode",
+                    "Bccode",
+                    "BC_CODE",
+                    "MaBC",
+                    "MABC"
+                ],
+                ""
+            );
+        }
+
+
+        /* =========================================================
+           TÊN BƯU CỤC
+        ========================================================= */
+
+        function getPOSName(item) {
+
+            return val(
+                item,
+                [
+                    "POSName",
+                    "POSNAME",
+                    "PosName",
+                    "posName",
+                    "BCName",
+                    "BCNAME",
+                    "BuuCuc",
+                    "BuuCucName",
+                    "OfficeName"
+                ],
+                ""
+            );
+        }
+
+
+        /* =========================================================
+           NỘI DUNG TRẠNG THÁI
+        ========================================================= */
+
+        function getStatusText(item) {
+
+            return val(
+                item,
+                [
+                    "StatusText",
+                    "STATUSTEXT",
+                    "statusText",
+                    "Status",
+                    "status"
+                ],
+                ""
+            );
+        }
+
+
+        /* =========================================================
+           VỊ TRÍ
+        ========================================================= */
+
+        function getLocation(item) {
+
+            return val(
+                item,
+                [
+                    "VI_TRI",
+                    "VI TRI",
+                    "ViTri",
+                    "viTri",
+                    "Location",
+                    "location",
+                    "Address",
+                    "ADDRESS",
+                    "DiaChi",
+                    "DIACHI"
+                ],
+                ""
+            );
+        }
+
+
+        /* =========================================================
+           TÌM TỌA ĐỘ
+        ========================================================= */
+
+        function getCoordinates(item) {
+
+            const lat = val(
+                item,
+                [
+                    "LAT",
+                    "Lat",
+                    "lat",
+                    "Latitude",
+                    "latitude",
+                    "VI_DO",
+                    "ViDo"
+                ],
+                ""
+            );
+
+            const lng = val(
+                item,
+                [
+                    "LNG",
+                    "Lng",
+                    "lng",
+                    "Longitude",
+                    "longitude",
+                    "KINH_DO",
+                    "KinhDo"
+                ],
+                ""
+            );
+
+            if (
+                lat !== "" &&
+                lng !== "" &&
+                !isNaN(parseFloat(lat)) &&
+                !isNaN(parseFloat(lng))
+            ) {
+
                 return {
-                    lat:a,
-                    lng:b
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng)
                 };
             }
+
+            return null;
         }
-    }
-
-    return null;
-}
 
 
-/* =========================================================
-   LẤY ĐỊA CHỈ / VỊ TRÍ
-========================================================= */
+        /* =========================================================
+           TÌM SỰ KIỆN PHÁT THÀNH CÔNG
+           
+           QUAN TRỌNG:
+           Không dùng data.delivery[0] một cách máy móc nữa.
+        ========================================================= */
 
-function getLocation(item){
+        function findDeliveredItem(locate, delivery) {
 
-    return firstValue(item,[
-        "VI_TRI",
-        "ViTri",
-        "vi_tri",
-        "LOCATION_TEXT",
-        "Location",
-        "location",
-        "ADDRESS",
-        "Address",
-        "address"
-    ]) || "-";
-}
-
-
-/* =========================================================
-   LẤY MÃ BƯU CỤC
-========================================================= */
-
-function getPostCode(item){
-
-    return firstValue(item,[
-        "POSCode",
-        "POSCODE",
-        "PosCode",
-        "BCCode",
-        "BCCODE",
-        "MA_BC",
-        "MABC",
-        "PostCode"
-    ]) || "-";
-}
-
-
-/* =========================================================
-   LẤY NỘI DUNG TRẠNG THÁI
-========================================================= */
-
-function getStatus(item){
-
-    return firstValue(item,[
-        "StatusText",
-        "STATUSTEXT",
-        "statusText",
-        "STATUS",
-        "status"
-    ]) || "-";
-}
-
-
-/* =========================================================
-   CHUYỂN THỜI GIAN THÀNH GIÁ TRỊ SO SÁNH
-========================================================= */
-
-function getDateTimeValue(item){
-
-    const date = firstValue(item,[
-        "Date",
-        "DATE",
-        "date"
-    ]);
-
-    const time = firstValue(item,[
-        "TimeDetail",
-        "TIME",
-        "Time",
-        "time"
-    ]);
-
-    const str = `${date} ${time}`.trim();
-
-    /*
-       VNPost thường trả DD/MM/YYYY.
-       Chuyển thành YYYY-MM-DD để sort.
-    */
-
-    const match = str.match(
-        /(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/
-    );
-
-    if(match){
-
-        return new Date(
-            Number(match[3]),
-            Number(match[2])-1,
-            Number(match[1]),
-            Number(match[4] || 0),
-            Number(match[5] || 0),
-            Number(match[6] || 0)
-        ).getTime();
-    }
-
-    const fallback = Date.parse(str);
-
-    return Number.isNaN(fallback) ? 0 : fallback;
-}
-
-
-/* =========================================================
-   HIỂN THỊ THỜI GIAN
-========================================================= */
-
-function getDisplayTime(item){
-
-    const date = firstValue(item,[
-        "Date",
-        "DATE",
-        "date"
-    ]);
-
-    const time = firstValue(item,[
-        "TimeDetail",
-        "TIME",
-        "Time",
-        "time"
-    ]);
-
-    return `${date || ""} ${time || ""}`.trim();
-}
-
-
-/* =========================================================
-   MESSAGE
-========================================================= */
-
-function showMessage(text,type){
-
-    const el = document.getElementById("message");
-
-    el.className = `message ${type}`;
-    el.textContent = text;
-    el.style.display = "block";
-}
-
-function hideMessage(){
-
-    document.getElementById("message").style.display = "none";
-}
-
-
-/* =========================================================
-   CAPTCHA
-========================================================= */
-
-async function loadCaptcha(){
-
-    const img = document.getElementById("captchaImg");
-
-    img.removeAttribute("src");
-    img.alt = "Đang tải CAPTCHA...";
-
-    try{
-
-        const res = await fetch(
-            "/api/proxy?action=get-captcha",
-            {
-                cache:"no-store"
+            if (!Array.isArray(locate)) {
+                locate = [];
             }
-        );
 
-        if(!res.ok){
-            throw new Error(`HTTP ${res.status}`);
-        }
+            /*
+             * Ưu tiên tìm sự kiện có chữ Delivered / Phát thành công / EMI
+             */
 
-        const data = await res.json();
+            const delivered = locate.find(item => {
 
-        if(data && data.captchaUrl){
+                const status = getStatusText(item)
+                    .toLowerCase();
 
-            img.src = data.captchaUrl;
-            currentCookie = data.cookie || "";
+                return (
+                    status.includes("delivered") ||
+                    status.includes("phát thành công") ||
+                    status.includes("phat thanh cong") ||
+                    status.includes("emi")
+                );
 
-        }else{
+            });
 
-            img.alt = "Không tải được CAPTCHA";
-
-        }
-
-    }catch(error){
-
-        console.error("CAPTCHA:",error);
-
-        img.alt = "Lỗi tải CAPTCHA";
-
-        showMessage(
-            "Không thể tải CAPTCHA. Vui lòng bấm “Đổi mã” để thử lại.",
-            "error"
-        );
-    }
-}
-
-
-/* =========================================================
-   TRA CỨU
-========================================================= */
-
-async function submitTracking(){
-
-    hideMessage();
-
-    const code = document
-        .getElementById("trackingCode")
-        .value
-        .trim();
-
-    const captcha = document
-        .getElementById("captchaText")
-        .value
-        .trim();
-
-    const btn = document.getElementById("btnSubmit");
-
-    if(!code){
-
-        showMessage(
-            "Vui lòng nhập mã vận đơn.",
-            "error"
-        );
-
-        return;
-    }
-
-    if(!captcha){
-
-        showMessage(
-            "Vui lòng nhập mã CAPTCHA.",
-            "error"
-        );
-
-        return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = "⏳ Đang tra cứu...";
-
-    try{
-
-        const res = await fetch(
-            "/api/proxy?action=track",
-            {
-                method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({
-                    trackingCode:code,
-                    captchaText:captcha,
-                    cookie:currentCookie
-                })
+            if (delivered) {
+                return delivered;
             }
-        );
 
-        if(!res.ok){
-            throw new Error(`HTTP ${res.status}`);
+            /*
+             * Nếu không tìm thấy thì xem data.delivery
+             */
+
+            if (
+                Array.isArray(delivery) &&
+                delivery.length > 0
+            ) {
+
+                return delivery[0];
+            }
+
+            /*
+             * Cuối cùng dùng sự kiện cuối
+             */
+
+            if (locate.length > 0) {
+                return locate[locate.length - 1];
+            }
+
+            return null;
         }
 
-        const data = await res.json();
 
-        if(
-            data &&
-            data.info &&
-            data.info.ID
-        ){
+        /* =========================================================
+           TẠO CAPTCHA
+        ========================================================= */
 
-            currentData = data;
-            currentTrackingCode = data.info.ID;
+        async function loadCaptcha() {
 
-            renderResult(data);
+            const img =
+                document.getElementById("captchaImg");
 
-            document.getElementById("resultCard").style.display = "block";
-            document.getElementById("actionBar").style.display = "flex";
+            img.src = "";
+            img.alt = "Đang tải...";
 
-            showMessage(
-                "Tra cứu thành công.",
-                "success"
-            );
+            try {
 
-            setTimeout(()=>{
+                const response = await fetch(
+                    "/api/proxy?action=get-captcha",
+                    {
+                        method: "GET",
+                        cache: "no-store"
+                    }
+                );
 
+                if (!response.ok) {
+                    throw new Error(
+                        "HTTP " + response.status
+                    );
+                }
+
+                const data =
+                    await response.json();
+
+                if (data.captchaUrl) {
+
+                    img.src = data.captchaUrl;
+
+                    currentCookie =
+                        data.cookie || "";
+
+                } else {
+
+                    img.alt =
+                        "Không tải được CAPTCHA";
+
+                    showMessage(
+                        "Không thể tải CAPTCHA. Vui lòng thử lại.",
+                        "error"
+                    );
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "CAPTCHA error:",
+                    error
+                );
+
+                img.alt = "Lỗi CAPTCHA";
+
+                showMessage(
+                    "Không thể tải CAPTCHA: " +
+                    error.message,
+                    "error"
+                );
+            }
+        }
+
+
+        /* =========================================================
+           MESSAGE
+        ========================================================= */
+
+        function showMessage(text, type) {
+
+            const box =
+                document.getElementById("message");
+
+            if (!text) {
+
+                box.className = "message";
+                box.innerHTML = "";
+                return;
+            }
+
+            box.className =
+                "message " + type;
+
+            box.innerHTML =
+                escapeHtml(text);
+        }
+
+
+        /* =========================================================
+           TRA CỨU
+        ========================================================= */
+
+        async function submitTracking() {
+
+            const code =
                 document
-                    .getElementById("resultCard")
-                    .scrollIntoView({
-                        behavior:"smooth",
-                        block:"start"
-                    });
+                    .getElementById("trackingCode")
+                    .value
+                    .trim();
 
-            },100);
+            const captcha =
+                document
+                    .getElementById("captchaText")
+                    .value
+                    .trim();
 
-        }else{
+            const btn =
+                document.getElementById("btnSubmit");
 
-            showMessage(
-                "Mã CAPTCHA không đúng hoặc không tìm thấy thông tin vận đơn.",
-                "error"
-            );
+
+            if (!code || !captcha) {
+
+                showMessage(
+                    "Vui lòng nhập đầy đủ mã vận đơn và CAPTCHA.",
+                    "error"
+                );
+
+                return;
+            }
+
+
+            btn.disabled = true;
+            btn.innerText =
+                "⏳ Đang tra cứu...";
+
+            showMessage("", "");
+
+
+            try {
+
+                const response = await fetch(
+                    "/api/proxy?action=track",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            trackingCode: code,
+
+                            captchaText: captcha,
+
+                            cookie: currentCookie
+
+                        })
+                    }
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "HTTP " +
+                        response.status
+                    );
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "Dữ liệu VNPost:",
+                    data
+                );
+
+
+                if (
+                    data &&
+                    data.info &&
+                    data.info.ID
+                ) {
+
+                    currentTrackingCode =
+                        data.info.ID;
+
+                    currentData = data;
+
+
+                    renderResult(data);
+
+                    buildPrintDocument(data);
+
+
+                    document
+                        .getElementById(
+                            "result-wrapper"
+                        )
+                        .style.display = "block";
+
+
+                    document
+                        .getElementById(
+                            "actionBar"
+                        )
+                        .style.display = "flex";
+
+
+                    showMessage(
+                        "Tra cứu thành công.",
+                        "success"
+                    );
+
+
+                    setTimeout(() => {
+
+                        document
+                            .getElementById(
+                                "result-wrapper"
+                            )
+                            .scrollIntoView({
+                                behavior: "smooth",
+                                block: "start"
+                            });
+
+                    }, 100);
+
+                } else {
+
+                    showMessage(
+                        "CAPTCHA không đúng hoặc không tìm thấy thông tin vận đơn. Vui lòng thử lại.",
+                        "error"
+                    );
+
+                    document
+                        .getElementById(
+                            "captchaText"
+                        )
+                        .value = "";
+
+                    await loadCaptcha();
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    "Tracking error:",
+                    error
+                );
+
+                showMessage(
+                    "Lỗi tra cứu: " +
+                    error.message,
+                    "error"
+                );
+
+            } finally {
+
+                btn.disabled = false;
+
+                btn.innerText =
+                    "🔎 Tra cứu vận đơn";
+            }
+        }
+
+
+        /* =========================================================
+           RENDER KẾT QUẢ WEB
+        ========================================================= */
+
+        function renderResult(data) {
+
+            const info =
+                data.info || {};
+
+            const locate =
+                Array.isArray(data.locate)
+                    ? data.locate
+                    : [];
+
+            const delivery =
+                findDeliveredItem(
+                    locate,
+                    data.delivery
+                );
+
+
+            /*
+             * VNPost thường trả locate theo thứ tự
+             * cũ -> mới.
+             *
+             * Ta giữ nguyên thứ tự nếu API đã trả như vậy.
+             *
+             * Nếu dữ liệu bị ngược, kiểm tra ngày giờ
+             * và tự sắp xếp.
+             */
+
+            const sortedLocate =
+                sortLocateAscending(locate);
+
+
+            /* =====================================================
+               STATUS
+            ===================================================== */
+
+            let status =
+                getStatusText(delivery);
+
+            if (!status && sortedLocate.length) {
+
+                status =
+                    getStatusText(
+                        sortedLocate[
+                            sortedLocate.length - 1
+                        ]
+                    );
+            }
+
+            if (!status) {
+                status = "ĐANG VẬN CHUYỂN";
+            }
+
+
+            /* =====================================================
+               SUMMARY
+            ===================================================== */
 
             document
-                .getElementById("captchaText")
-                .value = "";
+                .getElementById(
+                    "resultSummary"
+                )
+                .innerHTML = `
 
-            await loadCaptcha();
-        }
+                    <div class="summary-item">
 
-    }catch(error){
+                        <div class="summary-icon">
+                            ✉
+                        </div>
 
-        console.error(error);
+                        <div>
+                            <span class="summary-label">
+                                Bưu gửi số:
+                            </span>
 
-        showMessage(
-            "Lỗi tra cứu: " + error.message,
-            "error"
-        );
+                            <span class="summary-value">
+                                ${escapeHtml(
+                                    info.ID || "-"
+                                )}
+                            </span>
+                        </div>
 
-    }finally{
-
-        btn.disabled = false;
-        btn.textContent = "🔎 Tra cứu vận đơn";
-    }
-}
-
-
-/* =========================================================
-   RENDER WEB
-========================================================= */
-
-function renderResult(data){
-
-    const info = data.info || {};
-    const locate = Array.isArray(data.locate)
-        ? [...data.locate]
-        : [];
-
-    const delivery = (
-        data.delivery &&
-        Array.isArray(data.delivery) &&
-        data.delivery.length
-    )
-        ? data.delivery[0]
-        : null;
+                    </div>
 
 
-    /*
-       QUAN TRỌNG:
-       Giữ thứ tự thời gian từ CŨ -> MỚI giống giao diện VNPost.
-    */
+                    <div class="summary-item">
 
-    locate.sort(
-        (a,b)=>getDateTimeValue(a)-getDateTimeValue(b)
-    );
+                        <div class="summary-icon">
+                            ⚖
+                        </div>
 
+                        <div>
+                            <span class="summary-label">
+                                Khối lượng (gam):
+                            </span>
 
-    const latest =
-        locate.length
-            ? locate[locate.length-1]
-            : null;
+                            <span class="summary-value">
+                                ${escapeHtml(
+                                    info.Weight || "0"
+                                )}
+                            </span>
+                        </div>
 
-
-    let status =
-        delivery && delivery.STATUSTEXT
-            ? delivery.STATUSTEXT
-            : latest
-                ? getStatus(latest)
-                : "ĐANG VẬN CHUYỂN";
+                    </div>
 
 
-    const html = `
+                    <div class="summary-item">
 
-        <!-- TOP INFO -->
-        <div class="result-top">
+                        <div class="summary-icon">
+                            📍
+                        </div>
 
-            <div class="top-item">
-                <span class="top-icon">✉</span>
-                <div>
-                    <span class="top-label">Bưu gửi số:</span>
-                    <span class="top-value">
-                        ${escapeHtml(info.ID || "-")}
-                    </span>
-                </div>
-            </div>
+                        <div>
 
-            <div class="top-item">
-                <span class="top-icon">⚖</span>
-                <div>
-                    <span class="top-label">Khối lượng (gam):</span>
-                    <span class="top-value">
-                        ${escapeHtml(info.Weight || "0")}
-                    </span>
-                </div>
-            </div>
+                            <span class="summary-label">
+                                Trạng thái:
+                            </span>
 
-            <div class="top-item">
-                <span class="top-icon">📍</span>
-                <div>
-                    <span class="top-label">Trạng thái:</span>
-                    <span class="status-success">
-                        ${escapeHtml(status)}
-                    </span>
-                </div>
-            </div>
+                            <span class="summary-value summary-status">
+                                ${escapeHtml(status)}
+                            </span>
 
-        </div>
+                        </div>
+
+                    </div>
+                `;
 
 
-        <div class="result-body">
+            /* =====================================================
+               ROUTE
+            ===================================================== */
 
-            <!-- ROUTE -->
-            <div class="route-grid">
+            const countryFrom =
+                val(
+                    info,
+                    [
+                        "Nuoc_Chapnhan",
+                        "NUOC_CHAPNHAN",
+                        "NuocChapNhan"
+                    ],
+                    "VN"
+                );
 
-                <div class="route-item">
-                    <span class="route-label">
-                        Nước chấp nhận:
-                    </span>
-                    ${escapeHtml(info.Nuoc_Chapnhan || "VN - VIETNAM")}
-                </div>
+            const countryTo =
+                val(
+                    info,
+                    [
+                        "Nuoc_Phat",
+                        "NUOC_PHAT",
+                        "NuocPhat"
+                    ],
+                    "VN"
+                );
 
-                <div class="route-item">
-                    <span class="route-label">
-                        Nước phát:
-                    </span>
-                    ${escapeHtml(info.Nuoc_Phat || "VN - VIETNAM")}
-                </div>
+            const bcGui =
+                val(
+                    info,
+                    [
+                        "BC_GUI",
+                        "BCGUI",
+                        "BuuCucGui"
+                    ],
+                    "-"
+                );
 
-                <div class="route-item">
-                    <span class="route-label">
-                        Bưu cục nhận:
-                    </span>
-                    ${escapeHtml(info.BC_GUI || "-")}
-                </div>
-
-                <div class="route-item">
-                    <span class="route-label">
-                        Bưu cục phát:
-                    </span>
-                    ${escapeHtml(info.BC_PHAT || "-")}
-                </div>
-
-            </div>
+            const bcPhat =
+                val(
+                    info,
+                    [
+                        "BC_PHAT",
+                        "BCPHAT",
+                        "BuuCucPhat"
+                    ],
+                    "-"
+                );
 
 
-            <!-- HISTORY -->
-            <div class="section-title">
-                THÔNG TIN TRẠNG THÁI
-            </div>
+            document
+                .getElementById(
+                    "routeInfo"
+                )
+                .innerHTML = `
 
-            <div class="timeline">
+                    <div class="route-item">
+                        <strong>Nước chấp nhận:</strong>
+                        ${escapeHtml(countryFrom)}
+                    </div>
 
-                ${
-                    locate.map((item,index)=>{
+                    <div class="route-item">
+                        <strong>Nước phát:</strong>
+                        ${escapeHtml(countryTo)}
+                    </div>
 
-                        const isLatest =
-                            index === locate.length-1;
+                    <div class="route-item">
+                        <strong>Bưu cục nhận:</strong>
+                        ${escapeHtml(bcGui)}
+                    </div>
 
-                        return `
+                    <div class="route-item">
+                        <strong>Bưu cục phát:</strong>
+                        ${escapeHtml(bcPhat)}
+                    </div>
+                `;
 
-                            <div class="timeline-row ${isLatest ? "latest" : ""}">
 
-                                <div class="timeline-time">
-                                    ${escapeHtml(
-                                        getDisplayTime(item)
-                                    )}
-                                </div>
+            /* =====================================================
+               TIMELINE
+            ===================================================== */
 
-                                <div class="timeline-detail ${isLatest ? "latest" : ""}">
+            const timeline =
+                document.getElementById(
+                    "timeline"
+                );
 
-                                    ${escapeHtml(
-                                        getStatus(item)
-                                    )}
+            timeline.innerHTML = "";
 
-                                    <span class="timeline-code">
-                                        Mã bưu cục:
-                                        ${escapeHtml(
-                                            getPostCode(item)
-                                        )}
-                                    </span>
 
-                                </div>
+            sortedLocate.forEach(
+                (item, index) => {
 
-                                <div class="timeline-location">
-                                    ${escapeHtml(
-                                        getLocation(item)
-                                    )}
-                                </div>
+                    const isLatest =
+                        index ===
+                        sortedLocate.length - 1;
 
-                                <button
-                                    class="timeline-map-btn"
-                                    title="Xem vị trí"
-                                    onclick="showMapForItem(${index})"
-                                >
-                                    ➤
-                                </button>
+                    const dateTime =
+                        getDateTime(item);
 
+                    const statusText =
+                        getStatusText(item);
+
+                    const posCode =
+                        getPOSCode(item);
+
+                    const location =
+                        getLocation(item);
+
+                    const coords =
+                        getCoordinates(item);
+
+
+                    const row =
+                        document.createElement(
+                            "div"
+                        );
+
+                    row.className =
+                        "timeline-row" +
+                        (
+                            isLatest
+                                ? " latest"
+                                : ""
+                        );
+
+
+                    row.innerHTML = `
+
+                        <div class="timeline-dot"></div>
+
+                        <div class="timeline-time">
+                            ${escapeHtml(
+                                dateTime || "-"
+                            )}
+                        </div>
+
+                        <div class="timeline-main">
+
+                            <div>
+                                ${escapeHtml(
+                                    statusText || "-"
+                                )}
                             </div>
 
-                        `;
+                            ${
+                                posCode
+                                    ? `
+                                    <div class="timeline-poscode">
+                                        Mã bưu cục: ${escapeHtml(posCode)}
+                                    </div>
+                                    `
+                                    : ""
+                            }
 
-                    }).join("")
+                        </div>
+
+                        <div class="timeline-location">
+                            ${escapeHtml(
+                                location || "-"
+                            )}
+                        </div>
+
+                        <button
+                            type="button"
+                            class="map-button"
+                            title="Xem vị trí"
+                        >
+                            ➤
+                        </button>
+                    `;
+
+
+                    const mapButton =
+                        row.querySelector(
+                            ".map-button"
+                        );
+
+
+                    mapButton.addEventListener(
+                        "click",
+                        function() {
+
+                            openMapForItem(
+                                item
+                            );
+
+                        }
+                    );
+
+
+                    timeline.appendChild(row);
+
+                }
+            );
+
+
+            /* =====================================================
+               THÔNG TIN PHÁT
+            ===================================================== */
+
+            renderDeliveryInfo(
+                delivery
+            );
+
+
+            /*
+             * Đóng bản đồ sau mỗi lần tra cứu mới
+             */
+
+            closeMap();
+        }
+
+
+        /* =========================================================
+           SẮP XẾP LỊCH SỬ TỪ CŨ -> MỚI
+        ========================================================= */
+
+        function sortLocateAscending(items) {
+
+            const array =
+                Array.isArray(items)
+                    ? [...items]
+                    : [];
+
+
+            /*
+             * Tạo timestamp.
+             */
+
+            function timestamp(item) {
+
+                const d =
+                    getDateTime(item);
+
+                if (!d) {
+                    return 0;
+                }
+
+                /*
+                 * DD/MM/YYYY HH:mm:ss
+                 */
+
+                const match =
+                    d.match(
+                        /(\d{2})\/(\d{2})\/(\d{4})\s*(\d{2})?:?(\d{2})?:?(\d{2})?/
+                    );
+
+                if (match) {
+
+                    return new Date(
+                        parseInt(match[3]),
+                        parseInt(match[2]) - 1,
+                        parseInt(match[1]),
+                        parseInt(match[4] || "0"),
+                        parseInt(match[5] || "0"),
+                        parseInt(match[6] || "0")
+                    ).getTime();
 
                 }
 
-            </div>
+                const parsed =
+                    Date.parse(d);
+
+                return isNaN(parsed)
+                    ? 0
+                    : parsed;
+            }
 
 
-            <!-- DELIVERY -->
-            <div class="section-title">
-                THÔNG TIN PHÁT
-            </div>
+            /*
+             * Chỉ sắp xếp nếu nhận diện được ngày.
+             */
 
-            <table class="delivery-table">
+            const hasDates =
+                array.some(
+                    item =>
+                        timestamp(item) > 0
+                );
 
-                <thead>
-                    <tr>
-                        <th>Ngày</th>
-                        <th>Bưu cục</th>
-                        <th>Chi tiết</th>
-                    </tr>
-                </thead>
 
-                <tbody>
+            if (!hasDates) {
+                return array;
+            }
 
-                    ${
-                        delivery
-                        ?
-                        `
+
+            array.sort(
+                (a, b) =>
+                    timestamp(a) -
+                    timestamp(b)
+            );
+
+
+            return array;
+        }
+
+
+        /* =========================================================
+           THÔNG TIN PHÁT
+        ========================================================= */
+
+        function renderDeliveryInfo(delivery) {
+
+            const box =
+                document.getElementById(
+                    "deliveryInfo"
+                );
+
+
+            if (!delivery) {
+
+                box.innerHTML = `
+                    <table class="delivery-table">
+                        <thead>
+                            <tr>
+                                <th style="width:20%">
+                                    Ngày
+                                </th>
+                                <th style="width:25%">
+                                    Bưu cục
+                                </th>
+                                <th>
+                                    Chi tiết
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>Chưa có thông tin phát</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+
+                return;
+            }
+
+
+            const dateTime =
+                getDateTime(delivery);
+
+
+            const posCode =
+                getPOSCode(delivery);
+
+
+            const posName =
+                getPOSName(delivery);
+
+
+            const status =
+                getStatusText(delivery);
+
+
+            /*
+             * Nếu POSName không có nhưng StatusText có dạng:
+             *
+             * EMI - Phát thành công (Delivered)
+             * (823960: BCP Thuận An - Hồ Chí Minh)
+             *
+             * thì cố gắng lấy tên bưu cục.
+             */
+
+            let office =
+                "";
+
+            if (posCode && posName) {
+
+                office =
+                    `${posCode} - ${posName}`;
+
+            } else if (posCode) {
+
+                office =
+                    posCode;
+
+            } else {
+
+                const text =
+                    status || "";
+
+                const match =
+                    text.match(
+                        /\((\d+)\s*:\s*([^)]+)\)/
+                    );
+
+                if (match) {
+
+                    office =
+                        `${match[1]} - ${match[2]}`;
+
+                } else {
+
+                    office =
+                        "-";
+                }
+            }
+
+
+            box.innerHTML = `
+
+                <table class="delivery-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th style="width:20%">
+                                Ngày
+                            </th>
+
+                            <th style="width:30%">
+                                Bưu cục
+                            </th>
+
+                            <th>
+                                Chi tiết
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
                         <tr>
 
                             <td>
                                 ${escapeHtml(
-                                    firstValue(
-                                        delivery,
-                                        ["DATE","Date","date"]
-                                    ) || getDisplayTime(delivery)
+                                    dateTime || "-"
                                 )}
                             </td>
 
                             <td>
                                 ${escapeHtml(
-                                    firstValue(
-                                        delivery,
-                                        [
-                                            "POSCODE",
-                                            "POSCode",
-                                            "MABC",
-                                            "BC"
-                                        ]
-                                    ) || "-"
+                                    office
                                 )}
                             </td>
 
-                            <td>
+                            <td class="delivery-success">
                                 ${escapeHtml(
-                                    delivery.STATUSTEXT ||
-                                    delivery.StatusText ||
-                                    "-"
+                                    status || "-"
                                 )}
                             </td>
 
                         </tr>
-                        `
-                        :
-                        `
-                        <tr>
-                            <td colspan="3">
-                                Chưa có thông tin phát
-                            </td>
-                        </tr>
-                        `
-                    }
 
-                </tbody>
+                    </tbody>
 
-            </table>
+                </table>
+            `;
+        }
 
 
-            <!-- MAP -->
-            <div
-                id="mapSection"
-                class="map-section"
-            >
-                <div id="mapHead"></div>
-                <iframe
-                    id="mapFrame"
-                    class="map-frame"
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                ></iframe>
-            </div>
+        /* =========================================================
+           BẢN ĐỒ
+        ========================================================= */
 
+        function openMapForItem(item) {
 
-            <div class="result-footer">
-                Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost
-                qua cổng kết nối InVanDon247
-            </div>
+            selectedMapItem = item;
 
-        </div>
-    `;
 
+            const section =
+                document.getElementById(
+                    "mapSection"
+                );
 
-    document.getElementById("resultContent").innerHTML = html;
+            const container =
+                document.getElementById(
+                    "mapContainer"
+                );
 
+            const title =
+                document.getElementById(
+                    "mapTitle"
+                );
 
-    /*
-       Chọn mặc định sự kiện cuối cùng.
-       Không tự mở bản đồ để tránh làm trang quá dài.
-    */
+            const google =
+                document.getElementById(
+                    "mapGoogleLink"
+                );
 
-    currentMapItem = latest || null;
-}
 
+            const coords =
+                getCoordinates(item);
 
-/* =========================================================
-   HIỂN THỊ BẢN ĐỒ
-========================================================= */
 
-function showMapForItem(index){
+            const location =
+                getLocation(item);
 
-    if(!currentData){
-        return;
-    }
 
-    const locate = Array.isArray(currentData.locate)
-        ? [...currentData.locate]
-        : [];
+            const posCode =
+                getPOSCode(item);
 
-    locate.sort(
-        (a,b)=>getDateTimeValue(a)-getDateTimeValue(b)
-    );
 
-    const item = locate[index];
+            const posName =
+                getPOSName(item);
 
-    if(!item){
-        return;
-    }
 
-    currentMapItem = item;
+            let mapQuery =
+                "";
 
-    const mapSection =
-        document.getElementById("mapSection");
 
-    const mapFrame =
-        document.getElementById("mapFrame");
+            if (coords) {
 
-    const mapHead =
-        document.getElementById("mapHead");
+                mapQuery =
+                    `${coords.lat},${coords.lng}`;
 
-    if(!mapSection || !mapFrame || !mapHead){
-        return;
-    }
+            } else {
 
+                mapQuery =
+                    location || "";
 
-    const location = getLocation(item);
-    const code = getPostCode(item);
-    const status = getStatus(item);
+                if (!mapQuery) {
 
-    const coordinates = getCoordinates(item);
+                    mapQuery =
+                        `${posCode || ""} ${posName || ""}`;
+                }
+            }
 
 
-    let mapUrl = "";
-    let googleUrl = "";
+            if (!mapQuery.trim()) {
 
+                container.innerHTML = `
+                    <div class="map-placeholder">
+                        Không có thông tin tọa độ hoặc địa chỉ
+                        của bưu cục trong dữ liệu trả về.
+                    </div>
+                `;
 
-    /*
-       ƯU TIÊN TỌA ĐỘ API.
-       Nếu API trả tọa độ thì không dùng geocoding theo
-       tên địa phương nữa.
-    */
+                google.href =
+                    "https://www.google.com/maps";
 
-    if(coordinates){
+            } else {
 
-        const lat = coordinates.lat;
-        const lng = coordinates.lng;
+                const encoded =
+                    encodeURIComponent(
+                        mapQuery
+                    );
 
-        mapUrl =
-            `https://www.google.com/maps?q=${lat},${lng}&output=embed`;
 
-        googleUrl =
-            `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+                /*
+                 * OpenStreetMap Embed.
+                 *
+                 * Với tọa độ thì bản đồ chính xác nhất.
+                 * Với địa chỉ thì OSM sẽ cố gắng định vị.
+                 */
 
-    }else{
+                if (coords) {
 
-        const query =
-            `${location}, Việt Nam`;
+                    const lat =
+                        coords.lat;
 
-        mapUrl =
-            `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+                    const lng =
+                        coords.lng;
 
-        googleUrl =
-            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
-    }
+                    const delta =
+                        0.015;
 
 
-    mapHead.innerHTML = `
+                    const bbox =
+                        [
+                            lng - delta,
+                            lat - delta,
+                            lng + delta,
+                            lat + delta
+                        ].join(",");
 
-        <div class="map-title">
 
-            ${escapeHtml(status)}
-            (${escapeHtml(code)})
+                    container.innerHTML = `
 
-            —
-            ${escapeHtml(location)}
+                        <iframe
+                            class="map-frame"
+                            src="https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(lat + "," + lng)}"
+                            loading="lazy"
+                        ></iframe>
+                    `;
 
-        </div>
+                } else {
 
-        <a
-            class="map-google"
-            href="${googleUrl}"
-            target="_blank"
-            rel="noopener"
-        >
-            Mở Google Maps ↗
-        </a>
+                    /*
+                     * Không có tọa độ:
+                     * dùng Nominatim để tìm vị trí.
+                     */
 
-    `;
+                    container.innerHTML = `
 
+                        <div class="map-placeholder">
+                            Đang tìm vị trí bưu cục...
+                        </div>
+                    `;
 
-    mapFrame.src = mapUrl;
 
-    mapSection.style.display = "block";
+                    loadMapByAddress(
+                        mapQuery
+                    );
+                }
 
 
-    setTimeout(()=>{
+                google.href =
+                    "https://www.google.com/maps/search/?api=1&query=" +
+                    encoded;
+            }
 
-        mapSection.scrollIntoView({
-            behavior:"smooth",
-            block:"nearest"
-        });
 
-    },50);
-}
+            title.innerText =
+                (
+                    posCode
+                        ? posCode + " - "
+                        : ""
+                ) +
+                (
+                    posName ||
+                    location ||
+                    "Vị trí bưu cục"
+                );
 
 
-/* =========================================================
-   TẠO HEADER A4
-========================================================= */
+            section.style.display =
+                "block";
 
-function createPrintHeader(info,pageNumber,totalPages){
 
-    return `
+            section.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest"
+            });
+        }
 
-        <div class="print-header">
 
-            <img
-                class="print-logo"
-                src="https://vietnampost.vn/uploads/storage/vnp/2025/09/15/3aa71b839430793ee9e4b9f47415c54a878027ec.jpg"
-                alt="Vietnam Post"
-            >
+        /* =========================================================
+           MAP THEO ĐỊA CHỈ
+        ========================================================= */
 
-            <div class="print-header-right">
+        async function loadMapByAddress(
+            address
+        ) {
 
-                <div>
-                    Ngày in:
-                    ${escapeHtml(
-                        new Date().toLocaleString("vi-VN")
-                    )}
-                </div>
+            const container =
+                document.getElementById(
+                    "mapContainer"
+                );
 
-                <div>
-                    Đơn vị:
-                    <strong>
-                        VNPOST (Bưu điện Việt Nam)
-                    </strong>
-                </div>
 
-            </div>
+            try {
 
-        </div>
+                const url =
+                    "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
+                    encodeURIComponent(address);
 
 
-        <div class="print-title">
+                const response =
+                    await fetch(
+                        url,
+                        {
+                            headers: {
+                                "Accept":
+                                    "application/json"
+                            }
+                        }
+                    );
 
-            <div class="print-title-main">
-                XÁC NHẬN HÀNH TRÌNH BƯU GỬI
-            </div>
 
-            <div class="print-tracking">
-                ${escapeHtml(info.ID || "-")}
-            </div>
+                const result =
+                    await response.json();
 
-        </div>
 
-    `;
-}
+                if (
+                    !Array.isArray(result) ||
+                    result.length === 0
+                ) {
 
+                    container.innerHTML = `
+                        <div class="map-placeholder">
+                            Không xác định được vị trí từ địa chỉ:
+                            <br><br>
+                            ${escapeHtml(address)}
+                        </div>
+                    `;
 
-/* =========================================================
-   INFO A4
-========================================================= */
+                    return;
+                }
 
-function createPrintInfo(info,status){
 
-    return `
+                const lat =
+                    parseFloat(
+                        result[0].lat
+                    );
 
-        <div class="print-info-grid">
+                const lng =
+                    parseFloat(
+                        result[0].lon
+                    );
 
-            <div class="print-card">
 
-                <div class="print-card-title">
-                    Thông tin tổng quan
-                </div>
+                const delta =
+                    0.015;
 
-                <div class="print-line">
-                    <span class="print-label">
-                        Mã bưu gửi:
-                    </span>
 
-                    <span class="print-value">
-                        ${escapeHtml(info.ID || "-")}
-                    </span>
-                </div>
+                const bbox =
+                    [
+                        lng - delta,
+                        lat - delta,
+                        lng + delta,
+                        lat + delta
+                    ].join(",");
 
-                <div class="print-line">
-                    <span class="print-label">
-                        Khối lượng:
-                    </span>
 
-                    <span class="print-value">
-                        ${escapeHtml(info.Weight || "0")} g
-                    </span>
-                </div>
+                container.innerHTML = `
 
-                <div class="print-line">
-                    <span class="print-label">
-                        Trạng thái:
-                    </span>
+                    <iframe
+                        class="map-frame"
+                        src="https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(lat + "," + lng)}"
+                        loading="lazy"
+                    ></iframe>
+                `;
 
-                    <span class="print-status">
-                        ${escapeHtml(status)}
-                    </span>
-                </div>
+            } catch (error) {
 
-            </div>
+                console.error(
+                    "Map error:",
+                    error
+                );
 
+                container.innerHTML = `
 
-            <div class="print-card">
+                    <div class="map-placeholder">
+                        Không thể tải bản đồ.
+                    </div>
+                `;
+            }
+        }
 
-                <div class="print-card-title">
-                    Tuyến vận chuyển
-                </div>
 
-                <div class="print-line">
-                    <span class="print-label">
-                        Bưu cục nhận:
-                    </span>
+        /* =========================================================
+           ĐÓNG MAP
+        ========================================================= */
 
-                    <span class="print-value">
-                        ${escapeHtml(info.BC_GUI || "-")}
-                    </span>
-                </div>
+        function closeMap() {
 
-                <div class="print-line">
-                    <span class="print-label">
-                        Bưu cục phát:
-                    </span>
+            document
+                .getElementById(
+                    "mapSection"
+                )
+                .style.display = "none";
 
-                    <span class="print-value">
-                        ${escapeHtml(info.BC_PHAT || "-")}
-                    </span>
-                </div>
+            document
+                .getElementById(
+                    "mapContainer"
+                )
+                .innerHTML = "";
+        }
 
-                <div class="print-line">
-                    <span class="print-label">
-                        Nước gửi/nhận:
-                    </span>
 
-                    <span class="print-value">
-                        ${escapeHtml(info.Nuoc_Chapnhan || "VN")}
-                        →
-                        ${escapeHtml(info.Nuoc_Phat || "VN")}
-                    </span>
-                </div>
+        /* =========================================================
+           LOGO SVG DÙNG CHO BẢN IN
+        ========================================================= */
 
-            </div>
+        function getPrintLogo() {
 
-        </div>
+            return `
+                <svg
+                    class="print-logo"
+                    viewBox="0 0 220 150"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
 
-    `;
-}
+                    <g fill="#f6a000">
 
+                        <path d="
+                            M28 55
+                            L92 20
+                            L125 20
+                            L93 55
+                            L58 55
+                            L82 72
+                            L55 90
+                            L28 72
+                            L28 55Z
+                        "/>
 
-/* =========================================================
-   EVENT A4
-========================================================= */
+                        <path d="
+                            M91 30
+                            L155 30
+                            L140 45
+                            L76 45 Z
+                        "/>
 
-function createPrintEvent(item,isLatest){
+                        <path d="
+                            M112 48
+                            L177 48
+                            L162 63
+                            L97 63 Z
+                        "/>
 
-    return `
+                        <path d="
+                            M128 67
+                            L190 67
+                            L176 82
+                            L113 82 Z
+                        "/>
 
-        <div class="print-event ${isLatest ? "latest" : ""}">
+                    </g>
 
-            <div class="print-event-time">
-                ${escapeHtml(
-                    getDisplayTime(item)
-                )}
-            </div>
+                    <path
+                        d="M30 57 L65 57 L65 92 L30 68 Z"
+                        fill="#fff"
+                    />
 
-            <div class="print-event-content">
+                    <text
+                        x="27"
+                        y="120"
+                        font-family="Arial"
+                        font-size="21"
+                        font-weight="bold"
+                        fill="#29327d"
+                    >
+                        VIETNAM POST
+                    </text>
 
-                ${escapeHtml(
-                    getStatus(item)
-                )}
+                </svg>
+            `;
+        }
 
-                <div class="print-event-code">
-                    Mã bưu cục:
-                    ${escapeHtml(
-                        getPostCode(item)
-                    )}
-                </div>
 
-            </div>
+        /* =========================================================
+           BUILD TÀI LIỆU A4
+        ========================================================= */
 
-        </div>
+        function buildPrintDocument(data) {
 
-    `;
-}
+            const info =
+                data.info || {};
 
+            const locate =
+                sortLocateAscending(
+                    Array.isArray(data.locate)
+                        ? data.locate
+                        : []
+                );
 
-/* =========================================================
-   DELIVERY A4
-========================================================= */
+            const delivery =
+                findDeliveredItem(
+                    locate,
+                    data.delivery
+                );
 
-function createPrintDelivery(delivery){
 
-    if(!delivery){
-        return `
-            <div class="print-delivery">
+            /*
+             * Chia sự kiện thành từng trang.
+             *
+             * 22 sự kiện / trang,
+             * mỗi trang chia đều thành 2 cột.
+             *
+             * Nếu sự kiện dài, CSS vẫn cho phép
+             * chiều cao co giãn.
+             */
+
+            const EVENTS_PER_PAGE = 22;
+
+            const pages = [];
+
+
+            for (
+                let i = 0;
+                i < locate.length;
+                i += EVENTS_PER_PAGE
+            ) {
+
+                pages.push(
+                    locate.slice(
+                        i,
+                        i + EVENTS_PER_PAGE
+                    )
+                );
+            }
+
+
+            if (pages.length === 0) {
+                pages.push([]);
+            }
+
+
+            const totalPages =
+                pages.length;
+
+
+            let html = "";
+
+
+            pages.forEach(
+                (pageItems, pageIndex) => {
+
+                    /*
+                     * Chia đều dữ liệu vào 2 cột.
+                     */
+
+                    const middle =
+                        Math.ceil(
+                            pageItems.length / 2
+                        );
+
+                    const left =
+                        pageItems.slice(
+                            0,
+                            middle
+                        );
+
+                    const right =
+                        pageItems.slice(
+                            middle
+                        );
+
+
+                    html += `
+
+                        <div class="print-page">
+
+                            <div class="print-header">
+
+                                <div class="print-brand">
+
+                                    ${getPrintLogo()}
+
+                                    <div>
+
+                                        <div class="print-brand-title">
+                                            InVanDon247
+                                        </div>
+
+                                        <div class="print-brand-subtitle">
+                                            Hệ thống chuyển đổi & in phiếu bưu gửi A4 tự động
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="print-meta">
+
+                                    <div>
+                                        Ngày in:
+                                        ${escapeHtml(
+                                            new Date()
+                                                .toLocaleString(
+                                                    "vi-VN"
+                                                )
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        Đơn vị:
+                                        <strong>
+                                            VNPOST (Bưu điện Việt Nam)
+                                        </strong>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="print-title-box">
+
+                                <div class="print-title">
+                                    XÁC NHẬN HÀNH TRÌNH BƯU GỬI
+                                </div>
+
+                                <div class="print-code">
+                                    ${escapeHtml(
+                                        info.ID || "-"
+                                    )}
+                                </div>
+
+                            </div>
+
+
+                            <div class="print-info-grid">
+
+                                <div class="print-card">
+
+                                    <div class="print-card-title">
+                                        Thông tin tổng quan
+                                    </div>
+
+                                    <div class="print-info-row">
+
+                                        <span class="print-info-label">
+                                            Mã bưu gửi:
+                                        </span>
+
+                                        <span class="print-info-value">
+                                            ${escapeHtml(
+                                                info.ID || "-"
+                                            )}
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="print-info-row">
+
+                                        <span class="print-info-label">
+                                            Khối lượng:
+                                        </span>
+
+                                        <span class="print-info-value">
+                                            ${escapeHtml(
+                                                info.Weight || "0"
+                                            )} g
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="print-info-row">
+
+                                        <span class="print-info-label">
+                                            Trạng thái:
+                                        </span>
+
+                                        <span class="print-status">
+                                            ${escapeHtml(
+                                                getStatusText(
+                                                    delivery
+                                                ) ||
+                                                "ĐANG VẬN CHUYỂN"
+                                            )}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="print-card">
+
+                                    <div class="print-card-title">
+                                        Tuyến vận chuyển
+                                    </div>
+
+
+                                    <div class="print-info-row">
+
+                                        <span class="print-info-label">
+                                            Bưu cục nhận:
+                                        </span>
+
+                                        <span class="print-info-value">
+                                            ${escapeHtml(
+                                                val(
+                                                    info,
+                                                    [
+                                                        "BC_GUI",
+                                                        "BCGUI",
+                                                        "BuuCucGui"
+                                                    ],
+                                                    "-"
+                                                )
+                                            )}
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="print-info-row">
+
+                                        <span class="print-info-label">
+                                            Bưu cục phát:
+                                        </span>
+
+                                        <span class="print-info-value">
+                                            ${escapeHtml(
+                                                val(
+                                                    info,
+                                                    [
+                                                        "BC_PHAT",
+                                                        "BCPHAT",
+                                                        "BuuCucPhat"
+                                                    ],
+                                                    "-"
+                                                )
+                                            )}
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="print-info-row">
+
+                                        <span class="print-info-label">
+                                            Nước gửi/nhận:
+                                        </span>
+
+                                        <span class="print-info-value">
+                                            ${escapeHtml(
+                                                val(
+                                                    info,
+                                                    [
+                                                        "Nuoc_Chapnhan",
+                                                        "NUOC_CHAPNHAN"
+                                                    ],
+                                                    "VN"
+                                                )
+                                            )}
+                                            →
+                                            ${escapeHtml(
+                                                val(
+                                                    info,
+                                                    [
+                                                        "Nuoc_Phat",
+                                                        "NUOC_PHAT"
+                                                    ],
+                                                    "VN"
+                                                )
+                                            )}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="print-section-title">
+                                CHI TIẾT LỊCH SỬ HÀNH TRÌNH
+                                (${locate.length} công đoạn)
+                            </div>
+
+
+                            <div class="print-history-grid">
+
+                                <div class="print-history-col">
+
+                                    ${renderPrintHistory(
+                                        left,
+                                        locate
+                                    )}
+
+                                </div>
+
+
+                                <div class="print-history-col">
+
+                                    ${renderPrintHistory(
+                                        right,
+                                        locate
+                                    )}
+
+                                </div>
+
+                            </div>
+
+
+                            ${
+                                pageIndex ===
+                                totalPages - 1
+                                    ? renderPrintDelivery(
+                                        delivery
+                                    )
+                                    : ""
+                            }
+
+
+                            <div class="print-footer">
+
+                                Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost
+                                qua cổng kết nối InVanDon247
+                                • Trang
+                                ${pageIndex + 1}/${totalPages}
+
+                            </div>
+
+                        </div>
+                    `;
+                }
+            );
+
+
+            document
+                .getElementById(
+                    "print-content"
+                )
+                .innerHTML = html;
+        }
+
+
+        /* =========================================================
+           RENDER HISTORY CHO A4
+        ========================================================= */
+
+        function renderPrintHistory(
+            items,
+            allItems
+        ) {
+
+            return items
+                .map(item => {
+
+                    const latest =
+                        item ===
+                        allItems[
+                            allItems.length - 1
+                        ];
+
+
+                    const dateTime =
+                        getDateTime(item);
+
+                    const status =
+                        getStatusText(item);
+
+                    const posCode =
+                        getPOSCode(item);
+
+                    const posName =
+                        getPOSName(item);
+
+
+                    return `
+
+                        <div class="print-history-item">
+
+                            <div class="print-time">
+                                ${escapeHtml(
+                                    dateTime || "-"
+                                )}
+                            </div>
+
+
+                            <div
+                                class="print-event ${
+                                    latest
+                                        ? "latest"
+                                        : ""
+                                }"
+                            >
+
+                                ${escapeHtml(
+                                    status || "-"
+                                )}
+
+                                ${
+                                    posCode
+                                        ? `
+                                            <span class="print-pos">
+                                                Mã bưu cục:
+                                                ${escapeHtml(
+                                                    posCode
+                                                )}
+                                                ${
+                                                    posName
+                                                        ? " - " +
+                                                          escapeHtml(
+                                                              posName
+                                                          )
+                                                        : ""
+                                                }
+                                            </span>
+                                        `
+                                        : ""
+                                }
+
+                            </div>
+
+                        </div>
+                    `;
+                })
+                .join("");
+        }
+
+
+        /* =========================================================
+           THÔNG TIN PHÁT TRÊN A4
+        ========================================================= */
+
+        function renderPrintDelivery(
+            delivery
+        ) {
+
+            if (!delivery) {
+                return "";
+            }
+
+
+            const dateTime =
+                getDateTime(delivery);
+
+            const posCode =
+                getPOSCode(delivery);
+
+            const posName =
+                getPOSName(delivery);
+
+            const status =
+                getStatusText(delivery);
+
+
+            let office = "-";
+
+
+            if (posCode && posName) {
+
+                office =
+                    `${posCode} - ${posName}`;
+
+            } else if (posCode) {
+
+                office =
+                    posCode;
+
+            } else {
+
+                const match =
+                    String(status)
+                        .match(
+                            /\((\d+)\s*:\s*([^)]+)\)/
+                        );
+
+                if (match) {
+
+                    office =
+                        `${match[1]} - ${match[2]}`;
+                }
+            }
+
+
+            return `
 
                 <div class="print-section-title">
                     THÔNG TIN PHÁT
                 </div>
 
+
                 <table class="print-delivery-table">
 
-                    <tr>
-                        <td colspan="3">
-                            Chưa có thông tin phát
-                        </td>
-                    </tr>
+                    <thead>
+
+                        <tr>
+
+                            <th style="width:20%">
+                                Ngày
+                            </th>
+
+                            <th style="width:30%">
+                                Bưu cục
+                            </th>
+
+                            <th>
+                                Chi tiết
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>
+                                ${escapeHtml(
+                                    dateTime || "-"
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    office
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    status || "-"
+                                )}
+                            </td>
+
+                        </tr>
+
+                    </tbody>
 
                 </table>
-
-            </div>
-        `;
-    }
+            `;
+        }
 
 
-    const date =
-        firstValue(
-            delivery,
-            ["DATE","Date","date"]
-        ) || getDisplayTime(delivery);
+        /* =========================================================
+           IN A4
+        ========================================================= */
 
-    const office =
-        firstValue(
-            delivery,
-            [
-                "POSCODE",
-                "POSCode",
-                "MABC",
-                "BC"
-            ]
-        ) || "-";
+        function printA4() {
 
-    const detail =
-        delivery.STATUSTEXT ||
-        delivery.StatusText ||
-        "-";
+            if (!currentData) {
+
+                alert(
+                    "Chưa có dữ liệu để in."
+                );
+
+                return;
+            }
 
 
-    return `
+            /*
+             * Đảm bảo tài liệu A4 mới nhất.
+             */
 
-        <div class="print-delivery">
-
-            <div class="print-section-title">
-                THÔNG TIN PHÁT
-            </div>
-
-            <table class="print-delivery-table">
-
-                <thead>
-
-                    <tr>
-                        <th>Ngày</th>
-                        <th>Bưu cục</th>
-                        <th>Chi tiết</th>
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    <tr>
-
-                        <td>
-                            ${escapeHtml(date)}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(office)}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(detail)}
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    `;
-}
+            buildPrintDocument(
+                currentData
+            );
 
 
-/* =========================================================
-   PHÂN TRANG A4
+            setTimeout(
+                () => {
 
-   24 sự kiện / trang.
-   12 bên trái + 12 bên phải.
+                    window.print();
 
-   Với dữ liệu dài hơn, tự động tạo trang tiếp theo.
-========================================================= */
-
-function buildPrintDocument(data){
-
-    const info = data.info || {};
-
-    const locate = Array.isArray(data.locate)
-        ? [...data.locate]
-        : [];
-
-    const delivery =
-        data.delivery &&
-        Array.isArray(data.delivery) &&
-        data.delivery.length
-            ? data.delivery[0]
-            : null;
+                },
+                150
+            );
+        }
 
 
-    /*
-       CŨ -> MỚI
-    */
+        /* =========================================================
+           TẢI PDF
+           
+           Dùng chính #print-content.
+           Vì vậy PDF và bản in A4 dùng cùng bố cục.
+        ========================================================= */
 
-    locate.sort(
-        (a,b)=>getDateTimeValue(a)-getDateTimeValue(b)
-    );
+        async function downloadPDF() {
 
+            if (!currentData) {
 
-    const latest =
-        locate.length
-            ? locate[locate.length-1]
-            : null;
+                alert(
+                    "Chưa có dữ liệu để tải PDF."
+                );
 
-
-    const status =
-        delivery && delivery.STATUSTEXT
-            ? delivery.STATUSTEXT
-            : latest
-                ? getStatus(latest)
-                : "ĐANG VẬN CHUYỂN";
+                return;
+            }
 
 
-    /*
-       24 dòng / trang.
-    */
-
-    const EVENTS_PER_PAGE = 24;
-
-    const eventPages = [];
+            buildPrintDocument(
+                currentData
+            );
 
 
-    for(
-        let i=0;
-        i<locate.length;
-        i+=EVENTS_PER_PAGE
-    ){
+            const element =
+                document.getElementById(
+                    "print-content"
+                );
 
-        eventPages.push(
-            locate.slice(
-                i,
-                i + EVENTS_PER_PAGE
+
+            /*
+             * Tạm thời hiển thị vùng A4.
+             */
+
+            element.style.display =
+                "block";
+
+
+            const filename =
+                `VanDon_VNPost_${currentTrackingCode || "InVanDon247"}.pdf`;
+
+
+            const options = {
+
+                margin: 0,
+
+                filename: filename,
+
+                image: {
+                    type: "jpeg",
+                    quality: 0.82
+                },
+
+                html2canvas: {
+
+                    scale: 1.5,
+
+                    useCORS: true,
+
+                    backgroundColor: "#ffffff",
+
+                    logging: false
+                },
+
+                jsPDF: {
+
+                    unit: "mm",
+
+                    format: "a4",
+
+                    orientation: "portrait",
+
+                    compress: true
+                },
+
+                pagebreak: {
+
+                    mode: [
+                        "css",
+                        "legacy"
+                    ]
+                }
+            };
+
+
+            try {
+
+                await html2pdf()
+                    .set(options)
+                    .from(element)
+                    .save();
+
+            } catch (error) {
+
+                console.error(
+                    "PDF error:",
+                    error
+                );
+
+                alert(
+                    "Không thể tạo PDF: " +
+                    error.message
+                );
+
+            } finally {
+
+                element.style.display =
+                    "none";
+            }
+        }
+
+
+        /* =========================================================
+           ENTER ĐỂ TRA CỨU
+        ========================================================= */
+
+        document
+            .getElementById(
+                "captchaText"
             )
-        );
+            .addEventListener(
+                "keydown",
+                function(event) {
 
-    }
+                    if (
+                        event.key ===
+                        "Enter"
+                    ) {
 
-
-    /*
-       Nếu không có lịch sử thì vẫn tạo 1 trang.
-    */
-
-    if(eventPages.length === 0){
-        eventPages.push([]);
-    }
-
-
-    const totalPages = eventPages.length;
-
-    let html = "";
-
-
-    eventPages.forEach((events,pageIndex)=>{
-
-        /*
-           Chia đều event thành 2 cột.
-        */
-
-        const split =
-            Math.ceil(events.length / 2);
-
-        const leftEvents =
-            events.slice(0,split);
-
-        const rightEvents =
-            events.slice(split);
-
-
-        html += `
-
-            <div class="print-page">
-
-                ${createPrintHeader(
-                    info,
-                    pageIndex+1,
-                    totalPages
-                )}
-
-                ${
-                    pageIndex === 0
-                        ? createPrintInfo(info,status)
-                        : `
-                            <div class="print-section-title">
-                                LỊCH SỬ HÀNH TRÌNH — TIẾP THEO
-                            </div>
-                        `
+                        submitTracking();
+                    }
                 }
+            );
 
 
-                <div class="print-section-title">
-                    CHI TIẾT LỊCH SỬ HÀNH TRÌNH
-                    (${locate.length} công đoạn)
-                </div>
+        document
+            .getElementById(
+                "trackingCode"
+            )
+            .addEventListener(
+                "keydown",
+                function(event) {
 
+                    if (
+                        event.key ===
+                        "Enter"
+                    ) {
 
-                <div class="print-timeline-grid">
-
-                    <div class="print-timeline-col">
-
-                        ${
-                            leftEvents.map(item=>{
-
-                                const isLatest =
-                                    item === latest;
-
-                                return createPrintEvent(
-                                    item,
-                                    isLatest
-                                );
-
-                            }).join("")
-                        }
-
-                    </div>
-
-
-                    <div class="print-timeline-col">
-
-                        ${
-                            rightEvents.map(item=>{
-
-                                const isLatest =
-                                    item === latest;
-
-                                return createPrintEvent(
-                                    item,
-                                    isLatest
-                                );
-
-                            }).join("")
-                        }
-
-                    </div>
-
-                </div>
-
-
-                ${
-                    pageIndex === totalPages-1
-                        ? createPrintDelivery(delivery)
-                        : ""
+                        document
+                            .getElementById(
+                                "captchaText"
+                            )
+                            .focus();
+                    }
                 }
+            );
 
 
-                <div class="print-footer">
+        /* =========================================================
+           LOAD CAPTCHA KHI MỞ TRANG
+        ========================================================= */
 
-                    Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost
-                    qua cổng kết nối InVanDon247
+        window.addEventListener(
+            "load",
+            function() {
 
-                    &nbsp;•&nbsp;
+                loadCaptcha();
 
-                    Trang ${pageIndex+1}/${totalPages}
-
-                </div>
-
-            </div>
-
-        `;
-
-    });
-
-
-    document.getElementById(
-        "print-document"
-    ).innerHTML = html;
-}
-
-
-/* =========================================================
-   IN A4
-========================================================= */
-
-function printA4(){
-
-    if(!currentData){
-        alert("Chưa có dữ liệu vận đơn để in.");
-        return;
-    }
-
-    buildPrintDocument(currentData);
-
-    /*
-       Đợi browser render logo / nội dung rồi mới in.
-    */
-
-    setTimeout(()=>{
-
-        window.print();
-
-    },250);
-}
-
-
-/* =========================================================
-   TẢI PDF
-
-   Dùng CHÍNH DOM A4 đã tạo cho chức năng in.
-   Vì vậy PDF và bản in có cùng bố cục.
-========================================================= */
-
-async function downloadPDF(){
-
-    if(!currentData){
-        alert("Chưa có dữ liệu vận đơn để tải PDF.");
-        return;
-    }
-
-    buildPrintDocument(currentData);
-
-    const element =
-        document.getElementById("print-document");
-
-
-    /*
-       Đợi logo load.
-    */
-
-    await waitForImages(element);
-
-
-    const fileName =
-        `VanDon_VNPost_${currentTrackingCode || "InVanDon247"}.pdf`;
-
-
-    const options = {
-
-        margin:0,
-
-        filename:fileName,
-
-        image:{
-            type:"jpeg",
-            quality:0.72
-        },
-
-        html2canvas:{
-            scale:1.35,
-            useCORS:true,
-            allowTaint:false,
-            backgroundColor:"#ffffff",
-            logging:false
-        },
-
-        jsPDF:{
-            unit:"mm",
-            format:"a4",
-            orientation:"portrait",
-            compress:true
-        },
-
-        pagebreak:{
-            mode:[
-                "css",
-                "legacy"
-            ]
-        }
-
-    };
-
-
-    try{
-
-        /*
-           html2pdf cần phần tử render được.
-           Tạm thời hiển thị document nhưng ngoài màn hình.
-        */
-
-        element.style.display = "block";
-        element.style.position = "absolute";
-        element.style.left = "-10000px";
-        element.style.top = "0";
-        element.style.width = "210mm";
-
-
-        await html2pdf()
-            .set(options)
-            .from(element)
-            .save();
-
-
-    }catch(error){
-
-        console.error("PDF:",error);
-
-        alert(
-            "Không thể tạo PDF. Vui lòng thử lại."
+            }
         );
 
-    }finally{
-
-        element.style.display = "none";
-        element.style.position = "";
-        element.style.left = "";
-        element.style.top = "";
-        element.style.width = "";
-
-    }
-}
-
-
-/* =========================================================
-   ĐỢI HÌNH ẢNH LOAD
-========================================================= */
-
-function waitForImages(container){
-
-    const images =
-        Array.from(
-            container.querySelectorAll("img")
-        );
-
-    if(!images.length){
-        return Promise.resolve();
-    }
-
-    return Promise.all(
-        images.map(img=>{
-
-            if(img.complete){
-                return Promise.resolve();
-            }
-
-            return new Promise(resolve=>{
-
-                img.onload = resolve;
-                img.onerror = resolve;
-
-            });
-
-        })
-    );
-}
-
-
-/* =========================================================
-   ENTER ĐỂ TRA CỨU
-========================================================= */
-
-document
-    .getElementById("captchaText")
-    .addEventListener(
-        "keydown",
-        function(event){
-
-            if(event.key === "Enter"){
-                submitTracking();
-            }
-
-        }
-    );
-
-
-document
-    .getElementById("trackingCode")
-    .addEventListener(
-        "keydown",
-        function(event){
-
-            if(event.key === "Enter"){
-
-                document
-                    .getElementById("captchaText")
-                    .focus();
-
-            }
-
-        }
-    );
-
-
-/* =========================================================
-   LOAD CAPTCHA KHI MỞ TRANG
-========================================================= */
-
-window.addEventListener(
-    "load",
-    function(){
-
-        loadCaptcha();
-
-    }
-);
-
-</script>
+    </script>
 
 </body>
 </html>

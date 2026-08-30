@@ -6,7 +6,6 @@
 
     <title>InVanDon247 - Tra cứu và in vận đơn VNPost</title>
 
-    <!-- PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -532,6 +531,17 @@
             width: 35%;
         }
 
+        .postman-name {
+            font-weight: 600;
+            color: #26343e;
+        }
+
+        .postman-phone {
+            display: block;
+            color: #0068b7;
+            margin-top: 2px;
+        }
+
         /* =========================================================
            MAP
         ========================================================= */
@@ -571,10 +581,6 @@
             font-size: 10px;
         }
 
-        .map-open:hover {
-            text-decoration: underline;
-        }
-
         .map-frame {
             width: 100%;
             height: 430px;
@@ -590,7 +596,7 @@
         }
 
         /* =========================================================
-           FOOTER / ERROR
+           FOOTER
         ========================================================= */
 
         .result-footer {
@@ -601,6 +607,10 @@
             color: #a0a5aa;
             font-size: 8px;
         }
+
+        /* =========================================================
+           ERROR
+        ========================================================= */
 
         .error-box {
             display: none;
@@ -620,6 +630,10 @@
         #print-root {
             display: none;
         }
+
+        /* =========================================================
+           A4
+        ========================================================= */
 
         .a4-document {
             width: 190mm;
@@ -840,6 +854,7 @@
         ========================================================= */
 
         @media (max-width: 800px) {
+
             .site-header {
                 height: 52px;
             }
@@ -924,6 +939,7 @@
         ========================================================= */
 
         @media print {
+
             html,
             body {
                 margin: 0 !important;
@@ -956,9 +972,11 @@
 <body>
 
 <header class="site-header no-print">
+
     <div class="header-inner">
 
         <a href="#" class="brand">
+
             <img
                 class="brand-logo"
                 src="https://vnpost.vn/assets/images/logo.png"
@@ -967,12 +985,17 @@
             >
 
             <div class="brand-text">
-                <div class="brand-name">InVanDon247</div>
+
+                <div class="brand-name">
+                    InVanDon247
+                </div>
 
                 <div class="brand-description">
                     Công cụ tra cứu và tạo phiếu vận đơn A4
                 </div>
+
             </div>
+
         </a>
 
         <nav class="main-nav">
@@ -983,6 +1006,7 @@
         </nav>
 
     </div>
+
 </header>
 
 
@@ -1039,11 +1063,13 @@
                     >
 
                     <div class="captcha-image-box">
+
                         <img
                             id="captchaImg"
                             src=""
                             alt="Đang tải CAPTCHA..."
                         >
+
                     </div>
 
                     <button
@@ -1076,7 +1102,7 @@
 
 
     <!-- =========================================================
-         ACTION BUTTONS
+         ACTION
     ========================================================== -->
 
     <div id="actionBar" class="action-area no-print">
@@ -1136,12 +1162,14 @@
                 <table class="delivery-table">
 
                     <thead>
+
                         <tr>
                             <th>Ngày</th>
                             <th>Bưu cục</th>
                             <th>Bưu tá</th>
                             <th>Chi tiết</th>
                         </tr>
+
                     </thead>
 
                     <tbody id="deliveryBody"></tbody>
@@ -1179,7 +1207,6 @@
 
                     </div>
 
-
                     <iframe
                         id="mapFrame"
                         class="map-frame"
@@ -1187,7 +1214,6 @@
                         referrerpolicy="no-referrer-when-downgrade"
                         src=""
                     ></iframe>
-
 
                     <div class="map-note">
                         Bản đồ được hiển thị theo vị trí/địa chỉ do dữ liệu tra cứu cung cấp.
@@ -1209,14 +1235,14 @@
 </main>
 
 
+<!-- =========================================================
+     PRINT ROOT
+========================================================== -->
+
 <div id="print-root"></div>
 
 
 <script>
-
-    /* =========================================================
-       GLOBAL DATA
-    ========================================================= */
 
     let currentCookie = "";
     let currentTrackingCode = "";
@@ -1260,19 +1286,19 @@
             return "";
         }
 
-        const str = String(value).trim();
+        const s = String(value).trim();
 
         if (
-            !str ||
-            str === "[]" ||
-            str === "{}" ||
-            str.toLowerCase() === "null" ||
-            str.toLowerCase() === "undefined"
+            !s ||
+            s === "[]" ||
+            s === "{}" ||
+            s === "null" ||
+            s === "undefined"
         ) {
             return "";
         }
 
-        return str;
+        return s;
     }
 
 
@@ -1297,7 +1323,9 @@
                 if (value) {
                     return value;
                 }
+
             }
+
         }
 
         return fallback;
@@ -1305,7 +1333,105 @@
 
 
     /* =========================================================
-       FIELD EXTRACTORS
+       FIELD NORMALIZATION
+    ========================================================= */
+
+    function normalizeKey(key) {
+
+        return String(key || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/đ/g, "d")
+            .replace(/Đ/g, "D")
+            .replace(/[^a-zA-Z0-9]/g, "")
+            .toLowerCase();
+
+    }
+
+
+    function allObjects(root) {
+
+        const result = [];
+        const visited = new Set();
+
+        function walk(value) {
+
+            if (
+                value === null ||
+                value === undefined ||
+                typeof value !== "object"
+            ) {
+                return;
+            }
+
+            if (visited.has(value)) {
+                return;
+            }
+
+            visited.add(value);
+
+            if (Array.isArray(value)) {
+
+                value.forEach(walk);
+
+                return;
+            }
+
+            result.push(value);
+
+            Object.keys(value).forEach(key => {
+
+                try {
+                    walk(value[key]);
+                } catch (e) {}
+
+            });
+
+        }
+
+        walk(root);
+
+        return result;
+    }
+
+
+    function findValueRecursive(
+        root,
+        possibleKeys
+    ) {
+
+        const wanted = new Set(
+            possibleKeys.map(normalizeKey)
+        );
+
+        const objects = allObjects(root);
+
+        for (const obj of objects) {
+
+            for (const key of Object.keys(obj)) {
+
+                if (
+                    wanted.has(normalizeKey(key))
+                ) {
+
+                    const value = cleanValue(obj[key]);
+
+                    if (value) {
+                        return value;
+                    }
+
+                }
+
+            }
+
+        }
+
+        return "";
+    }
+
+
+    /* =========================================================
+       DATE / TIME
     ========================================================= */
 
     function getDate(item) {
@@ -1320,11 +1446,14 @@
                 "NGAY",
                 "DeliveryDate",
                 "DELIVERYDATE",
-                "CreatedDate",
-                "CREATEDDATE"
+                "EventDate",
+                "EVENTDATE",
+                "CreateDate",
+                "CREATEDATE"
             ],
             ""
         );
+
     }
 
 
@@ -1335,19 +1464,206 @@
             [
                 "TIMEDETAIL",
                 "TimeDetail",
-                "timeDetail",
+                "TIME_DETAIL",
                 "Time",
                 "TIME",
                 "time",
                 "Gio",
                 "GIO",
-                "CreatedTime",
-                "CREATEDTIME"
+                "EventTime",
+                "EVENTTIME",
+                "CreateTime",
+                "CREATETIME"
             ],
             ""
         );
+
     }
 
+
+    function normalizeDateString(value) {
+
+        if (!value) {
+            return "";
+        }
+
+        let s = String(value).trim();
+
+        s = s
+            .replace(/\//g, "-")
+            .replace(/\./g, "-");
+
+        return s;
+
+    }
+
+
+    function parseDateTime(item) {
+
+        const date = normalizeDateString(
+            getDate(item)
+        );
+
+        const time = cleanValue(
+            getTime(item)
+        );
+
+        if (!date && !time) {
+            return 0;
+        }
+
+        /*
+         * VNPost thường trả:
+         * DD/MM/YYYY
+         * DD/MM/YYYY HH:mm:ss
+         */
+
+        let match = date.match(
+            /^(\d{1,2})-(\d{1,2})-(\d{4})$/
+        );
+
+        if (match) {
+
+            const day = Number(match[1]);
+            const month = Number(match[2]) - 1;
+            const year = Number(match[3]);
+
+            const tm = String(time)
+                .match(
+                    /(\d{1,2}):(\d{2})(?::(\d{2}))?/
+                );
+
+            const hour = tm ? Number(tm[1]) : 0;
+            const minute = tm ? Number(tm[2]) : 0;
+            const second = tm && tm[3]
+                ? Number(tm[3])
+                : 0;
+
+            return new Date(
+                year,
+                month,
+                day,
+                hour,
+                minute,
+                second
+            ).getTime();
+
+        }
+
+
+        /*
+         * YYYY-MM-DD
+         */
+
+        match = date.match(
+            /^(\d{4})-(\d{1,2})-(\d{1,2})$/
+        );
+
+        if (match) {
+
+            const year = Number(match[1]);
+            const month = Number(match[2]) - 1;
+            const day = Number(match[3]);
+
+            const tm = String(time)
+                .match(
+                    /(\d{1,2}):(\d{2})(?::(\d{2}))?/
+                );
+
+            const hour = tm ? Number(tm[1]) : 0;
+            const minute = tm ? Number(tm[2]) : 0;
+            const second = tm && tm[3]
+                ? Number(tm[3])
+                : 0;
+
+            return new Date(
+                year,
+                month,
+                day,
+                hour,
+                minute,
+                second
+            ).getTime();
+
+        }
+
+
+        /*
+         * Trường hợp API trả nguyên chuỗi
+         */
+
+        const direct = new Date(
+            String(getDate(item)) +
+            " " +
+            String(getTime(item))
+        ).getTime();
+
+        return Number.isNaN(direct)
+            ? 0
+            : direct;
+
+    }
+
+
+    function formatDateTime(item) {
+
+        const date = getDate(item);
+        const time = getTime(item);
+
+        return [
+            date,
+            time
+        ]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
+
+    }
+
+
+    /*
+     * TÌM BẢN GHI CÓ THỜI GIAN LỚN NHẤT
+     */
+    function getLatestItem(list) {
+
+        if (
+            !Array.isArray(list) ||
+            list.length === 0
+        ) {
+            return null;
+        }
+
+        let latest = null;
+        let latestTime = -1;
+
+        list.forEach(item => {
+
+            const timestamp = parseDateTime(item);
+
+            if (
+                timestamp > latestTime
+            ) {
+
+                latestTime = timestamp;
+                latest = item;
+
+            }
+
+        });
+
+        /*
+         * Nếu không parse được ngày giờ,
+         * giữ nguyên phần tử cuối.
+         */
+
+        return latest || list[list.length - 1];
+
+    }
+
+
+    /* =========================================================
+       POST CODE / OFFICE
+    ========================================================= */
 
     function getPostCode(item) {
 
@@ -1360,15 +1676,19 @@
                 "POSCODE",
                 "PosCode",
                 "posCode",
+                "BuuCuc",
+                "buuCuc",
+                "BUUCUC",
                 "PostOfficeCode",
                 "POSTOFFICECODE",
                 "MaBuuCuc",
                 "MABUUCUC",
-                "BuuCucCode",
-                "BUUCUCCODE"
+                "BCCode",
+                "BCCODE"
             ],
             ""
         );
+
     }
 
 
@@ -1386,13 +1706,199 @@
                 "BC_NAME",
                 "BuuCucName",
                 "BUUCUCNAME",
-                "TenBuuCuc",
-                "TENBUUCUC"
+                "VI_TRI_TEXT"
             ],
             ""
         );
+
     }
 
+
+    function extractOfficeFromText(text) {
+
+        if (!text) {
+            return {
+                code: "",
+                name: ""
+            };
+        }
+
+        const source = String(text);
+
+        /*
+         * Ví dụ:
+         * (823960: BCP Thuận An - Hồ Chí Minh)
+         */
+
+        let match = source.match(
+            /\(\s*(\d{4,10})\s*:\s*([^)]+)\)/
+        );
+
+        if (match) {
+
+            return {
+                code: match[1].trim(),
+                name: match[2]
+                    .split("-")[0]
+                    .trim()
+            };
+
+        }
+
+
+        /*
+         * Trường hợp:
+         * 823960: BCP Thuận An
+         */
+
+        match = source.match(
+            /(\d{4,10})\s*:\s*(BCP[^)\-]+)/i
+        );
+
+        if (match) {
+
+            return {
+                code: match[1].trim(),
+                name: match[2].trim()
+            };
+
+        }
+
+
+        return {
+            code: "",
+            name: ""
+        };
+
+    }
+
+
+    function extractDeliveryOffice(
+        deliveryItem,
+        latestLocateItem,
+        locateList
+    ) {
+
+        let code = getPostCode(
+            deliveryItem
+        );
+
+        let name = getPostName(
+            deliveryItem
+        );
+
+
+        /*
+         * ƯU TIÊN bản ghi phát mới nhất.
+         */
+
+        if (
+            latestLocateItem
+        ) {
+
+            const latestText =
+                getStatusText(
+                    latestLocateItem
+                );
+
+            const parsed =
+                extractOfficeFromText(
+                    latestText
+                );
+
+            if (!code && parsed.code) {
+                code = parsed.code;
+            }
+
+            if (!name && parsed.name) {
+                name = parsed.name;
+            }
+
+            if (!code) {
+                code = getPostCode(
+                    latestLocateItem
+                );
+            }
+
+            if (!name) {
+                name = getPostName(
+                    latestLocateItem
+                );
+            }
+
+        }
+
+
+        /*
+         * Nếu chưa tìm thấy,
+         * quét locate từ mới nhất về cũ.
+         */
+
+        if (
+            (!code || !name) &&
+            Array.isArray(locateList)
+        ) {
+
+            const reversed =
+                [...locateList].reverse();
+
+            for (
+                const item of reversed
+            ) {
+
+                const text =
+                    getStatusText(item);
+
+                const parsed =
+                    extractOfficeFromText(
+                        text
+                    );
+
+                if (!code && parsed.code) {
+                    code = parsed.code;
+                }
+
+                if (!name && parsed.name) {
+                    name = parsed.name;
+                }
+
+                if (!code) {
+                    code = getPostCode(item);
+                }
+
+                if (!name) {
+                    name = getPostName(item);
+                }
+
+                if (code && name) {
+                    break;
+                }
+
+            }
+
+        }
+
+
+        if (code && name) {
+            return `${code} - ${name}`;
+        }
+
+        if (name) {
+            return name;
+        }
+
+        if (code) {
+            return code;
+        }
+
+        return "-";
+
+    }
+
+
+    /* =========================================================
+       STATUS
+    ========================================================= */
 
     function getStatusText(item) {
 
@@ -1407,15 +1913,20 @@
                 "DETAIL",
                 "NoiDung",
                 "NOIDUNG",
+                "Content",
+                "CONTENT",
                 "Description",
-                "DESCRIPTION",
-                "EventText",
-                "EVENTTEXT"
+                "DESCRIPTION"
             ],
             ""
         );
+
     }
 
+
+    /* =========================================================
+       LOCATION
+    ========================================================= */
 
     function getLocation(item) {
 
@@ -1423,22 +1934,557 @@
             item,
             [
                 "VI_TRI_TEXT",
-                "ViTriText",
-                "VITRI_TEXT",
+                "ViTri",
+                "VITRI",
                 "Location",
                 "LOCATION",
                 "Address",
                 "ADDRESS",
                 "DiaChi",
-                "DIACHI",
-                "VI_TRI",
-                "ViTri",
-                "VITRI"
+                "DIACHI"
             ],
             ""
         );
+
     }
 
+
+    /* =========================================================
+       POSTMAN
+       ========================================================= */
+
+    function looksLikePhone(value) {
+
+        if (!value) {
+            return false;
+        }
+
+        const s = String(value)
+            .replace(/[^\d+]/g, "");
+
+        return (
+            /^(\+84|84|0)\d{8,11}$/.test(s)
+        );
+
+    }
+
+
+    function normalizePhone(value) {
+
+        if (!value) {
+            return "";
+        }
+
+        let phone = String(value)
+            .replace(/[^\d+]/g, "");
+
+        if (
+            phone.startsWith("+84")
+        ) {
+            phone =
+                "0" +
+                phone.substring(3);
+        } else if (
+            phone.startsWith("84") &&
+            phone.length >= 10
+        ) {
+            phone =
+                "0" +
+                phone.substring(2);
+        }
+
+        return phone;
+
+    }
+
+
+    function findPostmanInObject(
+        root
+    ) {
+
+        const nameKeys = [
+            "Postman",
+            "PostmanName",
+            "POSTMAN",
+            "StaffName",
+            "Staff_Name",
+            "NguoiGiao",
+            "NGUOI_GIAO",
+            "TenBuuTa",
+            "TENBUUTA",
+            "TenBuuTaPhat",
+            "TENBUUTAPHAT",
+            "BuuTa",
+            "BUUTA",
+            "BuuTaName",
+            "BUUTANAME",
+            "DeliveryStaff",
+            "DeliveryStaffName",
+            "Shipper",
+            "ShipperName",
+            "Courier",
+            "CourierName",
+            "EmployeeName",
+            "EMPLOYEENAME"
+        ];
+
+        const phoneKeys = [
+            "SO_DT",
+            "SoDT",
+            "SODT",
+            "Phone",
+            "PHONE",
+            "PostmanPhone",
+            "POSTMANPHONE",
+            "SDT",
+            "SDTBUUTA",
+            "SdtBuuTa",
+            "SdtBuuTaPhat",
+            "PhoneNumber",
+            "PHONENUMBER",
+            "Mobile",
+            "MOBILE",
+            "MobilePhone",
+            "MOBILEPHONE"
+        ];
+
+
+        let name =
+            findValueRecursive(
+                root,
+                nameKeys
+            );
+
+        let phone =
+            findValueRecursive(
+                root,
+                phoneKeys
+            );
+
+
+        /*
+         * Nếu chưa có SĐT,
+         * quét các field có vẻ là phone.
+         */
+
+        if (!phone) {
+
+            const objects =
+                allObjects(root);
+
+            outer:
+
+            for (
+                const obj of objects
+            ) {
+
+                for (
+                    const key of Object.keys(obj)
+                ) {
+
+                    const normalized =
+                        normalizeKey(key);
+
+                    if (
+                        normalized.includes("phone") ||
+                        normalized.includes("sdt") ||
+                        normalized.includes("dienthoai")
+                    ) {
+
+                        const value =
+                            cleanValue(
+                                obj[key]
+                            );
+
+                        if (
+                            value &&
+                            looksLikePhone(value)
+                        ) {
+
+                            phone =
+                                normalizePhone(
+                                    value
+                                );
+
+                            break outer;
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        /*
+         * Nếu name vẫn chưa có,
+         * kiểm tra các key liên quan đến
+         * tên nhân viên/bưu tá.
+         */
+
+        if (!name) {
+
+            const objects =
+                allObjects(root);
+
+            outerName:
+
+            for (
+                const obj of objects
+            ) {
+
+                for (
+                    const key of Object.keys(obj)
+                ) {
+
+                    const normalized =
+                        normalizeKey(key);
+
+                    if (
+                        normalized.includes("buuta") ||
+                        normalized.includes("postman") ||
+                        normalized.includes("shipper") ||
+                        normalized.includes("courier") ||
+                        normalized.includes("deliverystaff")
+                    ) {
+
+                        const value =
+                            cleanValue(
+                                obj[key]
+                            );
+
+                        if (
+                            value &&
+                            !looksLikePhone(value)
+                        ) {
+
+                            name = value;
+
+                            break outerName;
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        /*
+         * Thử lấy từ chuỗi trạng thái.
+         *
+         * Không tự đoán tên.
+         */
+
+        const textList = [];
+
+        const objects =
+            allObjects(root);
+
+        objects.forEach(obj => {
+
+            const status =
+                getStatusText(obj);
+
+            if (status) {
+                textList.push(status);
+            }
+
+        });
+
+
+        for (
+            const text of textList
+        ) {
+
+            if (!phone) {
+
+                const phoneMatch =
+                    text.match(
+                        /(?:SDT|SĐT|ĐT|PHONE|TEL|ĐIỆN\s*THOẠI)\s*[:.\-]?\s*(0\d{8,10})/i
+                    );
+
+                if (phoneMatch) {
+
+                    phone =
+                        normalizePhone(
+                            phoneMatch[1]
+                        );
+
+                }
+
+            }
+
+        }
+
+
+        return {
+            name: name || "",
+            phone: phone || ""
+        };
+
+    }
+
+
+    /*
+     * TÌM BƯU TÁ TỪ TOÀN BỘ DELIVERY + LOCATE
+     *
+     * Quan trọng:
+     * Không lấy bừa người đầu tiên.
+     * Ưu tiên bản ghi mới nhất.
+     */
+
+    function getPostmanInfo(
+        deliveryItem,
+        latestLocateItem,
+        locateList
+    ) {
+
+        /*
+         * 1. Ưu tiên deliveryItem
+         */
+
+        let result =
+            findPostmanInObject(
+                deliveryItem || {}
+            );
+
+        if (
+            result.name ||
+            result.phone
+        ) {
+
+            return result;
+
+        }
+
+
+        /*
+         * 2. Bản ghi locate mới nhất
+         */
+
+        if (latestLocateItem) {
+
+            result =
+                findPostmanInObject(
+                    latestLocateItem
+                );
+
+            if (
+                result.name ||
+                result.phone
+            ) {
+
+                return result;
+
+            }
+
+        }
+
+
+        /*
+         * 3. Tìm từ các bản ghi locate,
+         * bắt đầu từ mới nhất.
+         */
+
+        if (
+            Array.isArray(locateList)
+        ) {
+
+            const reversed =
+                [...locateList].sort(
+                    (
+                        a,
+                        b
+                    ) =>
+                        parseDateTime(b) -
+                        parseDateTime(a)
+                );
+
+            for (
+                const item of reversed
+            ) {
+
+                result =
+                    findPostmanInObject(
+                        item
+                    );
+
+                if (
+                    result.name ||
+                    result.phone
+                ) {
+
+                    return result;
+
+                }
+
+            }
+
+        }
+
+
+        return {
+            name: "",
+            phone: ""
+        };
+
+    }
+
+
+    function renderPostman(
+        postman
+    ) {
+
+        if (!postman) {
+            return "-";
+        }
+
+        const name =
+            cleanValue(
+                postman.name
+            );
+
+        const phone =
+            cleanValue(
+                postman.phone
+            );
+
+        if (
+            name &&
+            phone
+        ) {
+
+            return `
+                <span class="postman-name">
+                    ${escapeHtml(name)}
+                </span>
+                <span class="postman-phone">
+                    ☎ ${escapeHtml(phone)}
+                </span>
+            `;
+
+        }
+
+        if (name) {
+
+            return `
+                <span class="postman-name">
+                    ${escapeHtml(name)}
+                </span>
+            `;
+
+        }
+
+        if (phone) {
+
+            return `
+                <span class="postman-phone">
+                    ☎ ${escapeHtml(phone)}
+                </span>
+            `;
+
+        }
+
+        return "-";
+
+    }
+
+
+    /* =========================================================
+       FIND LATEST DELIVERY EVENT
+    ========================================================= */
+
+    function getLatestDeliveryContext(
+        deliveryList,
+        locateList
+    ) {
+
+        const deliveryLatest =
+            getLatestItem(
+                deliveryList
+            );
+
+        const locateLatest =
+            getLatestItem(
+                locateList
+            );
+
+
+        const deliveryTime =
+            deliveryLatest
+                ? parseDateTime(
+                    deliveryLatest
+                )
+                : 0;
+
+        const locateTime =
+            locateLatest
+                ? parseDateTime(
+                    locateLatest
+                )
+                : 0;
+
+
+        /*
+         * Bản ghi nào có timestamp lớn hơn
+         * thì đó mới là bản ghi cuối cùng.
+         */
+
+        if (
+            locateLatest &&
+            locateTime >= deliveryTime
+        ) {
+
+            return {
+                item: locateLatest,
+                source: "locate",
+                timestamp: locateTime
+            };
+
+        }
+
+
+        if (deliveryLatest) {
+
+            return {
+                item: deliveryLatest,
+                source: "delivery",
+                timestamp: deliveryTime
+            };
+
+        }
+
+
+        if (locateLatest) {
+
+            return {
+                item: locateLatest,
+                source: "locate",
+                timestamp: locateTime
+            };
+
+        }
+
+
+        return {
+            item: null,
+            source: "",
+            timestamp: 0
+        };
+
+    }
+
+
+    /* =========================================================
+       GOOGLE MAP
+    ========================================================= */
 
     function getLatitude(item) {
 
@@ -1454,6 +2500,7 @@
             ],
             ""
         );
+
     }
 
 
@@ -1463,7 +2510,6 @@
             item,
             [
                 "Long",
-                "LONG",
                 "LNG",
                 "Lng",
                 "lng",
@@ -1473,570 +2519,23 @@
             ],
             ""
         );
+
     }
 
 
-    /* =========================================================
-       DATE/TIME PARSER
-       MỤC TIÊU:
-       - Không tin thứ tự API trả về.
-       - Tự tính timestamp.
-       ========================================================= */
-
-    function parseDateTime(item) {
-
-        const date = getDate(item);
-        const time = getTime(item);
-
-        if (!date && !time) {
-            return 0;
-        }
-
-        let d = null;
-
-        /*
-         * DD/MM/YYYY
-         */
-        let match = date.match(
-            /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/
-        );
-
-        if (match) {
-
-            const day = Number(match[1]);
-            const month = Number(match[2]) - 1;
-            const year = Number(match[3]);
-
-            let hour = 0;
-            let minute = 0;
-            let second = 0;
-
-            const tm = time.match(
-                /(\d{1,2}):(\d{2})(?::(\d{2}))?/
-            );
-
-            if (tm) {
-                hour = Number(tm[1]);
-                minute = Number(tm[2]);
-                second = Number(tm[3] || 0);
-            }
-
-            d = new Date(
-                year,
-                month,
-                day,
-                hour,
-                minute,
-                second
-            );
-
-            return d.getTime();
-        }
-
-
-        /*
-         * YYYY-MM-DD
-         */
-        match = date.match(
-            /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/
-        );
-
-        if (match) {
-
-            const year = Number(match[1]);
-            const month = Number(match[2]) - 1;
-            const day = Number(match[3]);
-
-            let hour = 0;
-            let minute = 0;
-            let second = 0;
-
-            const tm = time.match(
-                /(\d{1,2}):(\d{2})(?::(\d{2}))?/
-            );
-
-            if (tm) {
-                hour = Number(tm[1]);
-                minute = Number(tm[2]);
-                second = Number(tm[3] || 0);
-            }
-
-            d = new Date(
-                year,
-                month,
-                day,
-                hour,
-                minute,
-                second
-            );
-
-            return d.getTime();
-        }
-
-
-        /*
-         * Nếu API trả nguyên chuỗi datetime
-         */
-        const combined = [date, time]
-            .filter(Boolean)
-            .join(" ");
-
-        const parsed = Date.parse(combined);
-
-        if (!isNaN(parsed)) {
-            return parsed;
-        }
-
-        return 0;
-    }
-
-
-    /*
-     * Sắp xếp lịch trình theo thời gian:
-     * CŨ -> MỚI
-     */
-    function sortByDateTime(list) {
-
-        return [...list].sort(
-            (a, b) => {
-
-                const ta = parseDateTime(a);
-                const tb = parseDateTime(b);
-
-                if (ta && tb) {
-                    return ta - tb;
-                }
-
-                if (ta && !tb) {
-                    return -1;
-                }
-
-                if (!ta && tb) {
-                    return 1;
-                }
-
-                return 0;
-            }
-        );
-    }
-
-
-    /*
-     * Lấy bản ghi mới nhất theo thời gian.
-     */
-    function getLatestItem(list) {
-
-        if (
-            !Array.isArray(list) ||
-            list.length === 0
-        ) {
-            return null;
-        }
-
-        let latest = null;
-        let latestTime = -Infinity;
-
-        for (const item of list) {
-
-            const time = parseDateTime(item);
-
-            if (time > latestTime) {
-                latestTime = time;
-                latest = item;
-            }
-        }
-
-        /*
-         * Nếu không parse được thời gian,
-         * mới dùng phần tử cuối làm fallback.
-         */
-        if (!latest) {
-            latest = list[list.length - 1];
-        }
-
-        return latest;
-    }
-
-
-    /* =========================================================
-       PHONE
-       Không coi mã nhân viên 00545481 là số điện thoại.
-    ========================================================= */
-
-    function normalizePhone(value) {
-
-        const raw = cleanValue(value);
-
-        if (!raw) {
-            return "";
-        }
-
-        const digits = raw.replace(/[^\d+]/g, "");
-
-        /*
-         * Số điện thoại Việt Nam:
-         * 0xxxxxxxxx / 0xxxxxxxxxx
-         */
-        if (/^0\d{9,10}$/.test(digits)) {
-            return digits;
-        }
-
-        /*
-         * +84xxxxxxxxx
-         */
-        if (/^\+84\d{9,10}$/.test(digits)) {
-            return "0" + digits.substring(3);
-        }
-
-        /*
-         * 84xxxxxxxxx
-         */
-        if (/^84\d{9,10}$/.test(digits)) {
-            return "0" + digits.substring(2);
-        }
-
-        /*
-         * Không nhận mã nhân viên, mã bưu tá,
-         * chuỗi 8 chữ số...
-         */
-        return "";
-    }
-
-
-    /* =========================================================
-       POSTMAN
-       RẤT QUAN TRỌNG:
-       Không còn quét toàn bộ locate để lấy người giao.
-       Chỉ lấy từ deliveryItem.
-    ========================================================= */
-
-    function getPostmanInfo(deliveryItem) {
-
-        if (!deliveryItem) {
-            return "-";
-        }
-
-        /*
-         * Tên bưu tá
-         */
-        let name = firstValue(
-            deliveryItem,
-            [
-                "PostmanName",
-                "POSTMANNAME",
-                "Postman",
-                "POSTMAN",
-                "StaffName",
-                "STAFFNAME",
-                "BuuTaName",
-                "BUUTANAME",
-                "TenBuuTa",
-                "TENBUUTA",
-                "NguoiGiao",
-                "NGUOI_GIAO",
-                "EmployeeName",
-                "EMPLOYEENAME"
-            ],
-            ""
-        );
-
-
-        /*
-         * Một số API có object lồng bên trong
-         */
-        const nested =
-            deliveryItem.postman ||
-            deliveryItem.PostmanInfo ||
-            deliveryItem.BuuTa ||
-            deliveryItem.buuTa ||
-            deliveryItem.BUUTA ||
-            null;
-
-
-        if (
-            nested &&
-            typeof nested === "object"
-        ) {
-
-            if (!name) {
-
-                name = firstValue(
-                    nested,
-                    [
-                        "Name",
-                        "NAME",
-                        "FullName",
-                        "FULLNAME",
-                        "PostmanName",
-                        "POSTMANNAME",
-                        "StaffName",
-                        "STAFFNAME"
-                    ],
-                    ""
-                );
-            }
-        }
-
-
-        /*
-         * SĐT - chỉ chấp nhận số điện thoại hợp lệ.
-         */
-        let phoneCandidates = [
-            deliveryItem.Phone,
-            deliveryItem.PHONE,
-            deliveryItem.phone,
-            deliveryItem.PostmanPhone,
-            deliveryItem.POSTMANPHONE,
-            deliveryItem.SDT,
-            deliveryItem.SdtBuuTa,
-            deliveryItem.SO_DT,
-            deliveryItem.SoDT,
-            deliveryItem.Mobile,
-            deliveryItem.MOBILE
-        ];
-
-
-        if (
-            nested &&
-            typeof nested === "object"
-        ) {
-
-            phoneCandidates.push(
-                nested.Phone,
-                nested.PHONE,
-                nested.Mobile,
-                nested.MOBILE,
-                nested.PostmanPhone,
-                nested.POSTMANPHONE,
-                nested.SDT,
-                nested.SoDT
-            );
-        }
-
-
-        let phone = "";
-
-        for (const candidate of phoneCandidates) {
-
-            const normalized = normalizePhone(candidate);
-
-            if (normalized) {
-                phone = normalized;
-                break;
-            }
-        }
-
-
-        /*
-         * Không có dữ liệu thật thì không đoán.
-         */
-        if (name && phone) {
-            return `${name} (${phone})`;
-        }
-
-        if (name) {
-            return name;
-        }
-
-        if (phone) {
-            return phone;
-        }
-
-        return "-";
-    }
-
-
-    /* =========================================================
-       TÌM BẢN GHI LOCATE GẦN NHẤT VỚI DELIVERY
-       Không lấy bừa bản ghi cuối.
-    ========================================================= */
-
-    function findNearestLocate(
-        deliveryItem,
-        locateList
+    function makeGoogleMapsUrl(
+        item
     ) {
 
-        if (
-            !deliveryItem ||
-            !Array.isArray(locateList) ||
-            locateList.length === 0
-        ) {
-            return null;
-        }
+        const lat =
+            getLatitude(item);
 
-        const deliveryTime =
-            parseDateTime(deliveryItem);
-
-        if (!deliveryTime) {
-            return null;
-        }
-
-        let nearest = null;
-        let nearestDistance = Infinity;
-
-        for (const loc of locateList) {
-
-            const locTime = parseDateTime(loc);
-
-            if (!locTime) {
-                continue;
-            }
-
-            const distance =
-                Math.abs(locTime - deliveryTime);
-
-            if (distance < nearestDistance) {
-                nearestDistance = distance;
-                nearest = loc;
-            }
-        }
-
-        return nearest;
-    }
-
-
-    /* =========================================================
-       EXTRACT DELIVERY OFFICE
-    ========================================================= */
-
-    function extractDeliveryOffice(
-        deliveryItem,
-        locateList
-    ) {
-
-        /*
-         * 1. Ưu tiên trường chính thức trong delivery.
-         */
-        let code = getPostCode(deliveryItem);
-
-        let name = getPostName(deliveryItem);
-
-
-        /*
-         * 2. Nếu delivery không có,
-         * tìm locate gần nhất theo THỜI GIAN.
-         */
-        const nearest =
-            findNearestLocate(
-                deliveryItem,
-                locateList
-            );
-
-
-        if (nearest) {
-
-            if (!code) {
-                code = getPostCode(nearest);
-            }
-
-            if (!name) {
-                name = getPostName(nearest);
-            }
-        }
-
-
-        /*
-         * 3. Phân tích nội dung sự kiện.
-         *
-         * Ví dụ:
-         * Routed (823960: BCP Thuận An - Hồ Chí Minh)
-         *
-         * => 823960 - BCP Thuận An
-         */
-        const candidates = [];
-
-        if (deliveryItem) {
-            candidates.push(getStatusText(deliveryItem));
-        }
-
-        if (nearest) {
-            candidates.push(getStatusText(nearest));
-        }
-
-
-        for (const text of candidates) {
-
-            if (!text) {
-                continue;
-            }
-
-            /*
-             * Có mã + tên
-             */
-            let match = text.match(
-                /\((?:Mã bưu cục:\s*)?(\d+)\s*:\s*([^)]+)\)/i
-            );
-
-            if (match) {
-
-                if (!code) {
-                    code = match[1];
-                }
-
-                if (!name) {
-
-                    name = match[2]
-                        .trim()
-                        .split(/\s*-\s*/)[0]
-                        .trim();
-                }
-
-                break;
-            }
-
-
-            /*
-             * Chỉ có tên BCP
-             */
-            match = text.match(
-                /\((BCP\s+[^)]+)\)/i
-            );
-
-            if (match && !name) {
-
-                name = match[1]
-                    .trim()
-                    .split(/\s*-\s*/)[0]
-                    .trim();
-
-                break;
-            }
-        }
-
-
-        /*
-         * Không dùng VI_TRI làm tên bưu cục.
-         * VI_TRI chỉ là vị trí.
-         */
-
-        if (code && name) {
-            return `${code} - ${name}`;
-        }
-
-        if (code) {
-            return code;
-        }
-
-        if (name) {
-            return name;
-        }
-
-        return "-";
-    }
-
-
-    /* =========================================================
-       GOOGLE MAP
-    ========================================================= */
-
-    function makeGoogleMapsUrl(item) {
-
-        const lat = getLatitude(item);
-        const lng = getLongitude(item);
+        const lng =
+            getLongitude(item);
 
         if (
-            lat &&
-            lng
+            lat !== "" &&
+            lng !== ""
         ) {
 
             return (
@@ -2045,32 +2544,41 @@
                     lat + "," + lng
                 )
             );
+
         }
 
-
-        const address = getLocation(item);
+        const address =
+            getLocation(item);
 
         if (address) {
 
             return (
                 "https://www.google.com/maps/search/?api=1&query=" +
-                encodeURIComponent(address)
+                encodeURIComponent(
+                    address
+                )
             );
+
         }
 
-
         return "https://www.google.com/maps";
+
     }
 
 
-    function makeEmbedMapUrl(item) {
+    function makeEmbedMapUrl(
+        item
+    ) {
 
-        const lat = getLatitude(item);
-        const lng = getLongitude(item);
+        const lat =
+            getLatitude(item);
+
+        const lng =
+            getLongitude(item);
 
         if (
-            lat &&
-            lng
+            lat !== "" &&
+            lng !== ""
         ) {
 
             return (
@@ -2080,22 +2588,26 @@
                 ) +
                 "&output=embed"
             );
+
         }
 
-
-        const address = getLocation(item);
+        const address =
+            getLocation(item);
 
         if (address) {
 
             return (
                 "https://www.google.com/maps?q=" +
-                encodeURIComponent(address) +
+                encodeURIComponent(
+                    address
+                ) +
                 "&output=embed"
             );
+
         }
 
-
         return "";
+
     }
 
 
@@ -2106,35 +2618,42 @@
     async function loadCaptcha() {
 
         const img =
-            document.getElementById("captchaImg");
+            document.getElementById(
+                "captchaImg"
+            );
 
         img.src = "";
         img.alt = "Đang tải CAPTCHA...";
 
         try {
 
-            const res = await fetch(
-                "/api/proxy?action=get-captcha",
-                {
-                    method: "GET",
-                    cache: "no-store"
-                }
-            );
+            const res =
+                await fetch(
+                    "/api/proxy?action=get-captcha",
+                    {
+                        method: "GET",
+                        cache: "no-store"
+                    }
+                );
 
             if (!res.ok) {
+
                 throw new Error(
                     "HTTP " + res.status
                 );
+
             }
 
-            const data = await res.json();
+            const data =
+                await res.json();
 
             if (
                 data &&
                 data.captchaUrl
             ) {
 
-                img.src = data.captchaUrl;
+                img.src =
+                    data.captchaUrl;
 
                 currentCookie =
                     data.cookie ||
@@ -2146,6 +2665,7 @@
 
                 img.alt =
                     "Không tải được CAPTCHA";
+
             }
 
         } catch (error) {
@@ -2157,37 +2677,50 @@
 
             img.alt =
                 "Lỗi tải CAPTCHA";
+
         }
+
     }
 
 
     /* =========================================================
-       SUBMIT TRACKING
+       SUBMIT
     ========================================================= */
 
     async function submitTracking() {
 
         const code =
             document
-                .getElementById("trackingCode")
+                .getElementById(
+                    "trackingCode"
+                )
                 .value
                 .trim();
 
         const captcha =
             document
-                .getElementById("captchaText")
+                .getElementById(
+                    "captchaText"
+                )
                 .value
                 .trim();
 
         const btn =
-            document.getElementById("btnSubmit");
+            document.getElementById(
+                "btnSubmit"
+            );
 
         const errorBox =
-            document.getElementById("errorBox");
+            document.getElementById(
+                "errorBox"
+            );
 
 
-        errorBox.style.display = "none";
-        errorBox.textContent = "";
+        errorBox.style.display =
+            "none";
+
+        errorBox.textContent =
+            "";
 
 
         if (
@@ -2200,6 +2733,7 @@
             );
 
             return;
+
         }
 
 
@@ -2220,32 +2754,29 @@
 
         try {
 
-            const res = await fetch(
-                "/api/proxy?action=track",
-                {
-                    method: "POST",
+            const res =
+                await fetch(
+                    "/api/proxy?action=track",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify({
+                            trackingCode: code,
+                            captchaText: captcha,
+                            cookie: currentCookie
+                        }),
+                        signal:
+                            controller.signal
+                    }
+                );
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
 
-                    body: JSON.stringify({
-
-                        trackingCode: code,
-
-                        captchaText: captcha,
-
-                        cookie: currentCookie
-                    }),
-
-                    signal:
-                        controller.signal
-                }
+            clearTimeout(
+                timeoutId
             );
-
-
-            clearTimeout(timeoutId);
 
 
             if (!res.ok) {
@@ -2254,11 +2785,24 @@
                     "Máy chủ trả về HTTP " +
                     res.status
                 );
+
             }
 
 
             const data =
                 await res.json();
+
+
+            /*
+             * Debug để kiểm tra chính xác
+             * dữ liệu VNPost trả về.
+             *
+             * Có thể mở F12 > Console.
+             */
+            console.log(
+                "VNPOST RAW DATA:",
+                data
+            );
 
 
             if (
@@ -2270,8 +2814,8 @@
                 )
             ) {
 
-                currentData = data;
-
+                currentData =
+                    data;
 
                 currentTrackingCode =
                     firstValue(
@@ -2284,23 +2828,28 @@
                     );
 
 
-                renderWebResult(data);
+                renderWebResult(
+                    data
+                );
 
-                buildPrintDocument(data);
+                buildPrintDocument(
+                    data
+                );
 
 
                 document
                     .getElementById(
                         "result-wrapper"
                     )
-                    .style.display = "block";
-
+                    .style.display =
+                    "block";
 
                 document
                     .getElementById(
                         "actionBar"
                     )
-                    .style.display = "flex";
+                    .style.display =
+                    "flex";
 
 
                 setTimeout(
@@ -2335,13 +2884,11 @@
                     .value = "";
 
                 loadCaptcha();
+
             }
 
 
         } catch (error) {
-
-            clearTimeout(timeoutId);
-
 
             if (
                 error.name ===
@@ -2358,6 +2905,7 @@
                     "Lỗi tra cứu: " +
                     error.message
                 );
+
             }
 
 
@@ -2366,7 +2914,6 @@
                     "captchaText"
                 )
                 .value = "";
-
 
             loadCaptcha();
 
@@ -2377,100 +2924,82 @@
 
             btn.innerText =
                 "🔎 Tra cứu vận đơn";
+
         }
+
     }
 
 
-    /* =========================================================
-       ERROR
-    ========================================================= */
-
-    function showError(message) {
+    function showError(
+        message
+    ) {
 
         const box =
             document.getElementById(
                 "errorBox"
             );
 
-        box.textContent = message;
-        box.style.display = "block";
+        box.textContent =
+            message;
+
+        box.style.display =
+            "block";
+
     }
 
 
     /* =========================================================
-       RENDER WEB RESULT
+       RENDER WEB
     ========================================================= */
 
-    function renderWebResult(data) {
+    function renderWebResult(
+        data
+    ) {
 
         const info =
             data.info || {};
 
         const locate =
-            Array.isArray(data.locate)
+            Array.isArray(
+                data.locate
+            )
                 ? data.locate
                 : [];
 
-        /*
-         * QUAN TRỌNG:
-         * Không dùng thứ tự API.
-         * Sắp xếp lại theo thời gian thực.
-         */
-        const sortedLocate =
-            sortByDateTime(locate);
-
-
         const delivery =
-            Array.isArray(data.delivery)
+            Array.isArray(
+                data.delivery
+            )
                 ? data.delivery
                 : [];
 
 
         /*
-         * Bản ghi mới nhất thực sự.
+         * SẮP XẾP LỊCH TRÌNH THEO THỜI GIAN TĂNG DẦN.
+         *
+         * Đây là phần rất quan trọng.
          */
-        const latestLocate =
-            getLatestItem(sortedLocate);
+
+        const sortedLocate =
+            [...locate].sort(
+                (a, b) =>
+                    parseDateTime(a) -
+                    parseDateTime(b)
+            );
 
 
         /*
-         * Bản ghi phát mới nhất thực sự.
+         * Lấy bản ghi cuối cùng thực sự.
          */
-        const latestDelivery =
-            getLatestItem(delivery);
 
+        const context =
+            getLatestDeliveryContext(
+                delivery,
+                sortedLocate
+            );
 
-        /*
-         * Trạng thái cuối:
-         * Ưu tiên locate mới nhất.
-         */
-        let statusText = "";
-
-
-        if (latestLocate) {
-            statusText =
-                getStatusText(
-                    latestLocate
-                );
-        }
-
-
-        if (
-            !statusText &&
-            latestDelivery
-        ) {
-
-            statusText =
-                getStatusText(
-                    latestDelivery
-                );
-        }
-
-
-        if (!statusText) {
-            statusText =
-                "ĐANG VẬN CHUYỂN";
-        }
+        const latestItem =
+            context.item;
 
 
         const trackingId =
@@ -2496,9 +3025,25 @@
             );
 
 
-        /* =====================================================
-           SUMMARY
-        ===================================================== */
+        /*
+         * TRẠNG THÁI CUỐI CÙNG
+         */
+
+        let statusText =
+            latestItem
+                ? getStatusText(
+                    latestItem
+                )
+                : "";
+
+
+        if (!statusText) {
+
+            statusText =
+                "ĐANG VẬN CHUYỂN";
+
+        }
+
 
         document
             .getElementById(
@@ -2547,12 +3092,13 @@
                     </div>
 
                 </div>
+
             `;
 
 
         /* =====================================================
            ROUTE
-        ===================================================== */
+        ====================================================== */
 
         const nuocNhan =
             firstValue(
@@ -2616,7 +3162,6 @@
                         <span class="route-label">
                             Nước chấp nhận:
                         </span>
-
                         ${escapeHtml(nuocNhan)}
 
                         <br>
@@ -2624,7 +3169,6 @@
                         <span class="route-label">
                             Bưu cục nhận:
                         </span>
-
                         ${escapeHtml(bcNhan)}
 
                     </div>
@@ -2635,7 +3179,6 @@
                         <span class="route-label">
                             Nước phát:
                         </span>
-
                         ${escapeHtml(nuocPhat)}
 
                         <br>
@@ -2643,18 +3186,18 @@
                         <span class="route-label">
                             Bưu cục phát:
                         </span>
-
                         ${escapeHtml(bcPhat)}
 
                     </div>
 
                 </div>
+
             `;
 
 
         /* =====================================================
            HISTORY
-        ===================================================== */
+        ====================================================== */
 
         let historyHtml = "";
 
@@ -2679,14 +3222,11 @@
 
 
                 /*
-                 * Bây giờ index cuối chỉ là kết quả
-                 * của sortByDateTime().
-                 *
-                 * Nếu dữ liệu có timestamp hợp lệ,
-                 * đây chính là thời gian mới nhất.
+                 * Bản ghi cuối cùng theo thời gian.
                  */
+
                 const latest =
-                    latestLocate === item;
+                    latestItem === item;
 
 
                 historyHtml += `
@@ -2695,7 +3235,9 @@
                         class="tracking-item ${latest ? "latest" : ""}"
                     >
 
-                        <span class="tracking-dot"></span>
+                        <span
+                            class="tracking-dot"
+                        ></span>
 
 
                         <div class="tracking-time">
@@ -2715,9 +3257,11 @@
                         <div class="tracking-content">
 
                             <span class="tracking-content-main">
+
                                 ${escapeHtml(
                                     status || "-"
                                 )}
+
                             </span>
 
 
@@ -2754,13 +3298,15 @@
                             type="button"
                             class="location-button"
                             title="Xem vị trí bưu cục"
-                            onclick="showLocation(${index})"
+                            onclick="showLocation(${locate.indexOf(item)})"
                         >
                             ➤
                         </button>
 
                     </div>
+
                 `;
+
             }
         );
 
@@ -2768,6 +3314,7 @@
         if (!historyHtml) {
 
             historyHtml = `
+
                 <div
                     style="
                         padding:20px;
@@ -2778,7 +3325,9 @@
                 >
                     Không có dữ liệu lịch trình.
                 </div>
+
             `;
+
         }
 
 
@@ -2787,29 +3336,30 @@
                 "trackingList"
             )
             .innerHTML =
-                historyHtml;
+            historyHtml;
 
 
         /*
-         * Lưu sortedLocate vào currentData
-         * để showLocation dùng đúng index.
+         * THÔNG TIN PHÁT
          */
-        currentData._sortedLocate =
-            sortedLocate;
-
 
         renderDelivery(
             delivery,
-            sortedLocate
+            sortedLocate,
+            latestItem
         );
 
+
+        /*
+         * MAP RESET
+         */
 
         document
             .getElementById(
                 "mapSection"
             )
-            .style.display = "none";
-
+            .style.display =
+            "none";
 
         document
             .getElementById(
@@ -2817,23 +3367,23 @@
             )
             .src = "";
 
-
         document
             .getElementById(
                 "mapOpenLink"
             )
             .href = "#";
+
     }
 
 
     /* =========================================================
-       DELIVERY
-       Chỉ hiển thị bản ghi phát mới nhất.
+       RENDER DELIVERY
     ========================================================= */
 
     function renderDelivery(
         deliveryList,
-        locateList
+        locateList,
+        latestItem
     ) {
 
         const body =
@@ -2842,10 +3392,53 @@
             );
 
 
+        /*
+         * Nếu delivery có dữ liệu:
+         * tìm bản ghi mới nhất của delivery.
+         */
+
+        const deliveryLatest =
+            getLatestItem(
+                deliveryList
+            );
+
+
+        /*
+         * Nếu locate mới hơn delivery,
+         * dùng locate làm thời gian/chi tiết cuối.
+         */
+
+        let sourceItem =
+            deliveryLatest;
+
+        let deliveryTimestamp =
+            deliveryLatest
+                ? parseDateTime(
+                    deliveryLatest
+                )
+                : 0;
+
+        let latestTimestamp =
+            latestItem
+                ? parseDateTime(
+                    latestItem
+                )
+                : 0;
+
+
         if (
-            !Array.isArray(deliveryList) ||
-            deliveryList.length === 0
+            latestItem &&
+            latestTimestamp >
+            deliveryTimestamp
         ) {
+
+            sourceItem =
+                latestItem;
+
+        }
+
+
+        if (!sourceItem) {
 
             body.innerHTML = `
                 <tr>
@@ -2857,63 +3450,56 @@
             `;
 
             return;
+
         }
 
 
         /*
-         * Sắp xếp delivery theo thời gian.
+         * BƯU CỤC:
+         * ưu tiên đúng bưu cục của event cuối.
          */
-        const sortedDelivery =
-            sortByDateTime(
-                deliveryList
-            );
-
-
-        /*
-         * Lấy lần phát mới nhất.
-         */
-        const latestDelivery =
-            getLatestItem(
-                sortedDelivery
-            );
-
-
-        /*
-         * Chỉ hiển thị bản ghi mới nhất.
-         *
-         * Điều này tránh việc lấy bưu tá,
-         * bưu cục của một lần phát cũ.
-         */
-        const item =
-            latestDelivery;
-
-
-        const date =
-            getDate(item);
-
-        const time =
-            getTime(item);
-
 
         const office =
             extractDeliveryOffice(
-                item,
+                deliveryLatest || {},
+                latestItem,
                 locateList
             );
 
 
+        /*
+         * BƯU TÁ:
+         * KHÔNG lấy từ một bản ghi bất kỳ.
+         */
+
         const postman =
-            getPostmanInfo(item);
+            getPostmanInfo(
+                deliveryLatest || {},
+                latestItem,
+                locateList
+            );
 
 
-        const detail =
-            getStatusText(item);
-
+        /*
+         * THỜI GIAN:
+         * lấy thời gian chính xác nhất của event cuối.
+         */
 
         const fullDateTime =
-            [date, time]
-                .filter(Boolean)
-                .join(" ");
+            formatDateTime(
+                sourceItem
+            );
+
+
+        /*
+         * CHI TIẾT:
+         * lấy chính event cuối.
+         */
+
+        const detail =
+            getStatusText(
+                sourceItem
+            );
 
 
         body.innerHTML = `
@@ -2935,7 +3521,7 @@
 
 
                 <td>
-                    ${escapeHtml(
+                    ${renderPostman(
                         postman
                     )}
                 </td>
@@ -2948,7 +3534,9 @@
                 </td>
 
             </tr>
+
         `;
+
     }
 
 
@@ -2956,12 +3544,14 @@
        LOCATION
     ========================================================= */
 
-    function showLocation(index) {
+    function showLocation(
+        index
+    ) {
 
         if (
             !currentData ||
             !Array.isArray(
-                currentData._sortedLocate
+                currentData.locate
             )
         ) {
             return;
@@ -2969,7 +3559,7 @@
 
 
         const item =
-            currentData._sortedLocate[index];
+            currentData.locate[index];
 
 
         if (!item) {
@@ -2988,10 +3578,14 @@
 
 
         const mapUrl =
-            makeGoogleMapsUrl(item);
+            makeGoogleMapsUrl(
+                item
+            );
 
         const embedUrl =
-            makeEmbedMapUrl(item);
+            makeEmbedMapUrl(
+                item
+            );
 
 
         const titleParts = [];
@@ -3008,6 +3602,7 @@
                 "Mã bưu cục: " +
                 postcode
             );
+
         }
 
 
@@ -3021,15 +3616,18 @@
                 "mapTitle"
             )
             .textContent =
-                titleParts.join(" • ") ||
-                "Vị trí bưu cục";
+            titleParts.join(
+                " • "
+            ) ||
+            "Vị trí bưu cục";
 
 
         document
             .getElementById(
                 "mapOpenLink"
             )
-            .href = mapUrl;
+            .href =
+            mapUrl;
 
 
         const frame =
@@ -3046,7 +3644,8 @@
             .getElementById(
                 "mapSection"
             )
-            .style.display = "block";
+            .style.display =
+            "block";
 
 
         setTimeout(
@@ -3066,6 +3665,7 @@
             },
             100
         );
+
     }
 
 
@@ -3073,45 +3673,49 @@
        PRINT DOCUMENT
     ========================================================= */
 
-    function buildPrintDocument(data) {
+    function buildPrintDocument(
+        data
+    ) {
 
         const info =
             data.info || {};
 
-
         const locate =
-            Array.isArray(data.locate)
+            Array.isArray(
+                data.locate
+            )
                 ? data.locate
                 : [];
 
-
         const delivery =
-            Array.isArray(data.delivery)
+            Array.isArray(
+                data.delivery
+            )
                 ? data.delivery
                 : [];
 
 
         /*
-         * Luôn sort lại.
+         * SORT CHÍNH XÁC THEO THỜI GIAN
          */
+
         const sortedLocate =
-            sortByDateTime(locate);
+            [...locate].sort(
+                (a, b) =>
+                    parseDateTime(a) -
+                    parseDateTime(b)
+            );
 
 
-        const sortedDelivery =
-            sortByDateTime(delivery);
-
-
-        const latestLocate =
-            getLatestItem(
+        const context =
+            getLatestDeliveryContext(
+                delivery,
                 sortedLocate
             );
 
 
-        const latestDelivery =
-            getLatestItem(
-                sortedDelivery
-            );
+        const latestItem =
+            context.item;
 
 
         const trackingId =
@@ -3137,32 +3741,15 @@
             );
 
 
-        let statusText = "";
-
-
-        if (latestLocate) {
-
-            statusText =
-                getStatusText(
-                    latestLocate
-                );
-        }
-
-
-        if (
-            !statusText &&
-            latestDelivery
-        ) {
-
-            statusText =
-                getStatusText(
-                    latestDelivery
-                );
-        }
+        let statusText =
+            latestItem
+                ? getStatusText(
+                    latestItem
+                )
+                : "";
 
 
         if (!statusText) {
-
             statusText =
                 "ĐANG VẬN CHUYỂN";
         }
@@ -3225,8 +3812,8 @@
 
 
         /* =====================================================
-           HISTORY PRINT
-        ===================================================== */
+           HISTORY
+        ====================================================== */
 
         let historyHtml = "";
 
@@ -3251,17 +3838,13 @@
 
 
                 const latest =
-                    item === latestLocate;
+                    latestItem === item;
 
 
                 historyHtml += `
 
                     <div
-                        class="a4-history-item ${
-                            latest
-                                ? "latest"
-                                : ""
-                        }"
+                        class="a4-history-item ${latest ? "latest" : ""}"
                     >
 
                         <div class="a4-time">
@@ -3294,9 +3877,7 @@
                                     ? `
                                         <span class="a4-event-postcode">
                                             Mã bưu cục:
-                                            ${escapeHtml(
-                                                postcode
-                                            )}
+                                            ${escapeHtml(postcode)}
                                         </span>
                                       `
                                     : ""
@@ -3307,9 +3888,7 @@
                                 location
                                     ? `
                                         <span class="a4-location">
-                                            ${escapeHtml(
-                                                location
-                                            )}
+                                            ${escapeHtml(location)}
                                         </span>
                                       `
                                     : ""
@@ -3318,47 +3897,67 @@
                         </div>
 
                     </div>
+
                 `;
+
             }
         );
 
 
         /* =====================================================
-           DELIVERY PRINT
-        ===================================================== */
+           DELIVERY TABLE
+        ====================================================== */
+
+        const deliveryLatest =
+            getLatestItem(
+                delivery
+            );
+
+
+        const sourceItem =
+            latestItem &&
+            parseDateTime(latestItem) >=
+            (
+                deliveryLatest
+                    ? parseDateTime(
+                        deliveryLatest
+                    )
+                    : 0
+            )
+                ? latestItem
+                : deliveryLatest;
+
 
         let deliveryHtml = "";
 
 
-        if (latestDelivery) {
-
-            const date =
-                getDate(
-                    latestDelivery
-                );
-
-            const time =
-                getTime(
-                    latestDelivery
-                );
-
+        if (sourceItem) {
 
             const office =
                 extractDeliveryOffice(
-                    latestDelivery,
+                    deliveryLatest || {},
+                    latestItem,
                     sortedLocate
                 );
 
 
             const postman =
                 getPostmanInfo(
-                    latestDelivery
+                    deliveryLatest || {},
+                    latestItem,
+                    sortedLocate
+                );
+
+
+            const fullDateTime =
+                formatDateTime(
+                    sourceItem
                 );
 
 
             const detail =
                 getStatusText(
-                    latestDelivery
+                    sourceItem
                 );
 
 
@@ -3368,12 +3967,9 @@
 
                     <td>
                         ${escapeHtml(
-                            [date, time]
-                                .filter(Boolean)
-                                .join(" ") || "-"
+                            fullDateTime || "-"
                         )}
                     </td>
-
 
                     <td>
                         ${escapeHtml(
@@ -3381,13 +3977,11 @@
                         )}
                     </td>
 
-
                     <td>
-                        ${escapeHtml(
+                        ${renderPostman(
                             postman
                         )}
                     </td>
-
 
                     <td>
                         ${escapeHtml(
@@ -3396,24 +3990,28 @@
                     </td>
 
                 </tr>
+
             `;
 
         } else {
 
             deliveryHtml = `
+
                 <tr>
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
                 </tr>
+
             `;
+
         }
 
 
         /* =====================================================
            PRINT HTML
-        ===================================================== */
+        ====================================================== */
 
         document
             .getElementById(
@@ -3441,9 +4039,7 @@
                         <div class="a4-meta">
 
                             Ngày in:
-                            ${escapeHtml(
-                                printDate
-                            )}
+                            ${escapeHtml(printDate)}
 
                             <br>
 
@@ -3464,9 +4060,7 @@
                         </div>
 
                         <div class="a4-tracking">
-                            ${escapeHtml(
-                                trackingId
-                            )}
+                            ${escapeHtml(trackingId)}
                         </div>
 
                     </div>
@@ -3480,7 +4074,6 @@
                                 Thông tin tổng quan
                             </div>
 
-
                             <div class="a4-line">
 
                                 <span class="a4-label">
@@ -3488,9 +4081,7 @@
                                 </span>
 
                                 <span class="a4-value">
-                                    ${escapeHtml(
-                                        trackingId
-                                    )}
+                                    ${escapeHtml(trackingId)}
                                 </span>
 
                             </div>
@@ -3503,9 +4094,7 @@
                                 </span>
 
                                 <span class="a4-value">
-                                    ${escapeHtml(
-                                        weight
-                                    )} g
+                                    ${escapeHtml(weight)} g
                                 </span>
 
                             </div>
@@ -3518,9 +4107,7 @@
                                 </span>
 
                                 <span class="a4-status">
-                                    ${escapeHtml(
-                                        statusText
-                                    )}
+                                    ${escapeHtml(statusText)}
                                 </span>
 
                             </div>
@@ -3534,7 +4121,6 @@
                                 Tuyến vận chuyển
                             </div>
 
-
                             <div class="a4-line">
 
                                 <span class="a4-label">
@@ -3542,9 +4128,7 @@
                                 </span>
 
                                 <span class="a4-value">
-                                    ${escapeHtml(
-                                        bcNhan
-                                    )}
+                                    ${escapeHtml(bcNhan)}
                                 </span>
 
                             </div>
@@ -3557,9 +4141,7 @@
                                 </span>
 
                                 <span class="a4-value">
-                                    ${escapeHtml(
-                                        bcPhat
-                                    )}
+                                    ${escapeHtml(bcPhat)}
                                 </span>
 
                             </div>
@@ -3572,13 +4154,9 @@
                                 </span>
 
                                 <span class="a4-value">
-                                    ${escapeHtml(
-                                        nuocNhan
-                                    )}
+                                    ${escapeHtml(nuocNhan)}
                                     →
-                                    ${escapeHtml(
-                                        nuocPhat
-                                    )}
+                                    ${escapeHtml(nuocPhat)}
                                 </span>
 
                             </div>
@@ -3635,19 +4213,21 @@
 
                     <div class="a4-footer">
 
-                        Dữ liệu được truy xuất trực tiếp
-                        từ hệ thống VNPost qua cổng kết nối
-                        InVanDon247 • Phiếu được tạo tự động
+                        Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost
+                        qua cổng kết nối InVanDon247
+                        • Phiếu được tạo tự động
 
                     </div>
 
                 </div>
+
             `;
+
     }
 
 
     /* =========================================================
-       PRINT A4
+       PRINT
     ========================================================= */
 
     function printA4() {
@@ -3659,6 +4239,7 @@
             );
 
             return;
+
         }
 
 
@@ -3673,11 +4254,12 @@
             },
             100
         );
+
     }
 
 
     /* =========================================================
-       DOWNLOAD PDF
+       PDF
     ========================================================= */
 
     async function downloadPDF() {
@@ -3689,6 +4271,7 @@
             );
 
             return;
+
         }
 
 
@@ -3702,6 +4285,7 @@
             );
 
             return;
+
         }
 
 
@@ -3723,6 +4307,7 @@
             );
 
             return;
+
         }
 
 
@@ -3754,42 +4339,33 @@
             },
 
             html2canvas: {
-
                 scale: 1.5,
-
                 useCORS: true,
-
                 backgroundColor:
                     "#ffffff",
-
                 logging: false
             },
 
             jsPDF: {
-
                 unit: "mm",
-
                 format: "a4",
-
                 orientation:
                     "portrait",
-
                 compress: true
             },
 
             pagebreak: {
-
                 mode: [
                     "css",
                     "legacy"
                 ],
-
                 avoid: [
                     ".a4-history-item",
                     ".a4-box",
                     ".a4-delivery-table"
                 ]
             }
+
         };
 
 
@@ -3808,6 +4384,7 @@
 
                 pdfButton.innerText =
                     "⏳ Đang tạo PDF...";
+
             }
 
 
@@ -3824,7 +4401,6 @@
                 error
             );
 
-
             alert(
                 "Không thể tạo PDF: " +
                 error.message
@@ -3840,13 +4416,16 @@
 
                 pdfButton.innerText =
                     "📥 Tải xuống PDF";
+
             }
+
         }
+
     }
 
 
     /* =========================================================
-       ENTER KEY
+       ENTER
     ========================================================= */
 
     document
@@ -3863,7 +4442,9 @@
                 ) {
 
                     submitTracking();
+
                 }
+
             }
         );
 
@@ -3886,7 +4467,9 @@
                             "captchaText"
                         )
                         .focus();
+
                 }
+
             }
         );
 
@@ -3898,7 +4481,9 @@
     window.addEventListener(
         "load",
         function() {
+
             loadCaptcha();
+
         }
     );
 

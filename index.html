@@ -14,18 +14,11 @@
     --green:#148a4b;
     --bg:#f3f5f7;
     --text:#3f464d;
-    --muted:#7b838c;
     --line:#dfe4e8;
 }
 
-*{
-    box-sizing:border-box;
-}
-
-html{
-    scroll-behavior:smooth;
-}
-
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
 body{
     margin:0;
     font-family:Arial,"Segoe UI",sans-serif;
@@ -36,7 +29,6 @@ body{
 /* =========================
    HEADER
 ========================= */
-
 .topbar{
     height:68px;
     background:#fff;
@@ -59,13 +51,13 @@ body{
 }
 
 .brand-logo{
-    height:42px;
     display:flex;
+    flex-direction:column;
     align-items:center;
 }
 
 .brand-logo svg{
-    height:38px;
+    height:32px;
     width:auto;
     display:block;
 }
@@ -82,34 +74,18 @@ body{
     margin-top:2px;
 }
 
-.nav{
-    display:flex;
-    gap:25px;
-    font-size:12px;
-}
-
-.nav a{
-    color:#444;
-    text-decoration:none;
-}
-
-.nav a:hover{
-    color:var(--blue);
-}
+.nav{ display:flex; gap:25px; font-size:12px; }
+.nav a{ color:#444; text-decoration:none; }
+.nav a:hover{ color:var(--blue); }
 
 /* =========================
-   PAGE
+   PAGE & SEARCH
 ========================= */
-
 .page{
     max-width:1100px;
     margin:22px auto 50px;
     padding:0 14px;
 }
-
-/* =========================
-   SEARCH
-========================= */
 
 .search-card{
     background:#fff;
@@ -157,22 +133,10 @@ body{
     outline:none;
 }
 
-.field input:focus{
-    border-color:var(--blue);
-}
+.field input:focus{ border-color:var(--blue); }
 
-/* =========================
-   CAPTCHA
-========================= */
-
-.captcha-line{
-    display:flex;
-    gap:6px;
-}
-
-.captcha-line input{
-    flex:1;
-}
+.captcha-line{ display:flex; gap:6px; }
+.captcha-line input{ flex:1; }
 
 .captcha-slot{
     width:100px;
@@ -182,8 +146,6 @@ body{
     align-items:center;
     justify-content:center;
     background:transparent;
-    border:0;
-    overflow:hidden;
 }
 
 .captcha-img{
@@ -196,9 +158,7 @@ body{
     display:none;
 }
 
-.captcha-img.loaded{
-    display:block;
-}
+.captcha-img.loaded{ display:block; }
 
 .reload{
     border:0;
@@ -209,15 +169,6 @@ body{
     font-size:12px;
     white-space:nowrap;
 }
-
-.reload:disabled{
-    opacity:.6;
-    cursor:wait;
-}
-
-/* =========================
-   BUTTON
-========================= */
 
 .submit{
     width:100%;
@@ -231,15 +182,6 @@ body{
     cursor:pointer;
 }
 
-.submit:disabled{
-    opacity:.6;
-    cursor:wait;
-}
-
-/* =========================
-   MESSAGE
-========================= */
-
 .msg{
     margin-top:10px;
     padding:9px 12px;
@@ -247,29 +189,13 @@ body{
     font-size:12px;
     display:none;
 }
-
-.msg.error{
-    display:block;
-    background:#fff0f1;
-    color:#b4232e;
-}
-
-.msg.ok{
-    display:block;
-    background:#eefaf3;
-    color:#137441;
-}
-
-.msg.wait{
-    display:block;
-    background:#f3f8fc;
-    color:#25638b;
-}
+.msg.error{ display:block; background:#fff0f1; color:#b4232e; }
+.msg.ok{ display:block; background:#eefaf3; color:#137441; }
+.msg.wait{ display:block; background:#f3f8fc; color:#25638b; }
 
 /* =========================
-   ACTION BUTTONS
+   RESULT & ACTION BUTTONS
 ========================= */
-
 .result-head{
     display:none;
     justify-content:flex-end;
@@ -286,18 +212,8 @@ body{
     font-size:12px;
     cursor:pointer;
 }
-
-.print-btn{
-    background:#148a4b;
-}
-
-.pdf-btn{
-    background:#0767b1;
-}
-
-/* =========================
-   RESULT CARD & LAYOUT
-========================= */
+.print-btn{ background:#148a4b; }
+.pdf-btn{ background:#0767b1; }
 
 .result-card{
     background:#fff;
@@ -320,25 +236,10 @@ body{
     border:1px solid #e9ecef;
 }
 
-.summary-item{
-    display:flex;
-    align-items:center;
-    gap:8px;
-}
-
-.summary-icon{
-    font-size:16px;
-    color:#0d3f6d;
-}
-
-.summary-item b{
-    color:#0d3f6d;
-}
-
-.summary-item .status{
-    color:var(--green);
-    font-weight:700;
-}
+.summary-item{ display:flex; align-items:center; gap:8px; }
+.summary-icon{ font-size:16px; color:#0d3f6d; }
+.summary-item b{ color:#0d3f6d; }
+.summary-item .status{ color:var(--green); font-weight:700; }
 
 .route-grid{
     display:grid;
@@ -348,35 +249,20 @@ body{
     font-size:12px;
     border-bottom:1px dashed #e2e8f0;
 }
-
-.route-grid div{
-    padding:2px 0;
-}
-
-.route-grid b{
-    display:inline-block;
-    min-width:110px;
-    color:#555;
-}
+.route-grid b{ display:inline-block; min-width:110px; color:#555; }
 
 /* =========================
    TIMELINE
 ========================= */
-
 .section-title{
     font-size:12px;
     font-weight:700;
     color:var(--blue);
     margin:16px 0 12px;
     text-transform:uppercase;
-    letter-spacing:0.3px;
 }
 
-.timeline{
-    position:relative;
-    margin:0 4px 16px;
-}
-
+.timeline{ position:relative; margin:0 4px 16px; }
 .timeline:before{
     content:"";
     position:absolute;
@@ -409,42 +295,12 @@ body{
     z-index:2;
 }
 
-.event.latest .event-dot{
-    background:#0b9a55;
-    box-shadow:0 0 0 1px #0b9a55;
-}
-
-.event-time{
-    padding-left:24px;
-    font-size:11.5px;
-    color:#666;
-    font-weight:600;
-}
-
-.event-status{
-    font-size:12px;
-    line-height:1.4;
-    color:#2d3748;
-}
-
-.event-status b{
-    display:block;
-    color:#64748b;
-    font-size:11px;
-    font-weight:500;
-    margin-top:2px;
-}
-
-.event.latest .event-status{
-    color:#078443;
-    font-weight:700;
-}
-
-.event-location{
-    font-size:11.5px;
-    color:#5d646b;
-    line-height:1.35;
-}
+.event.latest .event-dot{ background:#0b9a55; box-shadow:0 0 0 1px #0b9a55; }
+.event-time{ padding-left:24px; font-size:11.5px; color:#666; font-weight:600; }
+.event-status{ font-size:12px; line-height:1.4; color:#2d3748; }
+.event-status b{ display:block; color:#64748b; font-size:11px; font-weight:500; margin-top:2px; }
+.event.latest .event-status{ color:#078443; font-weight:700; }
+.event-location{ font-size:11.5px; color:#5d646b; line-height:1.35; }
 
 .map-btn{
     width:28px;
@@ -458,24 +314,13 @@ body{
     display:flex;
     align-items:center;
     justify-content:center;
-    transition:all .2s ease;
 }
-
-.map-btn:hover{
-    background:#eff6ff;
-    border-color:#2563eb;
-}
+.map-btn:hover{ background:#eff6ff; border-color:#2563eb; }
 
 /* =========================
    THÔNG TIN PHÁT
 ========================= */
-
-.delivery{
-    margin-top:16px;
-    border-top:1px dashed #e2e8f0;
-    padding-top:8px;
-}
-
+.delivery{ margin-top:16px; border-top:1px dashed #e2e8f0; padding-top:8px; }
 .delivery table{
     width:100%;
     border-collapse:collapse;
@@ -483,7 +328,6 @@ body{
     table-layout:fixed;
     margin-top:6px;
 }
-
 .delivery th{
     background:#edf2f7;
     text-align:left;
@@ -492,23 +336,11 @@ body{
     font-weight:700;
     border:1px solid #cbd5e1;
 }
-
-.delivery td{
-    border:1px solid #cbd5e1;
-    padding:8px 10px;
-    vertical-align:top;
-    line-height:1.4;
-}
-
-.delivery th:nth-child(1), .delivery td:nth-child(1){ width:18%; }
-.delivery th:nth-child(2), .delivery td:nth-child(2){ width:25%; }
-.delivery th:nth-child(3), .delivery td:nth-child(3){ width:25%; }
-.delivery th:nth-child(4), .delivery td:nth-child(4){ width:32%; }
+.delivery td{ border:1px solid #cbd5e1; padding:8px 10px; vertical-align:top; line-height:1.4; }
 
 /* =========================
-   MAP (BẢN ĐỒ Ở DƯỚI CÙNG)
+   MAP (BẢN ĐỒ DƯỚI CÙNG)
 ========================= */
-
 .map-panel{
     display:none;
     margin:20px 0 8px;
@@ -517,11 +349,7 @@ body{
     overflow:hidden;
     box-shadow:0 2px 10px rgba(0,0,0,.04);
 }
-
-.map-panel.show{
-    display:block;
-}
-
+.map-panel.show{ display:block; }
 .map-toolbar{
     height:38px;
     background:#f1f5f9;
@@ -532,27 +360,9 @@ body{
     font-size:11.5px;
     border-bottom:1px solid #e2e8f0;
 }
-
-.map-toolbar b{
-    color:#1e293b;
-}
-
-.map-toolbar a{
-    color:#2563eb;
-    text-decoration:none;
-    font-weight:600;
-}
-
-.map-toolbar a:hover{
-    text-decoration:underline;
-}
-
-.map-frame{
-    width:100%;
-    height:320px;
-    border:0;
-    display:block;
-}
+.map-toolbar b{ color:#1e293b; }
+.map-toolbar a{ color:#2563eb; text-decoration:none; font-weight:600; }
+.map-frame{ width:100%; height:320px; border:0; display:block; }
 
 .screen-footer{
     text-align:center;
@@ -562,10 +372,6 @@ body{
     color:#9aa1a8;
     font-size:10px;
 }
-
-/* =========================
-   PRINT AREA & MOBILE
-========================= */
 
 #print-area{ display:none; }
 
@@ -584,56 +390,122 @@ body{
     .delivery table{ min-width:620px; }
 }
 
+/* =========================================================
+   STYLE IN A4 (CHUẨN FORM MẪU CŨ)
+========================================================= */
 @page{ size:A4 portrait; margin:8mm; }
 
 .print-page{
-    width:194mm;
-    min-height:281mm;
+    width:192mm;
+    min-height:277mm;
     position:relative;
     page-break-after:always;
-    padding:0;
+    padding:2px;
+    font-family:Arial, sans-serif;
+    color:#000;
 }
 .print-page:last-child{ page-break-after:auto; }
 
-.print-header{
+.p-header{
     display:flex;
     justify-content:space-between;
-    align-items:flex-start;
-    border-bottom:2px solid var(--blue);
-    padding-bottom:5px;
-    margin-bottom:7px;
+    align-items:center;
+    margin-bottom:12px;
 }
-.print-logo{ width:62px; height:42px; display:flex; align-items:center; }
-.print-logo svg{ width:58px; height:40px; }
-.print-brand{ font-size:13px; color:var(--blue); font-weight:700; }
-.print-brand small{ display:block; font-size:7px; color:#777; font-weight:400; }
-.print-meta{ text-align:right; font-size:7px; color:#777; line-height:1.5; }
-.print-title{ text-align:center; border:1px solid #cfd5db; padding:5px; margin-bottom:7px; }
-.print-title b{ font-size:11px; }
-.print-code{ font-size:12px; font-weight:700; color:#a66c00; margin-top:1px; }
-.print-summary{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:7px; }
-.pbox{ border:1px solid #cdd3d8; padding:5px; }
-.pbox h4{ font-size:7.5px; color:var(--blue); margin:0 0 4px; border-bottom:1px dashed #ddd; padding-bottom:2px; }
-.prow{ font-size:7.2px; line-height:1.45; }
-.prow span{ color:#777; display:inline-block; width:70px; }
-.prow b{ color:#30353a; }
-.print-history-title{ font-size:8px; font-weight:700; color:#333; border-left:3px solid var(--blue); padding-left:4px; margin:4px 0; }
-.print-columns{ column-count:2; column-gap:7mm; column-rule:1px solid #ddd; }
-.p-event{ break-inside:avoid; page-break-inside:avoid; border-bottom:1px dashed #ddd; padding:0 0 4px; margin:0 0 4px; font-size:7.1px; line-height:1.25; }
-.p-time{ font-weight:700; color:#555; }
-.p-event.latest .p-time, .p-event.latest .p-status{ color:#087d42; }
-.p-status{ margin-top:1px; }
-.p-meta, .p-address{ color:#555; }
-.print-delivery{ margin-top:7px; }
-.print-delivery h4{ font-size:8px; margin:0 0 3px; }
-.print-delivery table{ width:100%; border-collapse:collapse; font-size:7px; table-layout:fixed; }
-.print-delivery th{ background:#edf1f5; text-align:left; padding:3px; }
-.print-delivery td{ border:1px solid #d8dde2; padding:3px; vertical-align:top; }
-.print-delivery th:nth-child(1), .print-delivery td:nth-child(1){ width:18%; }
-.print-delivery th:nth-child(2), .print-delivery td:nth-child(2){ width:25%; }
-.print-delivery th:nth-child(3), .print-delivery td:nth-child(3){ width:24%; }
-.print-delivery th:nth-child(4), .print-delivery td:nth-child(4){ width:33%; }
-.print-footer{ position:absolute; left:0; right:0; bottom:0; border-top:1px solid #ddd; padding-top:3px; text-align:center; font-size:6.5px; color:#999; }
+
+.p-logo-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+}
+.p-logo-svg{ width:80px; height:auto; }
+.p-logo-text{ font-size:8px; font-weight:bold; color:#003b7a; letter-spacing:1px; margin-top:2px; }
+
+.p-main-title{
+    font-size:15px;
+    font-weight:800;
+    color:#0a4b88;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+
+.p-box{
+    border:1px solid #111;
+    margin-bottom:10px;
+    background:#fff;
+}
+
+.p-box-title{
+    font-size:10px;
+    font-weight:700;
+    color:#0a4b88;
+    text-transform:uppercase;
+    padding:4px 6px;
+    border-bottom:1px solid #111;
+    background:#fff;
+}
+
+.p-grid-info{
+    display:grid;
+    grid-template-columns:1.2fr 1fr;
+    gap:4px 10px;
+    padding:6px;
+    font-size:9px;
+    line-height:1.4;
+}
+
+.p-grid-info div b{ color:#000; }
+.p-grid-info .status-success{ color:#078443; font-weight:700; }
+
+.p-columns{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0 12px;
+    padding:6px;
+}
+
+.p-event-item{
+    margin-bottom:6px;
+    font-size:8px;
+    line-height:1.3;
+}
+
+.p-event-time{
+    font-weight:700;
+    color:#d9534f;
+    display:flex;
+    align-items:center;
+    gap:3px;
+}
+
+.p-event-time::before{
+    content:"🕒";
+    font-size:8px;
+}
+
+.p-event-desc{
+    color:#111;
+    margin-top:1px;
+}
+
+.p-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:8.5px;
+}
+
+.p-table th{
+    border-bottom:1px solid #111;
+    padding:4px 6px;
+    text-align:left;
+    font-weight:700;
+}
+
+.p-table td{
+    padding:5px 6px;
+    border-bottom:1px solid #eee;
+    vertical-align:top;
+}
 
 @media print{
     body{ background:#fff; }
@@ -647,13 +519,11 @@ body{
 
 <header class="topbar no-print">
     <div class="brand">
-        <!-- LOGO VNPOST CHUẨN ĐÚNG BẢN GỐC -->
-        <div class="brand-logo" aria-label="Vietnam Post">
-            <svg viewBox="0 0 120 90" role="img" aria-label="Vietnam Post">
-                <path d="M13 39 L45 16 L63 28 L63 50 L46 64 L25 64 Z" fill="#f6a000"/>
-                <path d="M27 39 L48 54 L63 43 L63 50 L46 64 L25 64 Z" fill="#f6a000"/>
-                <path d="M63 31 H108 L101 38 H63 Z M60 43 H101 L94 50 H60 Z M57 55 H94 L87 62 H57 Z" fill="#f6a000"/>
-                <path d="M27 39 L45 52 L58 43 L58 37 L47 44 L37 37 Z" fill="#fff"/>
+        <div class="brand-logo">
+            <svg viewBox="0 0 120 70">
+                <path d="M10 32 L42 12 L60 22 L60 42 L43 54 L22 54 Z" fill="#f6a000"/>
+                <path d="M24 32 L45 45 L60 36 L60 42 L43 54 L22 54 Z" fill="#e59100"/>
+                <path d="M58 25 H105 L98 31 H58 Z M55 35 H98 L91 41 H55 Z M52 45 H91 L84 51 H52 Z" fill="#f6a000"/>
             </svg>
         </div>
         <div>
@@ -735,7 +605,7 @@ function getOffice(item){
     const text = String(item?.StatusText || item?.STATUSTEXT || '');
     const m = text.match(/\((\d{4,7})\s*:\s*([^)]*)\)/);
     if(m){
-        return { code:m[1], name:m[2].trim(), full:m[1]+' - '+m[2].trim() };
+        return { code:m[1], name:m[2].trim(), full:m[1]+': '+m[2].trim() };
     }
     const code = item?.POSCode ?? item?.POSCODE ?? item?.ToPOSCode ?? '';
     return { code:String(code || '-'), name:'', full:String(code || '-') };
@@ -922,9 +792,8 @@ async function submitTracking(){
 }
 
 /* =========================================================
-   RENDER MÀN HÌNH (GIAO DIỆN XEM TRỰC TIẾP)
+   RENDER MÀN HÌNH (GIAO DIỆN WEB TRỰC TIẾP)
 ========================================================= */
-
 function renderScreen(data){
     const info = data.info || {};
     const locate = data.locate || [];
@@ -983,16 +852,15 @@ function renderScreen(data){
         }).join('')}
     </div>
 
-    <!-- THÔNG TIN PHÁT -->
     <div class="delivery">
         <div class="section-title" style="margin-top:0">THÔNG TIN PHÁT</div>
         <table>
             <thead>
                 <tr>
-                    <th>Ngày</th>
-                    <th>Bưu cục</th>
-                    <th>Bưu tá</th>
-                    <th>Chi tiết</th>
+                    <th style="width:20%">Ngày</th>
+                    <th style="width:30%">Bưu cục</th>
+                    <th style="width:20%">Bưu tá</th>
+                    <th style="width:30%">Chi tiết</th>
                 </tr>
             </thead>
             <tbody>
@@ -1014,7 +882,6 @@ function renderScreen(data){
         </table>
     </div>
 
-    <!-- BẢN ĐỒ NẰM Ở DƯỚI CÙNG HẾT -->
     <div id="map-panel" class="map-panel">
         <div class="map-toolbar">
             <b id="map-title">Vị trí bưu cục</b>
@@ -1031,10 +898,6 @@ function renderScreen(data){
     document.getElementById('screen-result').innerHTML = html;
 }
 
-/* =========================================================
-   MỞ BẢN ĐỒ (HIỆN NẰM Ở DƯỚI CÙNG VÀ CUỘN XUỐNG)
-========================================================= */
-
 function openMap(address, title, coords){
     const panel = document.getElementById('map-panel');
     panel.classList.add('show');
@@ -1049,14 +912,19 @@ function openMap(address, title, coords){
     panel.scrollIntoView({ behavior:'smooth', block:'center' });
 }
 
+/* =========================================================
+   RENDER PRINT A4 (ĐÚNG THEO MẪU CŨ TRONG HÌNH)
+========================================================= */
 function vnpostLogoSvg(){
     return `
-    <svg viewBox="0 0 120 90" role="img" aria-label="Vietnam Post">
-        <path d="M13 39 L45 16 L63 28 L63 50 L46 64 L25 64 Z" fill="#f6a000"/>
-        <path d="M27 39 L48 54 L63 43 L63 50 L46 64 L25 64 Z" fill="#f6a000"/>
-        <path d="M63 31 H108 L101 38 H63 Z M60 43 H101 L94 50 H60 Z M57 55 H94 L87 62 H57 Z" fill="#f6a000"/>
-        <path d="M27 39 L45 52 L58 43 L58 37 L47 44 L37 37 Z" fill="#fff"/>
-    </svg>
+    <div class="p-logo-wrap">
+        <svg class="p-logo-svg" viewBox="0 0 120 60">
+            <path d="M10 28 L42 8 L60 18 L60 38 L43 50 L22 50 Z" fill="#f6a000"/>
+            <path d="M24 28 L45 41 L60 32 L60 38 L43 50 L22 50 Z" fill="#e59100"/>
+            <path d="M58 21 H105 L98 27 H58 Z M55 31 H98 L91 37 H55 Z M52 41 H91 L84 47 H52 Z" fill="#f6a000"/>
+        </svg>
+        <span class="p-logo-text">VIETNAM POST</span>
+    </div>
     `;
 }
 
@@ -1064,106 +932,76 @@ function renderPrint(data){
     const info = data.info || {};
     const locate = data.locate || [];
     const delivery = data.delivery || [];
-    const perPage = 24;
-    const pages = [];
 
-    for(let i = 0; i < locate.length; i += perPage){
-        pages.push(locate.slice(i, i + perPage));
-    }
-    if(!pages.length) pages.push([]);
+    const html = `
+    <div class="print-page">
+        <div class="p-header">
+            ${vnpostLogoSvg()}
+            <div class="p-main-title">THÔNG TIN VẬN ĐƠN</div>
+        </div>
 
-    document.getElementById('print-area').innerHTML = pages.map((chunk,p) => {
-        const start = p * perPage;
-        return `
-        <div class="print-page">
-            <div class="print-header">
-                <div style="display:flex; gap:8px; align-items:flex-start">
-                    <div class="print-logo">${vnpostLogoSvg()}</div>
-                    <div class="print-brand">
-                        InVanDon247
-                        <small>Hệ thống chuyển đổi & in phiếu bưu gửi A4 tự động</small>
-                    </div>
-                </div>
-                <div class="print-meta">
-                    Ngày in: ${esc(new Date().toLocaleString('vi-VN'))}<br>
-                    Đơn vị: <b>VNPOST (Bưu điện Việt Nam)</b>
-                </div>
-            </div>
-
-            ${p === 0 ? `
-            <div class="print-title">
-                <b>XÁC NHẬN HÀNH TRÌNH BƯU GỬI</b>
-                <div class="print-code">${esc(info.ID)}</div>
-            </div>
-
-            <div class="print-summary">
-                <div class="pbox">
-                    <h4>THÔNG TIN TỔNG QUAN</h4>
-                    <div class="prow"><span>Mã bưu gửi:</span> <b>${esc(info.ID)}</b></div>
-                    <div class="prow"><span>Khối lượng:</span> <b>${esc(info.Weight || 0)} gram</b></div>
-                    <div class="prow"><span>Trạng thái:</span> <b>${esc(latestStatus(data))}</b></div>
-                </div>
-                <div class="pbox">
-                    <h4>TUYẾN VẬN CHUYỂN</h4>
-                    <div class="prow"><span>Bưu cục gửi:</span> <b>${esc(info.BC_GUI || '-')}</b></div>
-                    <div class="prow"><span>Bưu cục phát:</span> <b>${esc(info.BC_PHAT || '-')}</b></div>
-                    <div class="prow"><span>Nước gửi/nhận:</span> <b>${esc(info.Nuoc_Chapnhan || 'VN')} → ${esc(info.Nuoc_Phat || 'VN')}</b></div>
-                    <div class="prow"><span>BC hiện tại:</span> <b>${esc(locate.length ? getOffice(locate[locate.length - 1]).full : '-')}</b></div>
-                </div>
-            </div>
-            ` : ''}
-
-            <div class="print-history-title">
-                CHI TIẾT LỊCH SỬ HÀNH TRÌNH (${locate.length} CÔNG ĐOẠN)
-            </div>
-
-            <div class="print-columns">
-                ${chunk.map((item,j) => `
-                <div class="p-event ${start + j === locate.length - 1 ? 'latest' : ''}">
-                    <div class="p-time">${esc((item.Date || '') + ' ' + (item.TimeDetail || ''))}</div>
-                    <div class="p-status">${esc(cleanStatus(item.StatusText))}</div>
-                    <div class="p-meta">Bưu cục: <b>${esc(getOffice(item).full)}</b></div>
-                    <div class="p-address">${esc(getAddress(item))}</div>
-                </div>
-                `).join('')}
-            </div>
-
-            ${p === pages.length - 1 ? `
-            <div class="print-delivery">
-                <h4>THÔNG TIN PHÁT</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Ngày</th>
-                            <th>Bưu cục</th>
-                            <th>Bưu tá</th>
-                            <th>Chi tiết</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${delivery.map(d => {
-                            const o = getOfficeForDelivery(data, d);
-                            const pi = getDeliveryPerson({ delivery:[d] });
-                            return `
-                            <tr>
-                                <td>${esc(getDeliveryTime(d))}</td>
-                                <td>${esc(o.full)}</td>
-                                <td>${esc(pi.name)}${pi.phone !== '-' ? ' - ' + esc(pi.phone) : ''}</td>
-                                <td>${esc(d.STATUSTEXT || d.StatusText || '-')}</td>
-                            </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>
-            ` : ''}
-
-            <div class="print-footer">
-                Dữ liệu được truy xuất từ hệ thống VNPost qua cổng kết nối InVanDon247 • Trang ${p + 1}/${pages.length}
+        <!-- CHI TIẾT BƯU GỬI -->
+        <div class="p-box">
+            <div class="p-box-title">CHI TIẾT BƯU GỬI</div>
+            <div class="p-grid-info">
+                <div><b>Mã vận đơn:</b> <b style="font-size:10px">${esc(info.ID)}</b></div>
+                <div><b>Khối lượng:</b> ${esc(info.Weight || 0)} gram</div>
+                <div><b>Bưu cục nhận:</b> ${esc(info.BC_GUI || '-')}</div>
+                <div><b>Trạng thái:</b> <span class="status-success">${esc(latestStatus(data))}</span></div>
+                <div><b>Bưu cục phát:</b> ${esc(info.BC_PHAT || '-')}</div>
             </div>
         </div>
-        `;
-    }).join('');
+
+        <!-- LỊCH SỬ HÀNH TRÌNH -->
+        <div class="p-box">
+            <div class="p-box-title">LỊCH SỬ HÀNH TRÌNH (${locate.length} SỰ KIỆN)</div>
+            <div class="p-columns">
+                ${locate.map(item => {
+                    const address = getAddress(item);
+                    const office = getOffice(item);
+                    return `
+                    <div class="p-event-item">
+                        <div class="p-event-time">${esc((item.Date || '') + ' ' + (item.TimeDetail || ''))}</div>
+                        <div class="p-event-desc">
+                            ${esc(cleanStatus(item.StatusText))} (${esc(office.full)}) ${address !== '-' ? esc(address) : ''}
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+
+        <!-- THÔNG TIN PHÁT -->
+        <div class="p-box">
+            <div class="p-box-title">THÔNG TIN PHÁT</div>
+            <table class="p-table">
+                <thead>
+                    <tr>
+                        <th style="width:25%">Ngày</th>
+                        <th style="width:35%">Bưu cục</th>
+                        <th style="width:40%">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${delivery.length ? delivery.map(d => {
+                        const o = getOfficeForDelivery(data, d);
+                        return `
+                        <tr>
+                            <td>${esc(getDeliveryTime(d))}</td>
+                            <td>${esc(o.full)}</td>
+                            <td>${esc(d.STATUSTEXT || d.StatusText || '-')}</td>
+                        </tr>
+                        `;
+                    }).join('') : `
+                    <tr><td colspan="3" style="text-align:center; padding:8px;">Chưa có thông tin phát</td></tr>
+                    `}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    `;
+
+    document.getElementById('print-area').innerHTML = html;
 }
 
 function printA4(){
@@ -1183,10 +1021,9 @@ async function downloadPDF(){
         const opt = {
             margin:0,
             filename: `VanDon_VNPost_${currentTrackingCode || '247'}.pdf`,
-            image:{ type:'jpeg', quality:.78 },
-            html2canvas:{ scale:1.25, useCORS:true, backgroundColor:'#fff', logging:false },
-            jsPDF:{ unit:'mm', format:'a4', orientation:'portrait' },
-            pagebreak:{ mode:['css','legacy'], avoid:['.p-event'] }
+            image:{ type:'jpeg', quality:.98 },
+            html2canvas:{ scale:2, useCORS:true, backgroundColor:'#fff', logging:false },
+            jsPDF:{ unit:'mm', format:'a4', orientation:'portrait' }
         };
 
         await html2pdf().set(opt).from(el).save();

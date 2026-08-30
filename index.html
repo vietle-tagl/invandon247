@@ -24,17 +24,12 @@
 
         body {
             margin: 0;
-            font-family:
-                "Segoe UI",
-                Arial,
-                Helvetica,
-                sans-serif;
+            font-family: "Segoe UI", Arial, Helvetica, sans-serif;
             background: #f3f5f7;
             color: #333;
         }
 
-        button,
-        input {
+        button, input {
             font-family: inherit;
         }
 
@@ -372,7 +367,7 @@
 
         .tracking-box {
             position: relative;
-            padding: 0 0 0 0;
+            padding: 0;
             overflow: hidden;
         }
 
@@ -628,7 +623,7 @@
         }
 
         /* =========================================================
-           PRINT AREA - KHÔNG HIỂN THỊ TRÊN WEB
+           PRINT AREA
         ========================================================= */
 
         #print-root {
@@ -1073,7 +1068,7 @@
         function firstValue(obj, fields, fallback = "") {
             if (!obj) return fallback;
             for (const field of fields) {
-                if (obj[field] !== undefined && obj[field] !== null && String(obj[field]).trim() !== "") {
+                if (obj[field] !== undefined && obj[field] !== null && String(obj[field]).trim() !== "" && String(obj[field]).trim() !== "[]") {
                     return obj[field];
                 }
             }
@@ -1081,31 +1076,29 @@
         }
 
         function getDate(item) {
-            return firstValue(item, ["Date", "DATE", "date", "Ngay", "NGAY", "DeliveryDate", "DELIVERYDATE"], "");
+            return firstValue(item, ["DATE", "Date", "date", "Ngay", "NGAY", "DeliveryDate", "DELIVERYDATE"], "");
         }
 
         function getTime(item) {
-            return firstValue(item, ["TimeDetail", "TIMEDETAIL", "Time", "TIME", "time", "Gio", "GIO"], "");
+            return firstValue(item, ["TIMEDETAIL", "TimeDetail", "Time", "TIME", "time", "Gio", "GIO"], "");
         }
 
-        /* ĐÃ BỔ SUNG KEY BƯU CỤC PHÁT TỪ VNPOST */
         function getPostCode(item) {
             return firstValue(item, [
-                "BuuCuc", "buuCuc", "BUUCUC",
-                "POSCode", "POSCODE", "PosCode", "posCode",
-                "PostOfficeCode", "POSTOFFICECODE", "MaBuuCuc", "MABUUCUC"
+                "ToPOSCode", "POSCode", "POSCODE", "PosCode", "posCode", 
+                "BuuCuc", "buuCuc", "BUUCUC", "PostOfficeCode", "POSTOFFICECODE", "MaBuuCuc", "MABUUCUC"
             ], "");
         }
 
         function getPostName(item) {
             return firstValue(item, [
-                "POSName", "POSNAME", "PosName", "PostOfficeName", "POSTOFFICENAME", "BCName", "BC_NAME"
+                "VI_TRI", "VI_TRI_TEXT", "POSName", "POSNAME", "PosName", "PostOfficeName", "POSTOFFICENAME", "BCName", "BC_NAME"
             ], "");
         }
 
         function getStatusText(item) {
             return firstValue(item, [
-                "StatusText", "STATUSTEXT", "statusText", "STATUS_TEXT", "Detail", "DETAIL", "NoiDung", "NOIDUNG"
+                "STATUSTEXT", "StatusText", "statusText", "STATUS_TEXT", "Detail", "DETAIL", "NoiDung", "NOIDUNG"
             ], "");
         }
 
@@ -1116,17 +1109,47 @@
         }
 
         function getLatitude(item) {
-            return firstValue(item, ["LAT", "Lat", "lat", "Latitude", "LATITUDE", "latitude"], "");
+            return firstValue(item, ["Lat", "LAT", "lat", "Latitude", "LATITUDE", "latitude"], "");
         }
 
         function getLongitude(item) {
-            return firstValue(item, ["LNG", "Lng", "lng", "Longitude", "LONGITUDE", "longitude"], "");
+            return firstValue(item, ["Long", "LNG", "Lng", "lng", "Longitude", "LONGITUDE", "longitude"], "");
+        }
+
+        /* HÀM TRÍCH XUẤT THÔNG TIN BƯU CỤC PHÁT CHUẨN XÁC THEO DỮ LIỆU VNPOST */
+        function extractDeliveryOffice(deliveryItem, locateList) {
+            let office = getPostName(deliveryItem);
+            let postcode = getPostCode(deliveryItem);
+
+            if (!office || office === "-") {
+                office = postcode;
+            }
+
+            // Nếu phần delivery bị trống hoàn toàn, truy vết từ dòng lịch sử mới nhất
+            if ((!office || office === "-") && Array.isArray(locateList) && locateList.length > 0) {
+                const lastLocate = locateList[locateList.length - 1];
+                const locateCode = getPostCode(lastLocate);
+                const locateStatus = getStatusText(lastLocate);
+
+                if (locateCode) {
+                    office = locateCode;
+                }
+                
+                if ((!office || office === "-") && locateStatus) {
+                    const match = locateStatus.match(/\(([^)]+)\)/);
+                    if (match && match[1]) {
+                        office = match[1];
+                    }
+                }
+            }
+
+            return office || "-";
         }
 
         function makeGoogleMapsUrl(item) {
             const lat = getLatitude(item);
             const lng = getLongitude(item);
-            if (lat !== "" && lng !== "") {
+            if (lat !== "" && lng !== "" && lat !== "[]" && lng !== "[]") {
                 return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(lat + "," + lng);
             }
             const address = getLocation(item);
@@ -1139,7 +1162,7 @@
         function makeEmbedMapUrl(item) {
             const lat = getLatitude(item);
             const lng = getLongitude(item);
-            if (lat !== "" && lng !== "") {
+            if (lat !== "" && lng !== "" && lat !== "[]" && lng !== "[]") {
                 return "https://www.google.com/maps?q=" + encodeURIComponent(lat + "," + lng) + "&output=embed";
             }
             const address = getLocation(item);
@@ -1170,7 +1193,6 @@
             }
         }
 
-        /* ĐÃ TỐI ƯU TIMEOUT VÀ FINALLY CHỐNG TREO NÚT */
         async function submitTracking() {
             const code = document.getElementById("trackingCode").value.trim();
             const captcha = document.getElementById("captchaText").value.trim();
@@ -1189,7 +1211,7 @@
             btn.innerText = "⏳ Đang tra cứu...";
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s Timeout
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
 
             try {
                 const res = await fetch("/api/proxy?action=track", {
@@ -1334,15 +1356,14 @@
 
             document.getElementById("trackingList").innerHTML = historyHtml;
 
-            renderDelivery(delivery);
+            renderDelivery(delivery, sortedLocate);
 
             document.getElementById("mapSection").style.display = "none";
             document.getElementById("mapFrame").src = "";
             document.getElementById("mapOpenLink").href = "#";
         }
 
-        /* ĐÃ CHỈNH SỬA HIỂN THỊ CHUẨN MÃ BƯU CỤC PHÁT */
-        function renderDelivery(deliveryList) {
+        function renderDelivery(deliveryList, locateList) {
             const body = document.getElementById("deliveryBody");
 
             if (!Array.isArray(deliveryList) || deliveryList.length === 0) {
@@ -1353,17 +1374,7 @@
             body.innerHTML = deliveryList.map(item => {
                 const date = getDate(item);
                 const time = getTime(item);
-                
-                const postcode = getPostCode(item);
-                const postName = getPostName(item);
-                const buuCucDirect = firstValue(item, ["BuuCuc", "buuCuc", "BUUCUC"], "");
-
-                let office = buuCucDirect || postcode || "-";
-
-                if (postName && postName !== office && !office.includes(postName)) {
-                    office += " - " + postName;
-                }
-
+                const office = extractDeliveryOffice(item, locateList);
                 const detail = getStatusText(item);
                 const fullDateTime = [date, time].filter(Boolean).join(" ");
 
@@ -1447,21 +1458,12 @@
                 `;
             });
 
-            /* CẬP NHẬT HIỂN THỊ BƯU CỤC PHÁT CHO TRANG IN A4 & PDF */
             let deliveryHtml = "";
             if (delivery.length > 0) {
                 deliveryHtml = delivery.map(item => {
                     const date = getDate(item);
                     const time = getTime(item);
-                    const postcode = getPostCode(item);
-                    const postName = getPostName(item);
-                    const buuCucDirect = firstValue(item, ["BuuCuc", "buuCuc", "BUUCUC"], "");
-
-                    let office = buuCucDirect || postcode || "-";
-                    if (postName && postName !== office && !office.includes(postName)) {
-                        office += " - " + postName;
-                    }
-
+                    const office = extractDeliveryOffice(item, locate);
                     const detail = getStatusText(item);
 
                     return `

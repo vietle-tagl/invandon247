@@ -1108,59 +1108,69 @@
             ], "");
         }
 
-        function getPostmanInfo(item) {
-            const name = firstValue(item, ["Postman", "PostmanName", "POSTMAN", "StaffName", "NguoiGiao", "NGUOI_GIAO"], "");
-            const phone = firstValue(item, ["SO_DT", "SoDT", "Phone", "PHONE", "PostmanPhone"], "");
-            
+        /* HÀM LẤY THÔNG TIN BƯU TÁ (TÊN + SĐT) TỪ CẢ DELIVERY VÀ LOCATE */
+        function getPostmanInfo(deliveryItem, locateList) {
+            let name = firstValue(deliveryItem, ["Postman", "PostmanName", "POSTMAN", "StaffName", "NguoiGiao", "NGUOI_GIAO", "TenBuuTa"], "");
+            let phone = firstValue(deliveryItem, ["SO_DT", "SoDT", "Phone", "PHONE", "PostmanPhone", "SDT", "SdtBuuTa"], "");
+
+            // Nếu trong delivery không có, tìm trong danh sách lịch trình (locate) ở công đoạn giao bưu tá
+            if ((!name || !phone) && Array.isArray(locateList)) {
+                for (let i = locateList.length - 1; i >= 0; i--) {
+                    const loc = locateList[i];
+                    const text = getStatusText(loc) || "";
+                    if (!name) name = firstValue(loc, ["Postman", "PostmanName", "StaffName", "NguoiGiao"], "");
+                    if (!phone) phone = firstValue(loc, ["SO_DT", "SoDT", "Phone", "PostmanPhone", "SDT"], "");
+
+                    // Thử trích xuất từ chuỗi thông báo nếu có định dạng "giao bưu tá ... - SĐT: ..."
+                    if (!phone && text.includes("SDT") || text.includes("SĐT") || text.includes("ĐIỆN THOẠI")) {
+                        const phoneMatch = text.match(/(?:SDT|SĐT|ĐT|Phone|Tel)?\s*[:.-]?\s*(0\d{9,10})/i);
+                        if (phoneMatch) phone = phoneMatch[1];
+                    }
+                }
+            }
+
             if (name && phone) return `${name} (${phone})`;
             if (name) return name;
             if (phone) return phone;
             return "-";
         }
 
-        function getLatitude(item) {
-            return firstValue(item, ["Lat", "LAT", "lat", "Latitude", "LATITUDE", "latitude"], "");
-        }
-
-        function getLongitude(item) {
-            return firstValue(item, ["Long", "LNG", "Lng", "lng", "Longitude", "LONGITUDE", "longitude"], "");
-        }
-
-        /* HÀM TRÍCH XUẤT BƯU CỤC PHÁT ƯU TIÊN MÃ BƯU CỤC HOẶC TÊN BƯU CỤC TRONG LOCATE */
+        /* HÀM XÁC ĐỊNH MÃ & TÊN BƯU CỤC PHÁT (ƯU TIÊN DẠNG MÃ - TÊN BCP) */
         function extractDeliveryOffice(deliveryItem, locateList) {
             let code = getPostCode(deliveryItem);
-            let name = getPostName(deliveryItem);
+            let bcpName = "";
 
-            // Tìm trong locateList dòng tương ứng với mã bưu cục phát để lấy tên đầy đủ
-            if (code && Array.isArray(locateList)) {
-                const matchedLocate = locateList.slice().reverse().find(loc => getPostCode(loc) === code);
-                if (matchedLocate) {
-                    const matchedName = getPostName(matchedLocate);
-                    if (matchedName) {
-                        return `${code} - ${matchedName}`;
+            // Quét danh sách lịch trình từ dưới lên để tìm đúng Tên Bưu Cục Phát (BCP)
+            if (Array.isArray(locateList)) {
+                for (let i = locateList.length - 1; i >= 0; i--) {
+                    const loc = locateList[i];
+                    const text = getStatusText(loc) || "";
+                    const locCode = getPostCode(loc);
+
+                    if (!code && locCode) code = locCode;
+
+                    // Quét các chuỗi có chứa tên BCP trong dấu ngoặc ngoặc tròn ví dụ (593280: BCP Hoài Nhơn - Gia Lai)
+                    const match = text.match(/\((?:Mã bưu cục:\s*)?(\d+)?\s*:?\s*([^)]+)\)/);
+                    if (match) {
+                        if (!code && match[1]) code = match[1];
+                        let fullName = match[2].trim();
+                        // Tách bớt phần tỉnh/thành phía sau nếu dài, lấy tên BCP chính
+                        bcpName = fullName.split("-")[0].trim();
+                        break;
                     }
                 }
             }
 
-            if (code && name && name !== "-") {
-                return `${code} - ${name}`;
-            }
-            if (code) {
-                return code;
-            }
-            if (name && name !== "-") {
-                return name;
+            // Nếu có cả mã và tên BCP
+            if (code && bcpName) {
+                return `${code} - ${bcpName}`;
             }
 
-            // Nếu không có, tra lịch sử dòng mới nhất
-            if (Array.isArray(locateList) && locateList.length > 0) {
-                const lastLocate = locateList[locateList.length - 1];
-                const lastCode = getPostCode(lastLocate);
-                const lastName = getPostName(lastLocate);
-                if (lastCode && lastName) return `${lastCode} - ${lastName}`;
-                if (lastCode) return lastCode;
-                if (lastName) return lastName;
-            }
+            // Fallback lấy theo thông tin bưu cục tiêu chuẩn
+            let name = getPostName(deliveryItem);
+            if (code && name && name !== "-") return `${code} - ${name}`;
+            if (code) return code;
+            if (name && name !== "-") return name;
 
             return "-";
         }
@@ -1189,6 +1199,14 @@
                 return "https://www.google.com/maps?q=" + encodeURIComponent(address) + "&output=embed";
             }
             return "";
+        }
+
+        function getLatitude(item) {
+            return firstValue(item, ["Lat", "LAT", "lat", "Latitude", "LATITUDE", "latitude"], "");
+        }
+
+        function getLongitude(item) {
+            return firstValue(item, ["Long", "LNG", "Lng", "lng", "Longitude", "LONGITUDE", "longitude"], "");
         }
 
         async function loadCaptcha() {
@@ -1394,7 +1412,7 @@
                 const date = getDate(item);
                 const time = getTime(item);
                 const office = extractDeliveryOffice(item, locateList);
-                const postman = getPostmanInfo(item);
+                const postman = getPostmanInfo(item, locateList);
                 const detail = getStatusText(item);
                 const fullDateTime = [date, time].filter(Boolean).join(" ");
 
@@ -1485,7 +1503,7 @@
                     const date = getDate(item);
                     const time = getTime(item);
                     const office = extractDeliveryOffice(item, locate);
-                    const postman = getPostmanInfo(item);
+                    const postman = getPostmanInfo(item, locate);
                     const detail = getStatusText(item);
 
                     return `

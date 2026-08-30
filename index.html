@@ -1155,6 +1155,44 @@ function formatStatusHTML(statusStr) {
   return esc(statusStr);
 }
 
+// Hàm lấy Bưu cục nhận (ưu tiên info -> lấy mốc đầu tiên trong locate)
+function getFromOffice(data) {
+  const info = data?.info || {};
+  if (info.FromPOSCode) {
+    return `${info.FromPOSCode}${info.FromPOSName ? ' - ' + info.FromPOSName : ''}`;
+  }
+  if (info.BC_NHAN) return info.BC_NHAN;
+
+  const locate = data?.locate || [];
+  if (locate.length > 0) {
+    const firstOffice = getOffice(locate[0]);
+    if (firstOffice.full && firstOffice.full !== '-') return firstOffice.full;
+  }
+  return '-';
+}
+
+// Hàm lấy Bưu cục phát (ưu tiên info -> lấy mốc cuối trong locate hoặc delivery)
+function getToOffice(data) {
+  const info = data?.info || {};
+  if (info.ToPOSCode) {
+    return `${info.ToPOSCode}${info.ToPOSName ? ' - ' + info.ToPOSName : ''}`;
+  }
+  if (info.BC_PHAT) return info.BC_PHAT;
+
+  const delivery = data?.delivery || [];
+  if (delivery.length > 0) {
+    const lastDelivery = getOfficeForDelivery(data, delivery[delivery.length - 1]);
+    if (lastDelivery.full && lastDelivery.full !== '-') return lastDelivery.full;
+  }
+
+  const locate = data?.locate || [];
+  if (locate.length > 0) {
+    const lastOffice = getOffice(locate[locate.length - 1]);
+    if (lastOffice.full && lastOffice.full !== '-') return lastOffice.full;
+  }
+  return '-';
+}
+
 function showMsg(text, type='error'){
   const m = document.getElementById('message');
   m.className = 'msg ' + type;
@@ -1272,9 +1310,9 @@ function renderScreen(data){
   const delivery = data.delivery || [];
   const status = latestStatus(data);
 
-  // Lấy thông tin bưu cục nhận và bưu cục phát
-  const fromOffice = info.FromPOSCode ? `${info.FromPOSCode}${info.FromPOSName ? ' - ' + info.FromPOSName : ''}` : (info.BC_NHAN || '-');
-  const toOffice = info.ToPOSCode ? `${info.ToPOSCode}${info.ToPOSName ? ' - ' + info.ToPOSName : ''}` : (info.BC_PHAT || '-');
+  // Tự động giải quyết bưu cục nhận/phát từ info hoặc từ lịch sử hành trình
+  const fromOffice = getFromOffice(data);
+  const toOffice = getToOffice(data);
 
   const html = `
   <div class="parcel-box">
@@ -1442,8 +1480,8 @@ function renderPrint(data){
   const locate = data.locate || [];
   const delivery = data.delivery || [];
 
-  const fromOffice = info.FromPOSCode ? `${info.FromPOSCode}${info.FromPOSName ? ' - ' + info.FromPOSName : ''}` : (info.BC_NHAN || '-');
-  const toOffice = info.ToPOSCode ? `${info.ToPOSCode}${info.ToPOSName ? ' - ' + info.ToPOSName : ''}` : (info.BC_PHAT || '-');
+  const fromOffice = getFromOffice(data);
+  const toOffice = getToOffice(data);
 
   const perPage = 24;
   const pages = [];

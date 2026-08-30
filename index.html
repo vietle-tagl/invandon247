@@ -50,11 +50,10 @@ body{
     text-decoration:none;
 }
 
-.brand-logo-img{
-    height:42px;
+.brand-logo-svg{
+    height:40px;
     width:auto;
     display:block;
-    object-fit:contain;
 }
 
 .brand strong{
@@ -408,8 +407,8 @@ body{
     margin-bottom:10px;
 }
 
-.p-logo-img{
-    height:38px;
+.p-logo-svg{
+    height:36px;
     width:auto;
     display:block;
 }
@@ -506,10 +505,78 @@ body{
 
 <body>
 
-<script>
-// Chuỗi Base64 Logo VNPost tĩnh - Nhúng trực tiếp không lo chết link
-const LOGO_VNPOST_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARUAAAA2CAYAAAD2L/9yAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+/Pst13gAAB21JREFUeNrsnU2MVVUYx/9nZnBmhsc4MwIyyA/AICAOggvFiR/ERXGlLu3ChSu3Llz4Ea1LM134sS5MXLlwYYLqS3Thwg3XhS6MihsXBgRlhA/RCR0GBvS8/03m3Gk/zp3f837ce5v3S05udubx3XPv83/O+5x7X0s3b95sQ0sE3L17V4aHh1N/5/X06dN14k9/37dvX4x+E1S3pU6128p3796Vzs7OlC60p3mH2a8W3Gbd1U0624+aI0mS3C3s0i/s4L2+sX2u+Nne3p6m40aX1+E730m3kSRJ4vIe4T3a/m5vbyc2GZc42f06qC4/Lly4EDe89NJLsX//fnnjjTekv79fTp8+Hf81v95444342m3X2p4kSVoOevm3X7du3To/fvx4fL/29nbpd2f4NXXqVNy2v37Xk93I/v37Zd++fTJ74/pS1/Xr18vG/vI9vU+dOiUnTpwI7388s2e8T2ITh/iO9+sYy3vOnTuX1p/31Dk8f5aM/s961vXzOq+Xf8aM13qdt91i0M6fP59S3d2R66OPPkqf+fbbb6Xm3f/S+SdPnkynfvDBB32Pq/uSJHfE7Uj/t9y/f3/qFp41P69evSp33XWX7Nu3L3021/p5n+I5vA4NDfn75/6trS23/r4/1j0L3pMlye26715E1at4D8P6eO2pU6eM9fI89fT0xL6e92q/pG73f3p9S0xM3N3dLUNDQ6k9G/A6pDsnN1/T+/v27ZNrrrlGTp8+bexD543G8qf2f8m3335b+fXgwYPGr3ne1pckScO/vLzXUvdv314x3v7WrVuq9fEa+2x9fX03rAtp46FDh8I1S5Y48p6enrg/5/Xnn3961yInTpyQdevWxT7O91m3/v15aI8a2vbt26er9vL+3Cfr39Dfb25uxvd2fSbf9vX3fGfP2v3m7Xf16tVGtA1Ikrw/M/u2i19702P4G8v/G/f/fN7X/S2p/5Z43p+3/t///vvv8u2334b35XWubx3y8MMPG3139yS2D43tS3l501Lfxu43NzeXuh4fH49f43f/33m3m018T/u09L1a2p2v2LlzpwwMDIRE4Gf//v3p3e1aX1a+e/du481L3x675plkL6m92m/d4vO1f2dnZ/osj32j2+/I0S9327mO7t69m/o099W/41qSpNvevNvf4L1X1X/3/X/30s+i3v3+q4j8/fv3/xUjI42s7j4m/Iyt82b4vX6j5I4m9v3d9a3k5e/O53s4I9v3NnU631N6x9aXl/E7Tq534zE/v614b1p6/sWc3eX59Gtf8e/M1/9i/s11eG5r3/P6e0iSpLshXf7t13I0f+r/3qve5T3l3/3A9vPaa6/52/39316SJGml1jU8v3379rD1v8U/X3zxxdy/9evXh/e422/L5fX069at8+f+v9T/O3131NfXp71XkuSRs/034xV88849/fXX4W08v8i7vA494L3Nzc3S19cnu3fvDu+p86f34m3v3i+S1GjEaX0rS1p/v3N7e/x5/3l696L0vUtep14kSZIyD6HwR//48ePhfA+3bt26pAAti341b5a2v3///hR14f/2e9/3O5x/y+fT/m1fkiR1k9L8P506dSp1N5f421Xf/rE/S59p8S9+l495S5K03O9e9mF33x33m7vO6x9rP0mSpOX49Szt225a0a3aI/eX13e/6Pnz540XyL183pIkqXX44+v6/6X02/76q5X13wZk2O5a6O3tnbc1fR3HkiSpM+v/I6085P/48eNS+u6nrm3//f0d/j6Nne/y/74fI0mS2/F/l9A3Ld4j7t8+3d2/9/3v/4+b7vInkiS1e8q90Ua++3uYl5f/i8e5S5Kke6633pnn2y4iSZLclN92/L9XfUuSJEnuE38xS5IkSXI35iVJkiS5G/OSJEmS3I15SZIkSe7GvCRJkiR3Y16SJGn34v/mN22/c/3d9t8kSZrP/8282360m5Y2fJ4kSeoI+31iSZIkSdLc/2p3eX936TcfkiRp2e83v038mCRJ6mz/5j6IkiSp6/3v3a1XfP27fQ27JEnXb0mS1JneI11dXXHx293f35+6yvO2Xf0tSZJu13iPt338eL/8/SXXS11Jkq5LInUj3vYxI439f0LqMEmSRm4i/3/89t/p1v/E48i/3A6SJEk9eP/264svvhjf2X61+m/tH0mSJJIkXasv1vD6669fS7L9004kSbr/vI53+9m42f3r62/4O/6L3w2l621rSZJ2H/G66cK3iN9P559f/21IkqR1oP8R4ADU3I047z/yHAAAAABJRU5ErkJggg==";
+<header class="topbar no-print">
+    <div class="brand">
+        <!-- LOGO VNPOST VECTOR TRỰC TIẾP -->
+        <svg class="brand-logo-svg" viewBox="0 0 260 65" xmlns="http://www.w3.org/2000/svg">
+            <g fill="#E87722">
+                <path d="M0 28.5L28.5 0H52L23.5 28.5H0Z"/>
+                <path d="M28.5 28.5L57 0H80.5L52 28.5H28.5Z"/>
+                <path d="M57 28.5L85.5 0H109L80.5 28.5H57Z"/>
+                <path d="M14.2 42.8L42.7 14.3H66.2L37.7 42.8H14.2Z"/>
+                <path d="M42.7 42.8L71.2 14.3H94.7L66.2 42.8H42.7Z"/>
+                <path d="M28.5 57L57 28.5H80.5L52 57H28.5Z"/>
+            </g>
+            <g fill="#003B7A">
+                <text x="105" y="32" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="25" letter-spacing="-0.5">Vietnam</text>
+                <text x="105" y="55" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="25" letter-spacing="1">Post</text>
+            </g>
+        </svg>
 
+        <div>
+            <strong>InVanDon247</strong>
+            <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
+        </div>
+    </div>
+
+    <nav class="nav">
+        <a href="#">Trang chủ</a>
+        <a href="#search">Tra cứu</a>
+        <a href="#result">Hướng dẫn</a>
+        <a href="#">Giới thiệu</a>
+    </nav>
+</header>
+
+<main class="page">
+<section class="search-card no-print" id="search">
+    <h1 class="search-title">TRA CỨU VẬN ĐƠN</h1>
+    <div class="search-sub">Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi</div>
+
+    <div class="form-grid">
+        <div class="field">
+            <label>1. Mã vận đơn VNPost</label>
+            <input id="trackingCode" type="text" placeholder="Ví dụ: RB608631891VN" autocomplete="off">
+        </div>
+
+        <div class="field">
+            <label>2. Mã xác thực (CAPTCHA)</label>
+            <div class="captcha-line">
+                <input id="captchaText" type="text" placeholder="Nhập mã CAPTCHA" autocomplete="off">
+                <div class="captcha-slot">
+                    <img id="captchaImg" class="captcha-img" alt="CAPTCHA">
+                </div>
+                <button id="reloadCaptcha" class="reload" type="button" onclick="loadCaptcha()">↻ Đổi mã</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="btnSubmit" class="submit" type="button" onclick="submitTracking()">🔎 Tra cứu vận đơn</button>
+    <div id="message" class="msg"></div>
+</section>
+
+<div id="result" class="result-head no-print">
+    <button class="action print-btn" onclick="printA4()">🖨 In A4</button>
+    <button class="action pdf-btn" onclick="downloadPDF()">📥 Tải xuống PDF</button>
+</div>
+
+<section id="result-card" class="result-card no-print">
+    <div id="screen-result"></div>
+</section>
+</main>
+
+<div id="print-area"></div>
+
+<script>
 let currentCookie = '';
 let currentTrackingCode = '';
 let currentData = null;
@@ -843,7 +910,7 @@ function openMap(address, title, coords){
 }
 
 /* =========================================================
-   RENDER PRINT A4 (CHUẨN CÓ LOGO BASE64 SẮC NÉT)
+   RENDER PRINT A4
 ========================================================= */
 function renderPrint(data){
     const info = data.info || {};
@@ -854,7 +921,20 @@ function renderPrint(data){
     <div class="print-page">
         <div class="p-header">
             <div>
-                <img class="p-logo-img" src="${LOGO_VNPOST_BASE64}" alt="Vietnam Post Logo">
+                <svg class="p-logo-svg" viewBox="0 0 260 65" xmlns="http://www.w3.org/2000/svg">
+                    <g fill="#E87722">
+                        <path d="M0 28.5L28.5 0H52L23.5 28.5H0Z"/>
+                        <path d="M28.5 28.5L57 0H80.5L52 28.5H28.5Z"/>
+                        <path d="M57 28.5L85.5 0H109L80.5 28.5H57Z"/>
+                        <path d="M14.2 42.8L42.7 14.3H66.2L37.7 42.8H14.2Z"/>
+                        <path d="M42.7 42.8L71.2 14.3H94.7L66.2 42.8H42.7Z"/>
+                        <path d="M28.5 57L57 28.5H80.5L52 57H28.5Z"/>
+                    </g>
+                    <g fill="#003B7A">
+                        <text x="105" y="32" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="25" letter-spacing="-0.5">Vietnam</text>
+                        <text x="105" y="55" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="25" letter-spacing="1">Post</text>
+                    </g>
+                </svg>
             </div>
             <div class="p-main-title">THÔNG TIN VẬN ĐƠN</div>
         </div>
@@ -960,68 +1040,9 @@ document.getElementById('captchaText').addEventListener('keydown', e => {
 });
 
 window.addEventListener('load', () => {
-    // Tự động gán Logo Base64 cho header
-    document.getElementById('topbar-logo').src = LOGO_VNPOST_BASE64;
     loadCaptcha();
 });
 </script>
-
-<header class="topbar no-print">
-    <div class="brand">
-        <!-- LOGO BASE64 KHÔNG LO BỊ LỖI 404 HAY HỎNG LINK -->
-        <img id="topbar-logo" class="brand-logo-img" alt="Vietnam Post Logo">
-        <div>
-            <strong>InVanDon247</strong>
-            <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
-        </div>
-    </div>
-
-    <nav class="nav">
-        <a href="#">Trang chủ</a>
-        <a href="#search">Tra cứu</a>
-        <a href="#result">Hướng dẫn</a>
-        <a href="#">Giới thiệu</a>
-    </nav>
-</header>
-
-<main class="page">
-<section class="search-card no-print" id="search">
-    <h1 class="search-title">TRA CỨU VẬN ĐƠN</h1>
-    <div class="search-sub">Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi</div>
-
-    <div class="form-grid">
-        <div class="field">
-            <label>1. Mã vận đơn VNPost</label>
-            <input id="trackingCode" type="text" placeholder="Ví dụ: RB608631891VN" autocomplete="off">
-        </div>
-
-        <div class="field">
-            <label>2. Mã xác thực (CAPTCHA)</label>
-            <div class="captcha-line">
-                <input id="captchaText" type="text" placeholder="Nhập mã CAPTCHA" autocomplete="off">
-                <div class="captcha-slot">
-                    <img id="captchaImg" class="captcha-img" alt="CAPTCHA">
-                </div>
-                <button id="reloadCaptcha" class="reload" type="button" onclick="loadCaptcha()">↻ Đổi mã</button>
-            </div>
-        </div>
-    </div>
-
-    <button id="btnSubmit" class="submit" type="button" onclick="submitTracking()">🔎 Tra cứu vận đơn</button>
-    <div id="message" class="msg"></div>
-</section>
-
-<div id="result" class="result-head no-print">
-    <button class="action print-btn" onclick="printA4()">🖨 In A4</button>
-    <button class="action pdf-btn" onclick="downloadPDF()">📥 Tải xuống PDF</button>
-</div>
-
-<section id="result-card" class="result-card no-print">
-    <div id="screen-result"></div>
-</section>
-</main>
-
-<div id="print-area"></div>
 
 </body>
 </html>

@@ -1,4484 +1,2561 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>InVanDon247 - Tra cứu và in vận đơn VNPost</title>
-
-    <!-- PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <style>
-        /* =========================================================
-           RESET
-        ========================================================= */
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Arial, Helvetica, sans-serif;
-            background: #f3f5f7;
-            color: #333;
-        }
-
-        button,
-        input {
-            font-family: inherit;
-        }
-
-        /* =========================================================
-           HEADER WEBSITE
-        ========================================================= */
-
-        .site-header {
-            height: 58px;
-            background: #fff;
-            border-bottom: 1px solid #ddd;
-            box-shadow: 0 2px 8px rgba(0,0,0,.08);
-            display: flex;
-            align-items: center;
-            position: relative;
-            z-index: 20;
-        }
-
-        .header-inner {
-            width: 1100px;
-            max-width: calc(100% - 30px);
-            margin: auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .brand-logo {
-            width: 42px;
-            height: 42px;
-            object-fit: contain;
-        }
-
-        .brand-text {
-            line-height: 1.05;
-        }
-
-        .brand-name {
-            color: #0068b7;
-            font-size: 17px;
-            font-weight: 700;
-        }
-
-        .brand-description {
-            color: #777;
-            font-size: 9px;
-            margin-top: 3px;
-        }
-
-        .main-nav {
-            display: flex;
-            gap: 25px;
-        }
-
-        .main-nav a {
-            color: #444;
-            font-size: 12px;
-            text-decoration: none;
-        }
-
-        .main-nav a:hover {
-            color: #0068b7;
-        }
-
-        /* =========================================================
-           PAGE
-        ========================================================= */
-
-        .page {
-            width: 1100px;
-            max-width: calc(100% - 30px);
-            margin: 20px auto 50px;
-        }
-
-        /* =========================================================
-           SEARCH BOX
-        ========================================================= */
-
-        .search-card {
-            background: #fff;
-            border: 1px solid #e1e5e9;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 3px 12px rgba(0,0,0,.06);
-        }
-
-        .search-title {
-            text-align: center;
-            margin: 0;
-            color: #0068b7;
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .search-subtitle {
-            text-align: center;
-            margin-top: 5px;
-            color: #777;
-            font-size: 11px;
-        }
-
-        .search-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 17px;
-        }
-
-        .form-group {
-            min-width: 0;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .text-input {
-            width: 100%;
-            height: 38px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            padding: 0 11px;
-            outline: none;
-            font-size: 13px;
-            color: #333;
-            background: #fff;
-        }
-
-        .text-input:focus {
-            border-color: #0068b7;
-            box-shadow: 0 0 0 2px rgba(0,104,183,.08);
-        }
-
-        .captcha-line {
-            display: flex;
-            gap: 7px;
-        }
-
-        .captcha-input {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .captcha-image-box {
-            height: 38px;
-            width: 100px;
-            flex: 0 0 100px;
-            border: 1px solid #d3d7db;
-            border-radius: 5px;
-            overflow: hidden;
-            background: #f7f7f7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .captcha-image-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .captcha-reload {
-            height: 38px;
-            border: 0;
-            border-radius: 5px;
-            padding: 0 12px;
-            background: #f0f1f2;
-            color: #333;
-            cursor: pointer;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-
-        .captcha-reload:hover {
-            background: #e4e5e7;
-        }
-
-        .search-button {
-            grid-column: 1 / -1;
-            height: 39px;
-            border: 0;
-            border-radius: 5px;
-            background: #0068b7;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .search-button:hover {
-            background: #005a9e;
-        }
-
-        .search-button:disabled {
-            background: #8baec8;
-            cursor: wait;
-        }
-
-        /* =========================================================
-           ACTION BUTTONS
-        ========================================================= */
-
-        .action-area {
-            display: none;
-            justify-content: flex-end;
-            gap: 8px;
-            margin: 10px 0;
-        }
-
-        .action-btn {
-            border: 0;
-            border-radius: 5px;
-            height: 34px;
-            padding: 0 15px;
-            color: #fff;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .print-btn {
-            background: #16864b;
-        }
-
-        .print-btn:hover {
-            background: #126e3e;
-        }
-
-        .pdf-btn {
-            background: #0068b7;
-        }
-
-        .pdf-btn:hover {
-            background: #005a9e;
-        }
-
-        /* =========================================================
-           WEB RESULT
-        ========================================================= */
-
-        #result-wrapper {
-            display: none;
-        }
-
-        .result-card {
-            background: #fff;
-            border: 1px solid #e1e5e9;
-            border-radius: 8px;
-            box-shadow: 0 3px 12px rgba(0,0,0,.06);
-            padding: 10px;
-        }
-
-        /* =========================================================
-           RESULT TOP
-        ========================================================= */
-
-        .result-summary {
-            display: grid;
-            grid-template-columns: 1.15fr .8fr 1.3fr;
-            background: #f4f5f6;
-            min-height: 54px;
-            margin-bottom: 9px;
-        }
-
-        .summary-item {
-            padding: 8px 12px;
-            border-right: 1px solid #e1e3e5;
-        }
-
-        .summary-item:last-child {
-            border-right: 0;
-        }
-
-        .summary-label {
-            font-size: 9px;
-            color: #777;
-            margin-bottom: 3px;
-        }
-
-        .summary-value {
-            font-size: 12px;
-            font-weight: 700;
-            color: #18364c;
-        }
-
-        .summary-status {
-            color: #008448;
-        }
-
-        .result-route {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            padding: 2px 12px 8px;
-            gap: 10px;
-        }
-
-        .route-item {
-            font-size: 11px;
-            line-height: 1.7;
-        }
-
-        .route-label {
-            font-weight: 700;
-            color: #444;
-            margin-right: 7px;
-        }
-
-        /* =========================================================
-           SECTION TITLE
-        ========================================================= */
-
-        .section-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: #4d565d;
-            margin: 9px 0 7px;
-            text-transform: uppercase;
-        }
-
-        /* =========================================================
-           TRACKING TIMELINE
-        ========================================================= */
-
-        .tracking-box {
-            position: relative;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        .tracking-list {
-            position: relative;
-            max-height: 700px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-right: 4px;
-        }
-
-        .tracking-list::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .tracking-list::-webkit-scrollbar-thumb {
-            background: #aaa;
-            border-radius: 8px;
-        }
-
-        .tracking-item {
-            position: relative;
-            display: grid;
-            grid-template-columns: 115px minmax(0, 1fr) 270px 28px;
-            column-gap: 10px;
-            min-height: 55px;
-            padding: 7px 0 7px 26px;
-        }
-
-        .tracking-item::before {
-            content: "";
-            position: absolute;
-            left: 9px;
-            top: 0;
-            bottom: 0;
-            width: 1px;
-            background: #9ba2a8;
-        }
-
-        .tracking-item:first-child::before {
-            top: 15px;
-        }
-
-        .tracking-item:last-child::before {
-            bottom: 20px;
-        }
-
-        .tracking-dot {
-            position: absolute;
-            left: 3px;
-            top: 14px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #fff;
-            border: 2px solid #747b80;
-            z-index: 2;
-        }
-
-        .tracking-item.latest .tracking-dot {
-            border-color: #00a65a;
-            box-shadow: inset 0 0 0 2px #fff;
-            background: #00a65a;
-        }
-
-        .tracking-time {
-            color: #444;
-            font-size: 10px;
-            line-height: 1.5;
-            padding-top: 2px;
-        }
-
-        .tracking-content {
-            min-width: 0;
-            font-size: 10px;
-            color: #333;
-            line-height: 1.45;
-        }
-
-        .tracking-content-main {
-            display: block;
-        }
-
-        .tracking-item.latest .tracking-content-main {
-            color: #008448;
-            font-weight: 700;
-        }
-
-        .tracking-postcode {
-            display: block;
-            color: #4d5961;
-            font-size: 9px;
-            margin-top: 3px;
-        }
-
-        .tracking-location {
-            min-width: 0;
-            color: #555;
-            font-size: 10px;
-            line-height: 1.45;
-            padding-top: 2px;
-        }
-
-        .tracking-location-text {
-            display: block;
-        }
-
-        .location-button {
-            width: 28px;
-            height: 28px;
-            border: 0;
-            background: transparent;
-            color: #526bff;
-            cursor: pointer;
-            font-size: 19px;
-            padding: 0;
-            line-height: 28px;
-        }
-
-        .location-button:hover {
-            color: #2145f0;
-            transform: translateX(2px);
-        }
-
-        /* =========================================================
-           DELIVERY
-        ========================================================= */
-
-        .delivery-section {
-            margin-top: 8px;
-        }
-
-        .delivery-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            font-size: 10px;
-        }
-
-        .delivery-table th {
-            background: #edf1f5;
-            color: #4c5965;
-            font-weight: 700;
-            text-align: left;
-            padding: 8px 9px;
-            border: 1px solid #dfe4e8;
-        }
-
-        .delivery-table td {
-            padding: 8px 9px;
-            border: 1px solid #dfe4e8;
-            vertical-align: top;
-            line-height: 1.45;
-        }
-
-        .delivery-table th:nth-child(1),
-        .delivery-table td:nth-child(1) {
-            width: 18%;
-        }
-
-        .delivery-table th:nth-child(2),
-        .delivery-table td:nth-child(2) {
-            width: 25%;
-        }
-
-        .delivery-table th:nth-child(3),
-        .delivery-table td:nth-child(3) {
-            width: 22%;
-        }
-
-        .delivery-table th:nth-child(4),
-        .delivery-table td:nth-child(4) {
-            width: 35%;
-        }
-
-        .delivery-postman {
-            line-height: 1.5;
-        }
-
-        .delivery-postman-name {
-            display: block;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .delivery-postman-phone {
-            display: block;
-            color: #0068b7;
-            margin-top: 2px;
-        }
-
-        .delivery-office-code {
-            display: block;
-            color: #0068b7;
-            font-weight: 700;
-        }
-
-        .delivery-office-name {
-            display: block;
-            color: #333;
-            margin-top: 2px;
-        }
-
-        /* =========================================================
-           MAP
-        ========================================================= */
-
-        .map-section {
-            display: none;
-            margin-top: 12px;
-        }
-
-        .map-card {
-            border: 1px solid #d6dce1;
-            border-radius: 6px;
-            overflow: hidden;
-            background: #fff;
-        }
-
-        .map-header {
-            padding: 8px 10px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #303940;
-            border-bottom: 1px solid #e1e5e8;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .map-header-title {
-            line-height: 1.4;
-        }
-
-        .map-open {
-            color: #0068b7;
-            text-decoration: none;
-            white-space: nowrap;
-            font-size: 10px;
-        }
-
-        .map-open:hover {
-            text-decoration: underline;
-        }
-
-        .map-frame {
-            width: 100%;
-            height: 430px;
-            border: 0;
-            display: block;
-        }
-
-        .map-note {
-            padding: 7px 10px;
-            color: #777;
-            font-size: 9px;
-            border-top: 1px solid #eee;
-        }
-
-        /* =========================================================
-           FOOTER
-        ========================================================= */
-
-        .result-footer {
-            margin-top: 10px;
-            padding-top: 7px;
-            border-top: 1px solid #e3e5e7;
-            text-align: center;
-            color: #a0a5aa;
-            font-size: 8px;
-        }
-
-        /* =========================================================
-           ERROR
-        ========================================================= */
-
-        .error-box {
-            display: none;
-            margin-top: 10px;
-            padding: 9px 11px;
-            border-radius: 5px;
-            background: #fff3f3;
-            color: #b42318;
-            border: 1px solid #f2cccc;
-            font-size: 11px;
-        }
-
-        /* =========================================================
-           PRINT AREA
-        ========================================================= */
-
-        #print-root {
-            display: none;
-        }
-
-        /* =========================================================
-           A4 PRINT DOCUMENT
-        ========================================================= */
-
-        .a4-document {
-            width: 190mm;
-            margin: 0 auto;
-            color: #1f2933;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 8.5pt;
-            line-height: 1.28;
-            background: #fff;
-        }
-
-        .a4-header {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            align-items: start;
-            border-bottom: 1.5px solid #0068b7;
-            padding-bottom: 3mm;
-            margin-bottom: 2mm;
-        }
-
-        .a4-brand {
-            font-size: 15pt;
-            color: #0068b7;
-            font-weight: 700;
-        }
-
-        .a4-brand-sub {
-            color: #68737d;
-            font-size: 7pt;
-            margin-top: 1mm;
-        }
-
-        .a4-meta {
-            text-align: right;
-            font-size: 7pt;
-            color: #56616b;
-            line-height: 1.45;
-        }
-
-        .a4-title {
-            text-align: center;
-            border: 1px solid #c8d2db;
-            padding: 1.5mm 2mm;
-            margin-bottom: 2mm;
-        }
-
-        .a4-title-main {
-            font-size: 10pt;
-            font-weight: 700;
-            color: #28343d;
-            text-transform: uppercase;
-        }
-
-        .a4-tracking {
-            color: #b77900;
-            font-size: 12pt;
-            font-weight: 700;
-            margin-top: .5mm;
-            letter-spacing: .5px;
-        }
-
-        .a4-summary {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2mm;
-            margin-bottom: 2mm;
-        }
-
-        .a4-box {
-            border: 1px solid #cdd6dd;
-            padding: 1.5mm 2mm;
-            min-height: 20mm;
-        }
-
-        .a4-box-title {
-            font-size: 7.5pt;
-            font-weight: 700;
-            color: #0068b7;
-            border-bottom: 1px dashed #cfd6dc;
-            padding-bottom: 1mm;
-            margin-bottom: 1.2mm;
-            text-transform: uppercase;
-        }
-
-        .a4-line {
-            font-size: 7.3pt;
-            margin: .6mm 0;
-        }
-
-        .a4-label {
-            display: inline-block;
-            width: 27mm;
-            color: #68737d;
-        }
-
-        .a4-value {
-            font-weight: 600;
-            color: #26343e;
-        }
-
-        .a4-status {
-            color: #008448;
-            font-weight: 700;
-        }
-
-        .a4-section-title {
-            font-size: 8pt;
-            font-weight: 700;
-            color: #27343d;
-            border-left: 1mm solid #0068b7;
-            padding-left: 1.5mm;
-            margin: 2mm 0 1mm;
-            text-transform: uppercase;
-        }
-
-        .a4-history {
-            column-count: 2;
-            column-gap: 5mm;
-            column-fill: auto;
-        }
-
-        .a4-history-item {
-            display: grid;
-            grid-template-columns: 27mm 1fr;
-            column-gap: 1.5mm;
-            break-inside: avoid;
-            page-break-inside: avoid;
-            border-bottom: 1px dotted #c8cfd5;
-            padding: 1.2mm 0;
-            min-height: 11mm;
-        }
-
-        .a4-time {
-            font-size: 6.7pt;
-            color: #45515a;
-        }
-
-        .a4-event {
-            font-size: 6.9pt;
-            color: #202c34;
-        }
-
-        .a4-event-main {
-            display: block;
-        }
-
-        .a4-event-postcode {
-            display: block;
-            color: #596670;
-            font-size: 6.4pt;
-            margin-top: .5mm;
-        }
-
-        .a4-location {
-            display: block;
-            color: #58636c;
-            font-size: 6.5pt;
-            margin-top: .5mm;
-        }
-
-        .a4-history-item.latest {
-            background: #f0fff6;
-        }
-
-        .a4-history-item.latest .a4-event-main {
-            color: #008448;
-            font-weight: 700;
-        }
-
-        .a4-delivery-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            font-size: 7pt;
-        }
-
-        .a4-delivery-table th {
-            background: #edf1f5;
-            text-align: left;
-            padding: 1.5mm 2mm;
-            border: 1px solid #d2d9df;
-            color: #4c5861;
-        }
-
-        .a4-delivery-table td {
-            padding: 1.5mm 2mm;
-            border: 1px solid #d2d9df;
-            vertical-align: top;
-        }
-
-        .a4-delivery-table th:nth-child(1) {
-            width: 18%;
-        }
-
-        .a4-delivery-table th:nth-child(2) {
-            width: 25%;
-        }
-
-        .a4-delivery-table th:nth-child(3) {
-            width: 22%;
-        }
-
-        .a4-delivery-table th:nth-child(4) {
-            width: 35%;
-        }
-
-        .a4-footer {
-            border-top: 1px solid #d5dbe0;
-            margin-top: 3mm;
-            padding-top: 1.5mm;
-            text-align: center;
-            color: #8a949c;
-            font-size: 6.5pt;
-        }
-
-        /* =========================================================
-           RESPONSIVE
-        ========================================================= */
-
-        @media (max-width: 800px) {
-
-            .site-header {
-                height: 52px;
-            }
-
-            .header-inner {
-                max-width: calc(100% - 20px);
-            }
-
-            .brand-description {
-                display: none;
-            }
-
-            .main-nav {
-                gap: 10px;
-            }
-
-            .main-nav a {
-                font-size: 10px;
-            }
-
-            .page {
-                max-width: calc(100% - 16px);
-                margin-top: 10px;
-            }
-
-            .search-card {
-                padding: 13px;
-            }
-
-            .search-form {
-                grid-template-columns: 1fr;
-            }
-
-            .search-button {
-                grid-column: auto;
-            }
-
-            .result-summary {
-                grid-template-columns: 1fr;
-            }
-
-            .summary-item {
-                border-right: 0;
-                border-bottom: 1px solid #e1e3e5;
-            }
-
-            .result-route {
-                grid-template-columns: 1fr;
-            }
-
-            .tracking-list {
-                max-height: none;
-            }
-
-            .tracking-item {
-                grid-template-columns: 92px minmax(0, 1fr) 24px;
-                column-gap: 7px;
-                padding-left: 25px;
-            }
-
-            .tracking-location {
-                grid-column: 2 / 3;
-                padding-top: 3px;
-            }
-
-            .location-button {
-                grid-column: 3;
-                grid-row: 1 / span 2;
-            }
-
-            .map-frame {
-                height: 360px;
-            }
-
-            .a4-history {
-                column-count: 1;
-            }
-        }
-
-        /* =========================================================
-           PRINT
-        ========================================================= */
-
-        @media print {
-
-            html,
-            body {
-                margin: 0 !important;
-                padding: 0 !important;
-                background: #fff !important;
-            }
-
-            body > *:not(#print-root) {
-                display: none !important;
-            }
-
-            #print-root {
-                display: block !important;
-            }
-
-            .a4-document {
-                display: block !important;
-                width: 190mm;
-                margin: 0 auto;
-            }
-
-            @page {
-                size: A4 portrait;
-                margin: 8mm 10mm 8mm 10mm;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InVanDon247 - Tra cứu VNPost</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+:root{
+ --blue:#07579b;
+ --blue2:#0b6bb8;
+ --orange:#f6a000;
+ --green:#148a4b;
+ --bg:#f3f5f7;
+ --text:#3f464d;
+ --muted:#7b838c;
+ --line:#dfe4e8
+}
+
+*{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+
+body{
+ margin:0;
+ font-family:Arial,"Segoe UI",sans-serif;
+ background:var(--bg);
+ color:var(--text)
+}
+
+.topbar{
+ height:68px;
+ background:#fff;
+ border-bottom:1px solid #ddd;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 max(24px,calc((100% - 1100px)/2));
+ position:sticky;
+ top:0;
+ z-index:20;
+ box-shadow:0 2px 8px rgba(0,0,0,.05)
+}
+
+.brand{
+ display:flex;
+ align-items:center;
+ gap:12px
+}
+
+.brand img{
+ width:55px;
+ height:42px;
+ object-fit:contain
+}
+
+.brand strong{
+ font-size:18px;
+ color:var(--blue)
+}
+
+.brand small{
+ display:block;
+ color:#888;
+ font-size:10px;
+ margin-top:2px
+}
+
+.nav{
+ display:flex;
+ gap:25px;
+ font-size:12px
+}
+
+.nav a{
+ color:#444;
+ text-decoration:none
+}
+
+.nav a:hover{
+ color:var(--blue)
+}
+
+.page{
+ max-width:1100px;
+ margin:22px auto 50px;
+ padding:0 14px
+}
+
+.search-card{
+ background:#fff;
+ border:1px solid #e1e5e8;
+ border-radius:9px;
+ padding:20px 22px;
+ box-shadow:0 4px 18px rgba(0,0,0,.06)
+}
+
+.search-title{
+ text-align:center;
+ color:var(--blue);
+ font-size:20px;
+ font-weight:700;
+ margin:0
+}
+
+.search-sub{
+ text-align:center;
+ color:#888;
+ font-size:11px;
+ margin:5px 0 18px
+}
+
+.form-grid{
+ display:grid;
+ grid-template-columns:1.2fr .8fr;
+ gap:12px
+}
+
+.field label{
+ display:block;
+ font-size:12px;
+ font-weight:700;
+ margin-bottom:6px
+}
+
+.field input{
+ width:100%;
+ height:38px;
+ border:1px solid #cfd5da;
+ border-radius:5px;
+ padding:0 11px;
+ font-size:13px;
+ outline:none
+}
+
+.field input:focus{
+ border-color:var(--blue)
+}
+
+.captcha-line{
+ display:flex;
+ gap:6px
+}
+
+.captcha-line input{
+ flex:1
+}
+
+.captcha-img{
+ width:100px;
+ height:38px;
+ border:1px solid #cfd5da;
+ border-radius:5px;
+ object-fit:contain;
+ background:#f8f8f8
+}
+
+.reload{
+ border:0;
+ background:#f0f1f2;
+ border-radius:5px;
+ padding:0 11px;
+ cursor:pointer;
+ font-size:12px
+}
+
+.submit{
+ width:100%;
+ height:40px;
+ margin-top:13px;
+ border:0;
+ border-radius:5px;
+ background:var(--blue2);
+ color:#fff;
+ font-weight:700;
+ cursor:pointer
+}
+
+.submit:disabled{
+ opacity:.6;
+ cursor:wait
+}
+
+.msg{
+ margin-top:10px;
+ padding:9px 12px;
+ border-radius:5px;
+ font-size:12px;
+ display:none
+}
+
+.msg.error{
+ display:block;
+ background:#fff0f1;
+ color:#b4232e
+}
+
+.msg.ok{
+ display:block;
+ background:#eefaf3;
+ color:#137441
+}
+
+.result-head{
+ display:flex;
+ justify-content:flex-end;
+ gap:7px;
+ margin:14px 0 10px
+}
+
+.action{
+ border:0;
+ border-radius:5px;
+ padding:9px 14px;
+ color:#fff;
+ font-weight:700;
+ font-size:12px;
+ cursor:pointer
+}
+
+.print-btn{
+ background:#148a4b
+}
+
+.pdf-btn{
+ background:#0767b1
+}
+
+.result-card{
+ background:#fff;
+ border:1px solid #e0e5e9;
+ border-radius:8px;
+ padding:0 16px 18px;
+ box-shadow:0 3px 14px rgba(0,0,0,.05);
+ display:none
+}
+
+.summary-strip{
+ background:#f4f5f6;
+ margin:0 -8px 12px;
+ padding:10px 8px;
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ gap:12px;
+ font-size:11px
+}
+
+.summary-item{
+ display:flex;
+ align-items:center;
+ gap:8px
+}
+
+.summary-icon{
+ font-size:18px;
+ color:#222
+}
+
+.summary-item b{
+ color:#0d3f6d
+}
+
+.summary-item .status{
+ color:var(--green);
+ font-weight:700
+}
+
+.route-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:12px;
+ padding:0 8px 14px;
+ font-size:11px
+}
+
+.route-grid div{
+ padding:4px 0
+}
+
+.route-grid b{
+ display:inline-block;
+ min-width:110px
+}
+
+.section-title{
+ font-size:12px;
+ font-weight:700;
+ color:#4e555c;
+ margin:8px 8px 10px;
+ text-transform:uppercase
+}
+
+.timeline{
+ position:relative;
+ margin:0 8px
+}
+
+.timeline:before{
+ content:"";
+ position:absolute;
+ left:8px;
+ top:7px;
+ bottom:7px;
+ width:2px;
+ background:#aeb4b9
+}
+
+.event{
+ position:relative;
+ display:grid;
+ grid-template-columns:185px minmax(0,1.4fr) minmax(230px,1fr) 30px;
+ gap:12px;
+ padding:0 0 12px 0;
+ min-height:54px
+}
+
+.event-dot{
+ position:absolute;
+ left:4px;
+ top:6px;
+ width:10px;
+ height:10px;
+ border-radius:50%;
+ background:#5b6166;
+ border:2px solid #fff;
+ box-shadow:0 0 0 1px #5b6166
+}
+
+.event.latest .event-dot{
+ background:#0b9a55;
+ box-shadow:0 0 0 1px #0b9a55
+}
+
+.event-time{
+ padding-left:22px;
+ font-size:11px;
+ color:#555
+}
+
+.event-status{
+ font-size:11px;
+ line-height:1.35
+}
+
+.event-status b{
+ display:block;
+ color:#4a4f54;
+ font-size:10px;
+ margin-top:3px
+}
+
+.event.latest .event-status{
+ color:#078443;
+ font-weight:700
+}
+
+.event-location{
+ font-size:11px;
+ color:#5d646b;
+ line-height:1.35
+}
+
+.map-btn{
+ width:28px;
+ height:28px;
+ border:0;
+ background:#fff;
+ color:#536df1;
+ cursor:pointer;
+ font-size:17px;
+ border-radius:50%
+}
+
+.map-btn:hover{
+ background:#eef1ff
+}
+
+.event.selected{
+ background:#f7fbff;
+ border-radius:4px
+}
+
+.map-panel{
+ display:none;
+ margin:4px 8px 14px;
+ border:1px solid #d9dee3;
+ border-radius:6px;
+ overflow:hidden
+}
+
+.map-panel.show{
+ display:block
+}
+
+.map-toolbar{
+ height:38px;
+ background:#f7f8f9;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 10px;
+ font-size:11px
+}
+
+.map-toolbar b{
+ color:#495057
+}
+
+.map-toolbar a{
+ color:#0969b0;
+ text-decoration:none
+}
+
+.map-frame{
+ width:100%;
+ height:300px;
+ border:0;
+ display:block
+}
+
+.delivery{
+ margin:12px 8px 0
+}
+
+.delivery-info{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:8px;
+ margin:0 0 10px
+}
+
+.delivery-info .di{
+ border:1px solid #e1e5e9;
+ border-radius:5px;
+ background:#fafbfc;
+ padding:8px
+}
+
+.delivery-info .di-label{
+ display:block;
+ color:#7b838c;
+ font-size:9px;
+ margin-bottom:3px
+}
+
+.delivery-info .di-value{
+ display:block;
+ color:#30353a;
+ font-weight:700;
+ font-size:11px;
+ line-height:1.35
+}
+
+.delivery table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:11px
+}
+
+.delivery th{
+ background:#edf1f5;
+ text-align:left;
+ padding:8px
+}
+
+.delivery td{
+ border:1px solid #e1e5e9;
+ padding:8px
+}
+
+.screen-footer{
+ text-align:center;
+ border-top:1px solid #e2e5e8;
+ margin:14px 8px 0;
+ padding-top:7px;
+ color:#9aa1a8;
+ font-size:9px
+}
+
+#print-area{
+ display:none
+}
+
+@media(max-width:760px){
+
+ .delivery-info{
+  grid-template-columns:1fr 1fr
+ }
+
+ .topbar{
+  padding:0 12px
+ }
+
+ .nav{
+  display:none
+ }
+
+ .form-grid,
+ .summary-strip,
+ .route-grid{
+  grid-template-columns:1fr
+ }
+
+ .event{
+  grid-template-columns:1fr 30px;
+  gap:5px;
+  padding-left:20px
+ }
+
+ .event-time{
+  padding-left:0
+ }
+
+ .event-status,
+ .event-location{
+  grid-column:1
+ }
+
+ .event-location{
+  padding-left:0
+ }
+
+ .event-dot{
+  left:0
+ }
+
+ .timeline:before{
+  left:4px
+ }
+
+ .result-head{
+  justify-content:stretch
+ }
+
+ .action{
+  flex:1
+ }
+}
+
+
+/* =========================
+   IN A4 / PDF
+========================= */
+
+@page{
+ size:A4 portrait;
+ margin:8mm
+}
+
+body{
+ background:#fff
+}
+
+.no-print,
+.topbar,
+.page>.search-card,
+.result-head,
+.result-card{
+ display:none!important
+}
+
+#print-area{
+ display:block!important
+}
+
+.print-page{
+ width:194mm;
+ min-height:281mm;
+ position:relative;
+ page-break-after:always;
+ padding:0
+}
+
+.print-page:last-child{
+ page-break-after:auto
+}
+
+.print-header{
+ display:flex;
+ justify-content:space-between;
+ align-items:flex-start;
+ border-bottom:2px solid var(--blue);
+ padding-bottom:5px;
+ margin-bottom:7px
+}
+
+.print-logo{
+ width:62px;
+ height:42px;
+ object-fit:contain
+}
+
+.print-brand{
+ font-size:13px;
+ color:var(--blue);
+ font-weight:700
+}
+
+.print-brand small{
+ display:block;
+ font-size:7px;
+ color:#777;
+ font-weight:400
+}
+
+.print-meta{
+ text-align:right;
+ font-size:7px;
+ color:#777;
+ line-height:1.5
+}
+
+.print-title{
+ text-align:center;
+ border:1px solid #cfd5db;
+ padding:5px;
+ margin-bottom:7px
+}
+
+.print-title b{
+ font-size:11px
+}
+
+.print-code{
+ font-size:12px;
+ font-weight:700;
+ color:#a66c00;
+ margin-top:1px
+}
+
+.print-summary{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:6px;
+ margin-bottom:7px
+}
+
+.pbox{
+ border:1px solid #cdd3d8;
+ padding:5px
+}
+
+.pbox h4{
+ font-size:7.5px;
+ color:var(--blue);
+ margin:0 0 4px;
+ border-bottom:1px dashed #ddd;
+ padding-bottom:2px
+}
+
+.prow{
+ font-size:7.2px;
+ line-height:1.45
+}
+
+.prow span{
+ color:#777;
+ display:inline-block;
+ width:70px
+}
+
+.prow b{
+ color:#30353a
+}
+
+.print-history-title{
+ font-size:8px;
+ font-weight:700;
+ color:#333;
+ border-left:3px solid var(--blue);
+ padding-left:4px;
+ margin:4px 0
+}
+
+.print-columns{
+ column-count:2;
+ column-gap:7mm;
+ column-rule:1px solid #ddd
+}
+
+.p-event{
+ break-inside:avoid;
+ page-break-inside:avoid;
+ border-bottom:1px dashed #ddd;
+ padding:0 0 4px;
+ margin:0 0 4px;
+ font-size:7.1px;
+ line-height:1.25
+}
+
+.p-time{
+ font-weight:700;
+ color:#555
+}
+
+.p-event.latest .p-time,
+.p-event.latest .p-status{
+ color:#087d42
+}
+
+.p-status{
+ margin-top:1px
+}
+
+.p-meta{
+ color:#555
+}
+
+.p-address{
+ color:#555
+}
+
+.print-delivery{
+ margin-top:7px
+}
+
+.print-delivery h4{
+ font-size:8px;
+ margin:0 0 3px
+}
+
+.print-delivery table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:7px
+}
+
+.print-delivery th{
+ background:#edf1f5;
+ text-align:left;
+ padding:3px
+}
+
+.print-delivery td{
+ border:1px solid #d8dde2;
+ padding:3px
+}
+
+.print-footer{
+ position:absolute;
+ left:0;
+ right:0;
+ bottom:0;
+ border-top:1px solid #ddd;
+ padding-top:3px;
+ text-align:center;
+ font-size:6.5px;
+ color:#999
+}
+
+@media print{
+
+ @page{
+  size:A4 portrait;
+  margin:8mm
+ }
+
+ body{
+  background:#fff
+ }
+
+ .no-print,
+ .topbar,
+ .page>.search-card,
+ .result-head,
+ .result-card{
+  display:none!important
+ }
+
+ #print-area{
+  display:block!important
+ }
+}
+</style>
 </head>
 
 <body>
 
-    <!-- =========================================================
-         WEBSITE HEADER
-    ========================================================== -->
+<header class="topbar no-print">
 
-    <header class="site-header no-print">
+ <div class="brand">
 
-        <div class="header-inner">
+  <img
+   src="https://vietnampost.vn/uploads/storage/vnp/2025/09/15/3aa71b839430793ee9e4b9f47415c54a878027ec.jpg"
+   alt="Vietnam Post"
+   crossorigin="anonymous"
+  >
 
-            <a href="#" class="brand">
+  <div>
+   <strong>InVanDon247</strong>
+   <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
+  </div>
 
-                <img
-                    class="brand-logo"
-                    src="https://vnpost.vn/assets/images/logo.png"
-                    alt="VNPost"
-                    onerror="this.style.display='none'"
-                >
+ </div>
 
-                <div class="brand-text">
+ <nav class="nav">
+  <a href="#">Trang chủ</a>
+  <a href="#search">Tra cứu</a>
+  <a href="#result">Hướng dẫn</a>
+  <a href="#">Giới thiệu</a>
+ </nav>
 
-                    <div class="brand-name">
-                        InVanDon247
-                    </div>
+</header>
 
-                    <div class="brand-description">
-                        Công cụ tra cứu và tạo phiếu vận đơn A4
-                    </div>
 
-                </div>
+<main class="page">
 
-            </a>
+<section class="search-card no-print" id="search">
 
-            <nav class="main-nav">
-                <a href="#">Trang chủ</a>
-                <a href="#tra-cuu">Tra cứu</a>
-                <a href="#">Hướng dẫn</a>
-                <a href="#">Giới thiệu</a>
-            </nav>
+ <h1 class="search-title">
+  TRA CỨU VẬN ĐƠN
+ </h1>
 
-        </div>
+ <div class="search-sub">
+  Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi
+ </div>
 
-    </header>
+ <div class="form-grid">
 
+  <div class="field">
 
-    <!-- =========================================================
-         MAIN PAGE
-    ========================================================== -->
+   <label>
+    1. Mã vận đơn VNPost
+   </label>
 
-    <main class="page" id="tra-cuu">
+   <input
+    id="trackingCode"
+    type="text"
+    placeholder="Ví dụ: RB608631891VN"
+   >
 
-        <!-- SEARCH CARD -->
+  </div>
 
-        <section class="search-card no-print">
 
-            <h1 class="search-title">
-                TRA CỨU VẬN ĐƠN
-            </h1>
+  <div class="field">
 
-            <div class="search-subtitle">
-                Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi
-            </div>
+   <label>
+    2. Mã xác thực (CAPTCHA)
+   </label>
 
-            <div class="search-form">
+   <div class="captcha-line">
 
-                <div class="form-group">
+    <input
+     id="captchaText"
+     type="text"
+     placeholder="Nhập mã CAPTCHA"
+    >
 
-                    <label for="trackingCode">
-                        1. Mã vận đơn VNPost
-                    </label>
+    <img
+     id="captchaImg"
+     class="captcha-img"
+     alt="CAPTCHA"
+    >
 
-                    <input
-                        type="text"
-                        id="trackingCode"
-                        class="text-input"
-                        placeholder="Ví dụ: RB608631891VN"
-                        value="RB609915722VN"
-                        autocomplete="off"
-                    >
+    <button
+     class="reload"
+     type="button"
+     onclick="loadCaptcha()"
+    >
+     ↻ Đổi mã
+    </button>
 
-                </div>
+   </div>
 
+  </div>
 
-                <div class="form-group">
+ </div>
 
-                    <label for="captchaText">
-                        2. Mã xác thực (CAPTCHA)
-                    </label>
 
-                    <div class="captcha-line">
+ <button
+  id="btnSubmit"
+  class="submit"
+  type="button"
+  onclick="submitTracking()"
+ >
+  🔎 Tra cứu vận đơn
+ </button>
 
-                        <input
-                            type="text"
-                            id="captchaText"
-                            class="text-input captcha-input"
-                            placeholder="Nhập mã"
-                            autocomplete="off"
-                        >
 
-                        <div class="captcha-image-box">
+ <div id="message" class="msg"></div>
 
-                            <img
-                                id="captchaImg"
-                                src=""
-                                alt="Đang tải CAPTCHA..."
-                            >
+</section>
 
-                        </div>
 
-                        <button
-                            type="button"
-                            class="captcha-reload"
-                            onclick="loadCaptcha()"
-                        >
-                            ↻ Đổi mã
-                        </button>
+<div id="result" class="result-head no-print">
 
-                    </div>
+ <button
+  class="action print-btn"
+  onclick="printA4()"
+ >
+  🖨 In A4
+ </button>
 
-                </div>
+ <button
+  class="action pdf-btn"
+  onclick="downloadPDF()"
+ >
+  📥 Tải xuống PDF
+ </button>
 
+</div>
 
-                <button
-                    type="button"
-                    id="btnSubmit"
-                    class="search-button"
-                    onclick="submitTracking()"
-                >
-                    🔎 Tra cứu vận đơn
-                </button>
 
-            </div>
+<section
+ id="result-card"
+ class="result-card no-print"
+>
 
+ <div id="screen-result"></div>
 
-            <div
-                id="errorBox"
-                class="error-box"
-            ></div>
+</section>
 
-        </section>
+</main>
 
 
-        <!-- ACTION BUTTONS -->
+<div id="print-area"></div>
 
-        <div
-            id="actionBar"
-            class="action-area no-print"
-        >
 
-            <button
-                type="button"
-                class="action-btn print-btn"
-                onclick="printA4()"
-            >
-                🖨 In A4
-            </button>
+<script>
 
-            <button
-                type="button"
-                class="action-btn pdf-btn"
-                onclick="downloadPDF()"
-            >
-                📥 Tải xuống PDF
-            </button>
+let currentCookie='';
+let currentTrackingCode='';
+let currentData=null;
 
-        </div>
 
+/* =========================
+   HÀM ESCAPE HTML
+========================= */
 
-        <!-- RESULT CONTAINER -->
+const esc=s=>
+ String(s??'-')
+ .replace(
+  /[&<>"']/g,
+  m=>({
+   '&':'&amp;',
+   '<':'&lt;',
+   '>':'&gt;',
+   '"':'&quot;',
+   "'":'&#039;'
+  }[m])
+ );
 
-        <section id="result-wrapper">
 
-            <div class="result-card">
+/* =========================
+   LÀM SẠCH NỘI DUNG STATUS
+========================= */
 
-                <div id="resultSummary"></div>
+function cleanStatus(s){
 
-                <div id="resultRoute"></div>
+ return String(s||'-')
+  .replace(
+   /\s*\(\d{4,7}\s*:[^)]+\)/g,
+   ''
+  )
+  .replace(/\s{2,}/g,' ')
+  .trim();
 
+}
 
-                <div class="section-title">
-                    Thông tin trạng thái
-                </div>
 
+/* =========================
+   LẤY ĐỊA CHỈ
+========================= */
 
-                <div class="tracking-box">
+function getAddress(item){
 
-                    <div
-                        id="trackingList"
-                        class="tracking-list"
-                    ></div>
+ return typeof item?.VI_TRI==='string'
+  && item.VI_TRI.trim()
+  ? item.VI_TRI.trim()
+  : '-';
 
-                </div>
+}
 
 
-                <!-- =================================================
-                     THÔNG TIN PHÁT
-                ================================================== -->
+/* =========================
+   LẤY TỌA ĐỘ
+========================= */
 
-                <div class="delivery-section">
+function getCoords(item){
 
-                    <div class="section-title">
-                        Thông tin phát
-                    </div>
+ let lat=
+  item?.LAT ??
+  item?.Lat ??
+  item?.latitude ??
+  item?.Latitude;
 
-                    <table class="delivery-table">
+ let lng=
+  item?.LNG ??
+  item?.Lon ??
+  item?.LONG ??
+  item?.longitude ??
+  item?.Longitude;
 
-                        <thead>
+ return lat&&lng
+  ? {lat,lng}
+  : null;
 
-                            <tr>
-                                <th>Ngày</th>
-                                <th>Bưu cục</th>
-                                <th>Bưu tá</th>
-                                <th>Chi tiết</th>
-                            </tr>
+}
 
-                        </thead>
 
-                        <tbody id="deliveryBody"></tbody>
+/* =========================
+   LẤY MÃ + TÊN BƯU CỤC
+=========================
 
-                    </table>
+Ví dụ:
 
-                </div>
+StatusText:
+Đã đến bưu cục
+(823960: BCP Thuận An - Hồ Chí Minh)
 
+=>
 
-                <!-- MAP -->
+code = 823960
+name = BCP Thuận An - Hồ Chí Minh
 
-                <div
-                    id="mapSection"
-                    class="map-section"
-                >
+========================= */
 
-                    <div class="map-card">
+function getOffice(item){
 
-                        <div class="map-header">
+ const text=String(item?.StatusText||'');
 
-                            <div
-                                id="mapTitle"
-                                class="map-header-title"
-                            ></div>
+ const m=text.match(
+  /\((\d{4,7})\s*:\s*([^)]*)\)/
+ );
 
-                            <a
-                                id="mapOpenLink"
-                                class="map-open"
-                                href="#"
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                Mở Google Maps ↗
-                            </a>
+ if(m){
 
-                        </div>
+  return {
+   code:m[1],
+   name:m[2].trim(),
+   full:m[1]+' - '+m[2].trim()
+  };
 
-                        <iframe
-                            id="mapFrame"
-                            class="map-frame"
-                            loading="lazy"
-                            referrerpolicy="no-referrer-when-downgrade"
-                            src=""
-                        ></iframe>
+ }
 
-                        <div class="map-note">
-                            Bản đồ được hiển thị theo vị trí/địa chỉ do dữ liệu tra cứu cung cấp.
-                        </div>
+ const code=
+  item?.POSCode ??
+  item?.POSCODE ??
+  item?.ToPOSCode ??
+  '';
 
-                    </div>
+ return {
+  code:String(code||'-'),
+  name:'',
+  full:String(code||'-')
+ };
 
-                </div>
+}
 
 
-                <div class="result-footer">
-                    Dữ liệu được truy xuất từ hệ thống VNPost qua cổng kết nối InVanDon247
-                </div>
+/* =========================
+   LẤY BẢN GHI PHÁT
+========================= */
 
-            </div>
+function getDeliveryRecord(data){
 
-        </section>
+ const list=
+  Array.isArray(data?.delivery)
+   ? data.delivery
+   : [];
 
-    </main>
+ if(!list.length){
+  return null;
+ }
 
+ return list.find(
+  d=>
+   /phát thành công|delivered/i.test(
+    String(
+     d?.STATUSTEXT ||
+     d?.StatusText ||
+     ''
+    )
+   )
+ )
+ || list[list.length-1];
 
-    <!-- =========================================================
-         PRINT ROOT
-    ========================================================== -->
+}
 
-    <div id="print-root"></div>
 
+/* =========================
+   PHÂN TÍCH BƯU TÁ
 
-    <script>
+Dữ liệu VNPost:
 
-        /* =========================================================
-           GLOBAL DATA
-        ========================================================= */
+NGAY_CN:
+Lái Thiêu_01 /
+ĐẶNG VŨ BÌNH DU.ĐT B.Tá:0898688486
 
-        let currentCookie = "";
-        let currentTrackingCode = "";
-        let currentData = null;
+=> tuyến:
+Lái Thiêu_01
 
+=> bưu tá:
+ĐẶNG VŨ BÌNH DU
 
-        /* =========================================================
-           HTML ESCAPE
-        ========================================================= */
+=> điện thoại:
+0898688486
+========================= */
 
-        function escapeHtml(value) {
+function getDeliveryPerson(data){
 
-            if (
-                value === null ||
-                value === undefined
-            ) {
-                return "";
-            }
+ const d=getDeliveryRecord(data);
 
-            return String(value)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
+ if(!d){
 
+  return {
+   route:'-',
+   name:'-',
+   phone:'-',
+   receiver:'-',
+   time:'-'
+  };
 
-        /* =========================================================
-           GIÁ TRỊ ĐẦU TIÊN
-        ========================================================= */
+ }
 
-        function firstValue(
-            obj,
-            fields,
-            fallback = ""
-        ) {
 
-            if (!obj) {
-                return fallback;
-            }
+ const cn=String(d.NGAY_CN||'');
 
-            for (const field of fields) {
+ let route='-';
+ let name='-';
+ let phone='-';
 
-                if (
-                    obj[field] !== undefined &&
-                    obj[field] !== null
-                ) {
 
-                    const value = obj[field];
+ const slash=cn.split('/');
 
-                    if (
-                        typeof value === "string" &&
-                        (
-                            value.trim() === "" ||
-                            value.trim() === "[]" ||
-                            value.trim() === "null"
-                        )
-                    ) {
-                        continue;
-                    }
 
-                    if (
-                        Array.isArray(value) &&
-                        value.length === 0
-                    ) {
-                        continue;
-                    }
+ if(slash.length>1){
 
-                    return value;
-                }
-            }
+  route=slash[0].trim()||'-';
 
-            return fallback;
-        }
+  const right=
+   slash
+    .slice(1)
+    .join('/')
+    .trim();
 
 
-        /* =========================================================
-           CHUẨN HÓA TEXT
-        ========================================================= */
+  const pm=
+   right.match(
+    /^(.*?)\s*\.?ĐT\s*B\.?T(?:á|A)\s*:\s*([0-9 +.-]+)/i
+   );
 
-        function cleanText(value) {
 
-            if (
-                value === null ||
-                value === undefined
-            ) {
-                return "";
-            }
+  if(pm){
 
-            if (Array.isArray(value)) {
-                return value.join(" ");
-            }
+   name=
+    pm[1]
+     .replace(/[.\s]+$/,'')
+     .trim()
+     || '-';
 
-            if (
-                typeof value === "object"
-            ) {
-                try {
-                    return JSON.stringify(value);
-                } catch {
-                    return "";
-                }
-            }
+   phone=
+    pm[2]
+     .replace(/[ .-]/g,'')
+     || '-';
 
-            return String(value).trim();
-        }
+  }
+  else{
 
+   name=right||'-';
 
-        /* =========================================================
-           DATE / TIME
-        ========================================================= */
+  }
 
-        function getDate(item) {
+ }
 
-            return cleanText(
-                firstValue(
-                    item,
-                    [
-                        "DATE",
-                        "Date",
-                        "date",
-                        "Ngay",
-                        "NGAY",
-                        "DeliveryDate",
-                        "DELIVERYDATE",
-                        "NgayPhat",
-                        "NGAYPHAT"
-                    ],
-                    ""
-                )
-            );
-        }
-
-
-        function getTime(item) {
-
-            return cleanText(
-                firstValue(
-                    item,
-                    [
-                        "TIMEDETAIL",
-                        "TimeDetail",
-                        "Time",
-                        "TIME",
-                        "time",
-                        "Gio",
-                        "GIO",
-                        "TimeDetailText"
-                    ],
-                    ""
-                )
-            );
-        }
-
-
-        /* =========================================================
-           MÃ BƯU CỤC
-        ========================================================= */
-
-        function getPostCode(item) {
-
-            return cleanText(
-                firstValue(
-                    item,
-                    [
-                        "ToPOSCode",
-                        "TOPOSCODE",
-                        "POSCode",
-                        "POSCODE",
-                        "PosCode",
-                        "posCode",
-                        "BuuCuc",
-                        "buuCuc",
-                        "BUUCUC",
-                        "PostOfficeCode",
-                        "POSTOFFICECODE",
-                        "MaBuuCuc",
-                        "MABUUCUC",
-                        "BC_CODE",
-                        "BCCode",
-                        "OfficeCode",
-                        "OFFICE_CODE"
-                    ],
-                    ""
-                )
-            );
-        }
-
-
-        /* =========================================================
-           TÊN BƯU CỤC
-        ========================================================= */
-
-        function getPostName(item) {
-
-            return cleanText(
-                firstValue(
-                    item,
-                    [
-                        "VI_TRI_TEXT",
-                        "POSName",
-                        "POSNAME",
-                        "PosName",
-                        "posName",
-                        "PostOfficeName",
-                        "POSTOFFICENAME",
-                        "BCName",
-                        "BC_NAME",
-                        "BuuCucName",
-                        "BUUCUCNAME",
-                        "OfficeName",
-                        "OFFICE_NAME",
-                        "ToPOSName",
-                        "TOPOSNAME"
-                    ],
-                    ""
-                )
-            );
-        }
-
-
-        /* =========================================================
-           STATUS
-        ========================================================= */
-
-        function getStatusText(item) {
-
-            return cleanText(
-                firstValue(
-                    item,
-                    [
-                        "STATUSTEXT",
-                        "StatusText",
-                        "statusText",
-                        "STATUS_TEXT",
-                        "Detail",
-                        "DETAIL",
-                        "NoiDung",
-                        "NOIDUNG",
-                        "Description",
-                        "DESCRIPTION",
-                        "Content",
-                        "CONTENT"
-                    ],
-                    ""
-                )
-            );
-        }
-
-
-        /* =========================================================
-           LOCATION
-        ========================================================= */
-
-        function getLocation(item) {
-
-            return cleanText(
-                firstValue(
-                    item,
-                    [
-                        "ADDRESS",
-                        "Address",
-                        "Location",
-                        "LOCATION",
-                        "VI_TRI_TEXT",
-                        "ViTri",
-                        "VITRI",
-                        "VI_TRI"
-                    ],
-                    ""
-                )
-            );
-        }
-
-
-        /* =========================================================
-           LAT / LNG
-        ========================================================= */
-
-        function getLatitude(item) {
-
-            return cleanText(
-                firstValue(
-                    item,
-                    [
-                        "Lat",
-                        "LAT",
-                        "lat",
-                        "Latitude",
-                        "LATITUDE",
-                        "latitude"
-                    ],
-                    ""
-                )
-            );
-        }
-
-
-        function getLongitude(item) {
-
-            return cleanText(
-                firstValue(
-                    item,
-                    [
-                        "Long",
-                        "LONG",
-                        "LNG",
-                        "Lng",
-                        "lng",
-                        "Longitude",
-                        "LONGITUDE",
-                        "longitude"
-                    ],
-                    ""
-                )
-            );
-        }
-
-
-        /* =========================================================
-           HỖ TRỢ QUÉT OBJECT LỒNG NHAU
-        ========================================================= */
-
-        function deepFindValue(
-            obj,
-            fields,
-            maxDepth = 4
-        ) {
-
-            if (
-                obj === null ||
-                obj === undefined ||
-                maxDepth < 0
-            ) {
-                return "";
-            }
-
-            if (
-                typeof obj !== "object"
-            ) {
-                return "";
-            }
-
-            for (const field of fields) {
-
-                if (
-                    Object.prototype.hasOwnProperty.call(
-                        obj,
-                        field
-                    )
-                ) {
-
-                    const value = cleanText(obj[field]);
-
-                    if (
-                        value &&
-                        value !== "[]" &&
-                        value !== "null"
-                    ) {
-                        return value;
-                    }
-                }
-            }
-
-            if (maxDepth === 0) {
-                return "";
-            }
-
-            for (const key of Object.keys(obj)) {
-
-                const value = obj[key];
-
-                if (
-                    value &&
-                    typeof value === "object"
-                ) {
-
-                    const result = deepFindValue(
-                        value,
-                        fields,
-                        maxDepth - 1
-                    );
-
-                    if (result) {
-                        return result;
-                    }
-                }
-            }
-
-            return "";
-        }
-
-
-        /* =========================================================
-           TÁCH THÔNG TIN BCP TỪ CHUỖI VNPOST
-           
-           Ví dụ:
-           EMI - Phát thành công
-           (823960: BCP Thuận An - Hồ Chí Minh)
-
-           => code: 823960
-           => name: BCP Thuận An
-        ========================================================== */
-
-        function parseOfficeFromText(text) {
-
-            text = cleanText(text);
-
-            if (!text) {
-                return {
-                    code: "",
-                    name: ""
-                };
-            }
-
-            let code = "";
-            let name = "";
-
-            /*
-             * Dạng:
-             * (823960: BCP Thuận An - Hồ Chí Minh)
-             */
-            let match = text.match(
-                /\(\s*(\d{4,10})\s*:\s*([^)]+)\)/i
-            );
-
-            if (match) {
-
-                code = match[1].trim();
-
-                name = match[2]
-                    .split("-")[0]
-                    .trim();
-            }
-
-
-            /*
-             * Dạng:
-             * (823960:BCP Thuận An)
-             */
-            if (!code) {
-
-                match = text.match(
-                    /\(\s*(\d{4,10})\s*:\s*([^)]+)\)/i
-                );
-
-                if (match) {
-
-                    code = match[1].trim();
-
-                    name = match[2]
-                        .split("-")[0]
-                        .trim();
-                }
-            }
-
-
-            /*
-             * Dạng:
-             * 823960 - BCP Thuận An
-             */
-            if (!code) {
-
-                match = text.match(
-                    /\b(\d{4,10})\s*[-:]\s*(BCP|Bưu cục|BUU CUC)\s+([^,;)]+)/i
-                );
-
-                if (match) {
-
-                    code = match[1].trim();
-
-                    name =
-                        (
-                            match[2] +
-                            " " +
-                            match[3]
-                        ).trim();
-                }
-            }
-
-
-            /*
-             * Dạng:
-             * BCP Thuận An - Hồ Chí Minh
-             */
-            if (!name) {
-
-                match = text.match(
-                    /\b(BCP|Bưu cục|BUU CUC)\s+([^,;)]+?)(?:\s*-\s*(?:Gia Lai|Hồ Chí Minh|TP\.?\s*HCM|Bình Dương|Đà Nẵng|Hà Nội|[A-ZÀ-Ỹ][^,;)]*))?(?=\s*\)|$|,|;)/i
-                );
-
-                if (match) {
-
-                    name =
-                        (
-                            match[1] +
-                            " " +
-                            match[2]
-                        )
-                        .trim()
-                        .replace(/\s+/g, " ");
-                }
-            }
-
-
-            return {
-                code,
-                name
-            };
-        }
-
-
-        /* =========================================================
-           LẤY THÔNG TIN BCP PHÁT
-
-           ƯU TIÊN:
-           1. info
-           2. delivery
-           3. locate
-           4. phân tích text
-        ========================================================== */
-
-        function extractDeliveryOffice(
-            info,
-            deliveryItem,
-            locateList
-        ) {
-
-            let code = "";
-            let name = "";
-
-
-            /* -----------------------------------------------------
-               1. LẤY TRỰC TIẾP TỪ INFO
-            ----------------------------------------------------- */
-
-            code = deepFindValue(
-                info,
-                [
-                    "BC_PHAT",
-                    "BCPHAT",
-                    "BC_PHAT_CODE",
-                    "BCPhatCode",
-                    "PostOfficeCode",
-                    "POSTOFFICECODE"
-                ]
-            );
-
-            name = deepFindValue(
-                info,
-                [
-                    "BC_PHAT_TEXT",
-                    "BCPhatText",
-                    "BC_PHAT_NAME",
-                    "BCPhatName",
-                    "PostOfficeName",
-                    "POSTOFFICENAME",
-                    "BC_NAME",
-                    "BCName"
-                ]
-            );
-
-
-            /* -----------------------------------------------------
-               2. LẤY TỪ DELIVERY
-            ----------------------------------------------------- */
-
-            if (!code) {
-
-                code = getPostCode(
-                    deliveryItem
-                );
-            }
-
-            if (!name) {
-
-                name = getPostName(
-                    deliveryItem
-                );
-            }
-
-
-            /* -----------------------------------------------------
-               3. QUÉT TEXT CỦA DELIVERY
-            ----------------------------------------------------- */
-
-            const deliveryTexts = [
-
-                getStatusText(deliveryItem),
-
-                cleanText(
-                    firstValue(
-                        deliveryItem,
-                        [
-                            "Description",
-                            "DESCRIPTION",
-                            "Content",
-                            "CONTENT",
-                            "Note",
-                            "NOTE"
-                        ],
-                        ""
-                    )
-                )
-
-            ];
-
-
-            for (
-                const text of deliveryTexts
-            ) {
-
-                const parsed =
-                    parseOfficeFromText(text);
-
-                if (!code && parsed.code) {
-                    code = parsed.code;
-                }
-
-                if (!name && parsed.name) {
-                    name = parsed.name;
-                }
-
-                if (
-                    code &&
-                    name
-                ) {
-                    break;
-                }
-            }
-
-
-            /* -----------------------------------------------------
-               4. QUÉT LOCATE TỪ CUỐI VỀ ĐẦU
-            ----------------------------------------------------- */
-
-            if (
-                Array.isArray(locateList)
-            ) {
-
-                for (
-                    let i =
-                        locateList.length - 1;
-                    i >= 0;
-                    i--
-                ) {
-
-                    const loc =
-                        locateList[i];
-
-                    const text =
-                        getStatusText(loc);
-
-                    const parsed =
-                        parseOfficeFromText(text);
-
-                    if (!code) {
-
-                        const locCode =
-                            getPostCode(loc);
-
-                        if (locCode) {
-                            code = locCode;
-                        }
-                    }
-
-                    if (!name) {
-
-                        const locName =
-                            getPostName(loc);
-
-                        /*
-                         * Không lấy VI_TRI nếu nó chỉ là địa chỉ.
-                         * Chỉ ưu tiên tên có dấu hiệu BCP/Bưu cục.
-                         */
-                        if (
-                            locName &&
-                            /BCP|Bưu cục|BUU CUC/i.test(
-                                locName
-                            )
-                        ) {
-                            name = locName;
-                        }
-                    }
-
-                    if (!code && parsed.code) {
-                        code = parsed.code;
-                    }
-
-                    if (!name && parsed.name) {
-                        name = parsed.name;
-                    }
-
-                    if (
-                        code &&
-                        name
-                    ) {
-                        break;
-                    }
-                }
-            }
-
-
-            /* -----------------------------------------------------
-               5. CHUẨN HÓA TÊN
-            ----------------------------------------------------- */
-
-            if (name) {
-
-                name = name
-                    .replace(
-                        /\s+/g,
-                        " "
-                    )
-                    .trim();
-
-                /*
-                 * Nếu tên bị dính tỉnh:
-                 * BCP Thuận An - Hồ Chí Minh
-                 *
-                 * thì lấy:
-                 * BCP Thuận An
-                 */
-                if (
-                    name.includes(" - ")
-                ) {
-
-                    name =
-                        name
-                            .split(" - ")[0]
-                            .trim();
-                }
-            }
-
-
-            /* -----------------------------------------------------
-               6. KẾT QUẢ
-            ----------------------------------------------------- */
-
-            if (
-                code &&
-                name
-            ) {
-
-                return {
-                    code,
-                    name,
-                    display:
-                        `${code} - ${name}`
-                };
-            }
-
-            if (name) {
-
-                return {
-                    code,
-                    name,
-                    display: name
-                };
-            }
-
-            if (code) {
-
-                return {
-                    code,
-                    name: "",
-                    display: code
-                };
-            }
-
-
-            return {
-                code: "",
-                name: "",
-                display: "-"
-            };
-        }
-
-
-        /* =========================================================
-           TRÍCH XUẤT TÊN BƯU TÁ
-        ========================================================== */
-
-        function extractPostmanName(
-            deliveryItem,
-            locateList
-        ) {
-
-            const fields = [
-
-                "PostmanName",
-                "POSTMANNAME",
-
-                "Postman",
-                "POSTMAN",
-
-                "StaffName",
-                "STAFFNAME",
-
-                "EmployeeName",
-                "EMPLOYEENAME",
-
-                "EMPLOYEE_NAME",
-
-                "NguoiGiao",
-                "NGUOI_GIAO",
-
-                "NguoiPhat",
-                "NGUOI_PHAT",
-
-                "TenBuuTa",
-                "TENBUUTA",
-
-                "BuuTaName",
-                "BUUTANAME",
-
-                "USER_NAME",
-                "UserName",
-
-                "FullName",
-                "FULLNAME"
-            ];
-
-
-            let name =
-                deepFindValue(
-                    deliveryItem,
-                    fields
-                );
-
-            if (name) {
-                return name;
-            }
-
-
-            /*
-             * Quét locate từ cuối lên
-             */
-
-            if (
-                Array.isArray(locateList)
-            ) {
-
-                for (
-                    let i =
-                        locateList.length - 1;
-                    i >= 0;
-                    i--
-                ) {
-
-                    const loc =
-                        locateList[i];
-
-                    name =
-                        deepFindValue(
-                            loc,
-                            fields
-                        );
-
-                    if (name) {
-                        return name;
-                    }
-                }
-            }
-
-
-            return "";
-        }
-
-
-        /* =========================================================
-           TRÍCH XUẤT SĐT BƯU TÁ
-        ========================================================== */
-
-        function extractPostmanPhone(
-            deliveryItem,
-            locateList
-        ) {
-
-            const fields = [
-
-                "SO_DT",
-                "SO_DIEN_THOAI",
-
-                "SoDT",
-                "SODT",
-
-                "Phone",
-                "PHONE",
-
-                "PostmanPhone",
-                "POSTMANPHONE",
-
-                "SDT",
-                "SdtBuuTa",
-
-                "Mobile",
-                "MOBILE",
-
-                "MobilePhone",
-                "MOBILEPHONE",
-
-                "TEL",
-                "Tel"
-            ];
-
-
-            let phone =
-                deepFindValue(
-                    deliveryItem,
-                    fields
-                );
-
-            if (phone) {
-                return normalizePhone(phone);
-            }
-
-
-            /*
-             * Quét locate từ cuối lên
-             */
-
-            if (
-                Array.isArray(locateList)
-            ) {
-
-                for (
-                    let i =
-                        locateList.length - 1;
-                    i >= 0;
-                    i--
-                ) {
-
-                    const loc =
-                        locateList[i];
-
-                    phone =
-                        deepFindValue(
-                            loc,
-                            fields
-                        );
-
-                    if (phone) {
-                        return normalizePhone(phone);
-                    }
-                }
-            }
-
-
-            /*
-             * Nếu API không trả riêng trường phone,
-             * thử tìm trong chuỗi trạng thái.
-             */
-
-            const texts = [];
-
-
-            if (deliveryItem) {
-
-                texts.push(
-                    getStatusText(
-                        deliveryItem
-                    )
-                );
-
-                texts.push(
-                    cleanText(
-                        firstValue(
-                            deliveryItem,
-                            [
-                                "Description",
-                                "DESCRIPTION",
-                                "Content",
-                                "CONTENT",
-                                "Note",
-                                "NOTE"
-                            ],
-                            ""
-                        )
-                    )
-                );
-            }
-
-
-            if (
-                Array.isArray(locateList)
-            ) {
-
-                for (
-                    let i =
-                        locateList.length - 1;
-                    i >= 0;
-                    i--
-                ) {
-
-                    texts.push(
-                        getStatusText(
-                            locateList[i]
-                        )
-                    );
-                }
-            }
-
-
-            for (
-                const text of texts
-            ) {
-
-                const found =
-                    extractPhoneFromText(
-                        text
-                    );
-
-                if (found) {
-                    return found;
-                }
-            }
-
-
-            return "";
-        }
-
-
-        /* =========================================================
-           CHUẨN HÓA SỐ ĐIỆN THOẠI
-        ========================================================== */
-
-        function normalizePhone(
-            phone
-        ) {
-
-            phone =
-                cleanText(phone);
-
-            if (!phone) {
-                return "";
-            }
-
-            /*
-             * Lấy chuỗi số điện thoại đầu tiên
-             */
-
-            const match =
-                phone.match(
-                    /(?:\+84|0084|0)\d[\d\s.\-]{7,14}/
-                );
-
-            if (!match) {
-                return phone;
-            }
-
-            let result =
-                match[0]
-                    .replace(
-                        /[\s.\-]/g,
-                        ""
-                    );
-
-            if (
-                result.startsWith("+84")
-            ) {
-
-                result =
-                    "0" +
-                    result.substring(3);
-            }
-
-            if (
-                result.startsWith("0084")
-            ) {
-
-                result =
-                    "0" +
-                    result.substring(4);
-            }
-
-            return result;
-        }
-
-
-        /* =========================================================
-           TÌM SĐT TRONG CHUỖI
-        ========================================================== */
-
-        function extractPhoneFromText(
-            text
-        ) {
-
-            text =
-                cleanText(text);
-
-            if (!text) {
-                return "";
-            }
-
-            const match =
-                text.match(
-                    /(?:SĐT|SDT|ĐT|Điện thoại|Dien thoai|Phone|Tel|Mobile)?\s*[:.]?\s*((?:\+84|0084|0)\d[\d\s.\-]{7,14})/i
-                );
-
-            if (!match) {
-                return "";
-            }
-
-            return normalizePhone(
-                match[1]
-            );
-        }
-
-
-        /* =========================================================
-           LẤY THÔNG TIN BƯU TÁ HOÀN CHỈNH
-        ========================================================== */
-
-        function getPostmanInfo(
-            deliveryItem,
-            locateList
-        ) {
-
-            const name =
-                extractPostmanName(
-                    deliveryItem,
-                    locateList
-                );
-
-            const phone =
-                extractPostmanPhone(
-                    deliveryItem,
-                    locateList
-                );
-
-            return {
-                name,
-                phone,
-                display:
-                    name && phone
-                        ? `${name} (${phone})`
-                        : name
-                            ? name
-                            : phone
-                                ? phone
-                                : "-"
-            };
-        }
-
-
-        /* =========================================================
-           GOOGLE MAPS
-        ========================================================== */
-
-        function makeGoogleMapsUrl(
-            item
-        ) {
-
-            const lat =
-                getLatitude(item);
-
-            const lng =
-                getLongitude(item);
-
-
-            if (
-                lat &&
-                lng &&
-                lat !== "[]" &&
-                lng !== "[]"
-            ) {
-
-                return (
-                    "https://www.google.com/maps/search/?api=1&query=" +
-                    encodeURIComponent(
-                        lat + "," + lng
-                    )
-                );
-            }
-
-
-            const address =
-                getLocation(item);
-
-            if (address) {
-
-                return (
-                    "https://www.google.com/maps/search/?api=1&query=" +
-                    encodeURIComponent(address)
-                );
-            }
-
-
-            return "https://www.google.com/maps";
-        }
-
-
-        function makeEmbedMapUrl(
-            item
-        ) {
-
-            const lat =
-                getLatitude(item);
-
-            const lng =
-                getLongitude(item);
-
-
-            if (
-                lat &&
-                lng &&
-                lat !== "[]" &&
-                lng !== "[]"
-            ) {
-
-                return (
-                    "https://www.google.com/maps?q=" +
-                    encodeURIComponent(
-                        lat + "," + lng
-                    ) +
-                    "&output=embed"
-                );
-            }
-
-
-            const address =
-                getLocation(item);
-
-            if (address) {
-
-                return (
-                    "https://www.google.com/maps?q=" +
-                    encodeURIComponent(address) +
-                    "&output=embed"
-                );
-            }
-
-
-            return "";
-        }
-
-
-        /* =========================================================
-           CAPTCHA
-        ========================================================== */
-
-        async function loadCaptcha() {
-
-            const img =
-                document.getElementById(
-                    "captchaImg"
-                );
-
-            img.src = "";
-
-            img.alt =
-                "Đang tải CAPTCHA...";
-
-
-            try {
-
-                const res =
-                    await fetch(
-                        "/api/proxy?action=get-captcha",
-                        {
-                            method: "GET",
-                            cache: "no-store"
-                        }
-                    );
-
-
-                if (!res.ok) {
-
-                    throw new Error(
-                        "HTTP " +
-                        res.status
-                    );
-                }
-
-
-                const data =
-                    await res.json();
-
-
-                if (
-                    data &&
-                    data.captchaUrl
-                ) {
-
-                    img.src =
-                        data.captchaUrl;
-
-                    currentCookie =
-                        data.cookie ||
-                        data.Cookie ||
-                        data.COOKIE ||
-                        "";
-
-                } else {
-
-                    img.alt =
-                        "Không tải được CAPTCHA";
-                }
-
-            } catch (error) {
-
-                console.error(
-                    "CAPTCHA error:",
-                    error
-                );
-
-                img.alt =
-                    "Lỗi tải CAPTCHA";
-            }
-        }
-
-
-        /* =========================================================
-           SUBMIT TRACKING
-        ========================================================== */
-
-        async function submitTracking() {
-
-            const code =
-                document
-                    .getElementById(
-                        "trackingCode"
-                    )
-                    .value
-                    .trim();
-
-
-            const captcha =
-                document
-                    .getElementById(
-                        "captchaText"
-                    )
-                    .value
-                    .trim();
-
-
-            const btn =
-                document.getElementById(
-                    "btnSubmit"
-                );
-
-
-            const errorBox =
-                document.getElementById(
-                    "errorBox"
-                );
-
-
-            errorBox.style.display =
-                "none";
-
-            errorBox.textContent =
-                "";
-
-
-            if (
-                !code ||
-                !captcha
-            ) {
-
-                showError(
-                    "Vui lòng nhập đầy đủ mã vận đơn và CAPTCHA."
-                );
-
-                return;
-            }
-
-
-            btn.disabled = true;
 
-            btn.innerText =
-                "⏳ Đang tra cứu...";
-
-
-            const controller =
-                new AbortController();
+ /* =========================
+    NGƯỜI NHẬN
+ ========================= */
 
+ const st=
+  String(
+   d.STATUSTEXT ||
+   d.StatusText ||
+   ''
+  );
 
-            const timeoutId =
-                setTimeout(
-                    () => controller.abort(),
-                    10000
-                );
-
 
-            try {
-
-                const res =
-                    await fetch(
-                        "/api/proxy?action=track",
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-                                    trackingCode:
-                                        code,
-
-                                    captchaText:
-                                        captcha,
-
-                                    cookie:
-                                        currentCookie
-                                }),
+ let receiver='-';
 
-                            signal:
-                                controller.signal
-                        }
-                    );
-
-
-                clearTimeout(
-                    timeoutId
-                );
 
+ const rm=
+  st.match(
+   /Người nhận\s*:\s*(.*)$/i
+  );
 
-                if (!res.ok) {
 
-                    throw new Error(
-                        "Máy chủ trả về HTTP " +
-                        res.status
-                    );
-                }
+ if(rm){
 
+  receiver=
+   rm[1]
+    .replace(/^\(\s*\)\s*/,'')
+    .trim()
+    .replace(/[.]+$/,'')
+    || '-';
 
-                const data =
-                    await res.json();
+ }
 
 
-                if (
-                    data &&
-                    data.info &&
-                    (
-                        data.info.ID ||
-                        data.info.id
-                    )
-                ) {
+ return {
+  route,
+  name,
+  phone,
+  receiver,
+  time:
+   d.NGAY_PHAT ||
+   d.DATE ||
+   '-'
+ };
 
-                    currentData =
-                        data;
+}
 
 
-                    currentTrackingCode =
-                        firstValue(
-                            data.info,
-                            [
-                                "ID",
-                                "id"
-                            ],
-                            code
-                        );
+/* =========================
+   TRẠNG THÁI MỚI NHẤT
+========================= */
 
+function latestStatus(data){
 
-                    renderWebResult(
-                        data
-                    );
+ const d=getDeliveryRecord(data);
 
+ if(d?.STATUSTEXT){
+  return d.STATUSTEXT;
+ }
 
-                    buildPrintDocument(
-                        data
-                    );
+ const loc=data.locate||[];
 
+ return loc.length
+  ? loc[loc.length-1].StatusText
+  : 'ĐANG VẬN CHUYỂN';
 
-                    document
-                        .getElementById(
-                            "result-wrapper"
-                        )
-                        .style.display =
-                        "block";
+}
 
 
-                    document
-                        .getElementById(
-                            "actionBar"
-                        )
-                        .style.display =
-                        "flex";
+/* =========================
+   THÔNG BÁO
+========================= */
 
+function showMsg(
+ text,
+ type='error'
+){
 
-                    setTimeout(
-                        () => {
+ const m=
+  document.getElementById('message');
 
-                            document
-                                .getElementById(
-                                    "result-wrapper"
-                                )
-                                .scrollIntoView({
-                                    behavior:
-                                        "smooth",
-                                    block:
-                                        "start"
-                                });
+ m.className='msg '+type;
+ m.textContent=text;
 
-                        },
-                        100
-                    );
+}
 
-                } else {
 
-                    showError(
-                        "CAPTCHA không đúng hoặc không tìm thấy thông tin vận đơn. Vui lòng thử lại."
-                    );
+/* =========================
+   LOAD CAPTCHA
+========================= */
 
+async function loadCaptcha(){
 
-                    document
-                        .getElementById(
-                            "captchaText"
-                        )
-                        .value = "";
+ const img=
+  document.getElementById('captchaImg');
 
+ img.removeAttribute('src');
+ img.alt='Đang tải...';
 
-                    loadCaptcha();
-                }
 
-            } catch (error) {
+ try{
 
-                if (
-                    error.name ===
-                    "AbortError"
-                ) {
+  const res=
+   await fetch(
+    '/api/proxy?action=get-captcha'
+   );
 
-                    showError(
-                        "Máy chủ VNPost phản hồi quá lâu (Timeout). Vui lòng thử lại!"
-                    );
+  const data=
+   await res.json();
 
-                } else {
 
-                    showError(
-                        "Lỗi tra cứu: " +
-                        error.message
-                    );
-                }
+  if(data.captchaUrl){
 
+   img.src=data.captchaUrl;
+   img.alt='CAPTCHA';
 
-                document
-                    .getElementById(
-                        "captchaText"
-                    )
-                    .value = "";
+   currentCookie=
+    data.cookie||'';
 
+  }
+  else{
 
-                loadCaptcha();
+   img.alt='Không tải được CAPTCHA';
 
-            } finally {
+  }
 
-                btn.disabled = false;
+ }
+ catch(e){
 
-                btn.innerText =
-                    "🔎 Tra cứu vận đơn";
-            }
-        }
+  img.alt='Lỗi kết nối';
 
+ }
 
-        /* =========================================================
-           ERROR
-        ========================================================== */
+}
 
-        function showError(
-            message
-        ) {
 
-            const box =
-                document.getElementById(
-                    "errorBox"
-                );
+/* =========================
+   TRA CỨU
+========================= */
 
-            box.textContent =
-                message;
+async function submitTracking(){
 
-            box.style.display =
-                "block";
-        }
+ const code=
+  document
+   .getElementById('trackingCode')
+   .value
+   .trim();
 
+ const captcha=
+  document
+   .getElementById('captchaText')
+   .value
+   .trim();
 
-        /* =========================================================
-           RENDER WEB RESULT
-        ========================================================== */
+ const btn=
+  document.getElementById('btnSubmit');
 
-        function renderWebResult(
-            data
-        ) {
 
-            const info =
-                data.info || {};
+ if(!code||!captcha){
 
+  showMsg(
+   'Vui lòng nhập đầy đủ mã vận đơn và CAPTCHA.'
+  );
 
-            const locate =
-                Array.isArray(data.locate)
-                    ? data.locate
-                    : [];
+  return;
 
+ }
 
-            const sortedLocate =
-                [...locate];
 
+ btn.disabled=true;
 
-            const delivery =
-                Array.isArray(data.delivery)
-                    ? data.delivery
-                    : [];
+ btn.textContent=
+  '⏳ Đang tra cứu...';
 
 
-            /* -----------------------------------------------------
-               STATUS
-            ----------------------------------------------------- */
+ try{
 
-            let statusText = "";
+  const res=
+   await fetch(
+    '/api/proxy?action=track',
+    {
+     method:'POST',
 
+     headers:{
+      'Content-Type':
+       'application/json'
+     },
 
-            if (
-                delivery.length > 0
-            ) {
+     body:
+      JSON.stringify({
+       trackingCode:code,
+       captchaText:captcha,
+       cookie:currentCookie
+      })
+    }
+   );
 
-                statusText =
-                    getStatusText(
-                        delivery[
-                            delivery.length - 1
-                        ]
-                    );
-            }
 
+  const data=
+   await res.json();
 
-            if (
-                !statusText &&
-                sortedLocate.length > 0
-            ) {
 
-                statusText =
-                    getStatusText(
-                        sortedLocate[
-                            sortedLocate.length - 1
-                        ]
-                    );
-            }
+  if(data?.info?.ID){
 
+   currentTrackingCode=
+    data.info.ID;
 
-            if (!statusText) {
+   currentData=data;
 
-                statusText =
-                    "ĐANG VẬN CHUYỂN";
-            }
 
+   renderScreen(data);
 
-            const trackingId =
-                firstValue(
-                    info,
-                    [
-                        "ID",
-                        "id"
-                    ],
-                    currentTrackingCode
-                );
+   renderPrint(data);
 
 
-            const weight =
-                firstValue(
-                    info,
-                    [
-                        "Weight",
-                        "WEIGHT",
-                        "weight"
-                    ],
-                    "0"
-                );
+   document
+    .getElementById('result-card')
+    .style.display='block';
 
 
-            /* -----------------------------------------------------
-               SUMMARY
-            ----------------------------------------------------- */
+   document
+    .getElementById('result')
+    .style.display='flex';
 
-            document
-                .getElementById(
-                    "resultSummary"
-                )
-                .innerHTML = `
 
-                    <div class="result-summary">
+   showMsg(
+    'Tra cứu thành công. Bạn có thể xem, in A4 hoặc tải PDF.',
+    'ok'
+   );
 
-                        <div class="summary-item">
 
-                            <div class="summary-label">
-                                Bưu gửi số:
-                            </div>
+   document
+    .getElementById('result-card')
+    .scrollIntoView({
+     behavior:'smooth',
+     block:'start'
+    });
 
-                            <div class="summary-value">
-                                ✉ ${escapeHtml(trackingId)}
-                            </div>
+  }
+  else{
 
-                        </div>
+   showMsg(
+    'Mã CAPTCHA không đúng hoặc không tìm thấy thông tin vận đơn.'
+   );
 
+   document
+    .getElementById('captchaText')
+    .value='';
 
-                        <div class="summary-item">
+   loadCaptcha();
 
-                            <div class="summary-label">
-                                Khối lượng (gam):
-                            </div>
+  }
 
-                            <div class="summary-value">
-                                ⚖ ${escapeHtml(weight)}
-                            </div>
+ }
+ catch(e){
 
-                        </div>
+  showMsg(
+   'Lỗi tra cứu: '+e.message
+  );
 
+ }
+ finally{
 
-                        <div class="summary-item">
+  btn.disabled=false;
 
-                            <div class="summary-label">
-                                Trạng thái:
-                            </div>
+  btn.textContent=
+   '🔎 Tra cứu vận đơn';
 
-                            <div class="summary-value summary-status">
-                                ● ${escapeHtml(statusText)}
-                            </div>
+ }
 
-                        </div>
+}
 
-                    </div>
-                `;
 
+/* =========================
+   HIỂN THỊ KẾT QUẢ TRÊN WEB
+========================= */
 
-            /* -----------------------------------------------------
-               ROUTE
-            ----------------------------------------------------- */
+function renderScreen(data){
 
-            const nuocNhan =
-                firstValue(
-                    info,
-                    [
-                        "Nuoc_Chapnhan",
-                        "NUOC_CHAPNHAN",
-                        "NuocChapNhan"
-                    ],
-                    "VN"
-                );
+ const info=
+  data.info||{};
 
+ const locate=
+  data.locate||[];
 
-            const nuocPhat =
-                firstValue(
-                    info,
-                    [
-                        "Nuoc_Phat",
-                        "NUOC_PHAT",
-                        "NuocPhat"
-                    ],
-                    "VN"
-                );
+ const delivery=
+  data.delivery?.[0]||null;
 
 
-            const bcNhan =
-                firstValue(
-                    info,
-                    [
-                        "BC_GUI",
-                        "BC_GUI_TEXT",
-                        "BCNhan",
-                        "BC_NHAN"
-                    ],
-                    "-"
-                );
+ const deliveryPerson=
+  getDeliveryPerson(data);
 
 
-            const bcPhat =
-                firstValue(
-                    info,
-                    [
-                        "BC_PHAT_TEXT",
-                        "BC_PHAT",
-                        "BCPhat",
-                        "BCPhatText"
-                    ],
-                    "-"
-                );
+ const latestOffice=
+  locate.length
+   ? getOffice(
+      locate[locate.length-1]
+     )
+   : {
+      code:'-',
+      name:'',
+      full:'-'
+     };
 
 
-            document
-                .getElementById(
-                    "resultRoute"
-                )
-                .innerHTML = `
+ const status=
+  latestStatus(data);
 
-                    <div class="result-route">
 
-                        <div class="route-item">
+ const html=`
 
-                            <span class="route-label">
-                                Nước chấp nhận:
-                            </span>
+ <div class="summary-strip">
 
-                            ${escapeHtml(nuocNhan)}
+  <div class="summary-item">
 
-                            <br>
+   <span class="summary-icon">
+    ✉
+   </span>
 
-                            <span class="route-label">
-                                Bưu cục nhận:
-                            </span>
+   <div>
+    Bưu gửi số:
+    <b>${esc(info.ID)}</b>
+   </div>
 
-                            ${escapeHtml(bcNhan)}
+  </div>
 
-                        </div>
 
+  <div class="summary-item">
 
-                        <div class="route-item">
+   <span class="summary-icon">
+    ⚖
+   </span>
 
-                            <span class="route-label">
-                                Nước phát:
-                            </span>
+   <div>
+    Khối lượng (gam):
+    <b>${esc(info.Weight||0)}</b>
+   </div>
 
-                            ${escapeHtml(nuocPhat)}
+  </div>
 
-                            <br>
 
-                            <span class="route-label">
-                                Bưu cục phát:
-                            </span>
+  <div class="summary-item">
 
-                            ${escapeHtml(bcPhat)}
+   <span class="summary-icon">
+    ●
+   </span>
 
-                        </div>
+   <div>
+    Trạng thái:
+    <span class="status">
+     ${esc(status)}
+    </span>
+   </div>
 
-                    </div>
-                `;
+  </div>
 
+ </div>
 
-            /* -----------------------------------------------------
-               HISTORY
-            ----------------------------------------------------- */
 
-            let historyHtml = "";
+ <div class="route-grid">
 
+  <div>
+   <b>Nước chấp nhận:</b>
+   ${esc(
+    info.Nuoc_Chapnhan||
+    'VN - VIETNAM'
+   )}
+  </div>
 
-            sortedLocate.forEach(
-                (
-                    item,
-                    index
-                ) => {
 
-                    const date =
-                        getDate(item);
+  <div>
+   <b>Nước phát:</b>
+   ${esc(
+    info.Nuoc_Phat||
+    'VN - VIETNAM'
+   )}
+  </div>
 
-                    const time =
-                        getTime(item);
 
-                    const status =
-                        getStatusText(item);
+  <div>
+   <b>Bưu cục nhận:</b>
+   ${esc(info.BC_GUI||'-')}
+  </div>
 
-                    const postcode =
-                        getPostCode(item);
 
-                    const location =
-                        getLocation(item);
+  <div>
+   <b>Bưu cục phát:</b>
+   ${esc(info.BC_PHAT||'-')}
+  </div>
 
-                    const latest =
-                        index ===
-                        sortedLocate.length - 1;
+ </div>
 
 
-                    historyHtml += `
+ <div class="section-title">
+  Thông tin trạng thái
+ </div>
 
-                        <div class="tracking-item ${latest ? "latest" : ""}">
 
-                            <span class="tracking-dot"></span>
+ <div class="timeline">
 
+ ${locate.map((item,i)=>{
 
-                            <div class="tracking-time">
-                                ${escapeHtml(date)}
-                                ${time
-                                    ? " " +
-                                      escapeHtml(time)
-                                    : ""}
-                            </div>
+  const address=
+   getAddress(item);
 
+  const coords=
+   getCoords(item);
 
-                            <div class="tracking-content">
+  const office=
+   getOffice(item);
 
-                                <span class="tracking-content-main">
-                                    ${escapeHtml(
-                                        status || "-"
-                                    )}
-                                </span>
 
+  return `
 
-                                ${
-                                    postcode
-                                        ? `
-                                            <span class="tracking-postcode">
-                                                Mã bưu cục:
-                                                ${escapeHtml(postcode)}
-                                            </span>
-                                          `
-                                        : ""
-                                }
+  <div
+   class="event ${
+    i===locate.length-1
+     ? 'latest'
+     : ''
+   }"
+   id="event-${i}"
+  >
 
-                            </div>
+   <span class="event-dot"></span>
 
 
-                            <div class="tracking-location">
+   <div class="event-time">
 
-                                ${
-                                    location
-                                        ? `
-                                            <span class="tracking-location-text">
-                                                ${escapeHtml(location)}
-                                            </span>
-                                          `
-                                        : "-"
-                                }
+    ${esc(
+     (item.Date||'')+
+     ' '+
+     (item.TimeDetail||'')
+    )}
 
-                            </div>
+   </div>
 
 
-                            <button
-                                type="button"
-                                class="location-button"
-                                title="Xem vị trí bưu cục"
-                                onclick="showLocation(${index})"
-                            >
-                                ➤
-                            </button>
+   <div class="event-status">
 
-                        </div>
-                    `;
-                }
-            );
+    ${esc(
+     cleanStatus(
+      item.StatusText
+     )
+    )}
 
+    <b>
+     Bưu cục:
+     ${esc(office.full)}
+    </b>
 
-            if (!historyHtml) {
+   </div>
 
-                historyHtml = `
-                    <div
-                        style="
-                            padding:20px;
-                            text-align:center;
-                            color:#888;
-                            font-size:11px;
-                        "
-                    >
-                        Không có dữ liệu lịch trình.
-                    </div>
-                `;
-            }
 
+   <div class="event-location">
 
-            document
-                .getElementById(
-                    "trackingList"
-                )
-                .innerHTML =
-                historyHtml;
+    ${esc(address)}
 
+   </div>
 
-            /* -----------------------------------------------------
-               DELIVERY
-            ----------------------------------------------------- */
 
-            renderDelivery(
-                delivery,
-                sortedLocate,
-                info
-            );
+   <button
+    class="map-btn"
+    title="Xem vị trí"
+    onclick='openMap(
+     ${JSON.stringify(address)},
+     ${JSON.stringify(
+      cleanStatus(item.StatusText)
+     )},
+     ${JSON.stringify(coords)}
+    )'
+   >
+    ➤
+   </button>
 
+  </div>
 
-            /* -----------------------------------------------------
-               MAP RESET
-            ----------------------------------------------------- */
+  `;
 
-            document
-                .getElementById(
-                    "mapSection"
-                )
-                .style.display =
-                "none";
+ }).join('')}
 
+ </div>
 
-            document
-                .getElementById(
-                    "mapFrame"
-                )
-                .src = "";
 
+ <div
+  id="map-panel"
+  class="map-panel"
+ >
 
-            document
-                .getElementById(
-                    "mapOpenLink"
-                )
-                .href = "#";
-        }
+  <div class="map-toolbar">
 
+   <b id="map-title">
+    Vị trí bưu cục
+   </b>
 
-        /* =========================================================
-           RENDER THÔNG TIN PHÁT
-        ========================================================== */
+   <a
+    id="map-link"
+    target="_blank"
+    rel="noopener"
+   >
+    Mở Google Maps ↗
+   </a>
 
-        function renderDelivery(
-            deliveryList,
-            locateList,
-            info
-        ) {
+  </div>
 
-            const body =
-                document.getElementById(
-                    "deliveryBody"
-                );
 
+  <iframe
+   id="map-frame"
+   class="map-frame"
+   loading="lazy"
+  ></iframe>
 
-            if (
-                !Array.isArray(
-                    deliveryList
-                ) ||
-                deliveryList.length === 0
-            ) {
+ </div>
 
-                body.innerHTML = `
-                    <tr>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                    </tr>
-                `;
 
-                return;
-            }
+ <div class="delivery">
 
+  <div
+   class="section-title"
+   style="margin-left:0"
+  >
+   Thông tin phát
+  </div>
 
-            body.innerHTML =
-                deliveryList
-                    .map(
-                        (
-                            item
-                        ) => {
 
-                            const date =
-                                getDate(item);
+  <div class="delivery-info">
 
-                            const time =
-                                getTime(item);
 
+   <div class="di">
 
-                            /*
-                             * BCP phát
-                             */
+    <span class="di-label">
+     Bưu cục phát thực tế
+    </span>
 
-                            const office =
-                                extractDeliveryOffice(
-                                    info,
-                                    item,
-                                    locateList
-                                );
+    <span class="di-value">
+     ${esc(latestOffice.full)}
+    </span>
 
+   </div>
 
-                            /*
-                             * Bưu tá
-                             */
 
-                            const postman =
-                                getPostmanInfo(
-                                    item,
-                                    locateList
-                                );
+   <div class="di">
 
+    <span class="di-label">
+     Bưu tá
+    </span>
 
-                            const detail =
-                                getStatusText(
-                                    item
-                                );
+    <span class="di-value">
+     ${esc(deliveryPerson.name)}
+    </span>
 
+   </div>
 
-                            const fullDateTime =
-                                [
-                                    date,
-                                    time
-                                ]
-                                .filter(Boolean)
-                                .join(" ");
 
+   <div class="di">
 
-                            return `
+    <span class="di-label">
+     Điện thoại bưu tá
+    </span>
 
-                                <tr>
+    <span class="di-value">
+     ${esc(deliveryPerson.phone)}
+    </span>
 
-                                    <td>
-                                        ${escapeHtml(
-                                            fullDateTime ||
-                                            "-"
-                                        )}
-                                    </td>
+   </div>
 
 
-                                    <td>
+   <div class="di">
 
-                                        ${
-                                            office.code
-                                                ? `
-                                                    <span class="delivery-office-code">
-                                                        ${escapeHtml(
-                                                            office.code
-                                                        )}
-                                                    </span>
-                                                  `
-                                                : ""
-                                        }
+    <span class="di-label">
+     Người nhận
+    </span>
 
+    <span class="di-value">
+     ${esc(deliveryPerson.receiver)}
+    </span>
 
-                                        ${
-                                            office.name
-                                                ? `
-                                                    <span class="delivery-office-name">
-                                                        ${escapeHtml(
-                                                            office.name
-                                                        )}
-                                                    </span>
-                                                  `
-                                                : office.display
-                                                    ? `
-                                                        <span class="delivery-office-name">
-                                                            ${escapeHtml(
-                                                                office.display
-                                                            )}
-                                                        </span>
-                                                      `
-                                                    : "-"
-                                        }
+   </div>
 
-                                    </td>
 
+  </div>
 
-                                    <td>
 
-                                        ${
-                                            postman.name
-                                                ? `
-                                                    <span class="delivery-postman-name">
-                                                        ${escapeHtml(
-                                                            postman.name
-                                                        )}
-                                                    </span>
-                                                  `
-                                                : ""
-                                        }
+  <table>
 
+   <thead>
 
-                                        ${
-                                            postman.phone
-                                                ? `
-                                                    <span class="delivery-postman-phone">
-                                                        ☎ ${escapeHtml(
-                                                            postman.phone
-                                                        )}
-                                                    </span>
-                                                  `
-                                                : ""
-                                        }
+    <tr>
 
+     <th>Ngày</th>
+     <th>Bưu cục</th>
+     <th>Bưu tá</th>
+     <th>Chi tiết</th>
 
-                                        ${
-                                            !postman.name &&
-                                            !postman.phone
-                                                ? "-"
-                                                : ""
-                                        }
+    </tr>
 
-                                    </td>
+   </thead>
 
 
-                                    <td>
-                                        ${escapeHtml(
-                                            detail || "-"
-                                        )}
-                                    </td>
+   <tbody>
 
-                                </tr>
-                            `;
-                        }
-                    )
-                    .join("");
-        }
+    ${
+     data.delivery?.length
 
+      ?
 
-        /* =========================================================
-           MAP LOCATION
-        ========================================================== */
+      data.delivery.map(d=>{
 
-        function showLocation(
-            index
-        ) {
+       const o=
+        getOffice({
+         StatusText:
+          d.STATUSTEXT||
+          d.StatusText,
 
-            if (
-                !currentData ||
-                !Array.isArray(
-                    currentData.locate
-                )
-            ) {
-                return;
-            }
+         POSCode:
+          d.POSCODE||
+          d.POSCode||
+          d.ToPOSCode
+        });
 
 
-            const item =
-                currentData.locate[
-                    index
-                ];
+       const pi=
+        getDeliveryPerson({
+         delivery:[d]
+        });
 
 
-            if (!item) {
-                return;
-            }
+       return `
 
+       <tr>
 
-            const status =
-                getStatusText(item);
+        <td>
+         ${esc(
+          d.NGAY_PHAT||
+          d.DATE||
+          d.Date||
+          '-'
+         )}
+        </td>
 
 
-            const postcode =
-                getPostCode(item);
+        <td>
+         ${esc(o.full)}
+        </td>
 
 
-            const location =
-                getLocation(item);
+        <td>
+         ${esc(pi.name)}
+         ${
+          pi.phone!=='-'
+           ? ' - '+esc(pi.phone)
+           : ''
+         }
+        </td>
 
 
-            const mapUrl =
-                makeGoogleMapsUrl(
-                    item
-                );
+        <td>
+         ${esc(
+          d.STATUSTEXT||
+          d.StatusText||
+          '-'
+         )}
+        </td>
 
+       </tr>
 
-            const embedUrl =
-                makeEmbedMapUrl(
-                    item
-                );
+       `;
 
+      }).join('')
 
-            const titleParts = [];
 
+      :
 
-            if (status) {
+      `
+      <tr>
+       <td colspan="4">-</td>
+      </tr>
+      `
+    }
 
-                titleParts.push(
-                    status
-                );
-            }
+   </tbody>
 
+  </table>
 
-            if (postcode) {
+ </div>
 
-                titleParts.push(
-                    "Mã bưu cục: " +
-                    postcode
-                );
-            }
 
+ <div class="screen-footer">
 
-            if (location) {
+  Dữ liệu được truy xuất trực tiếp từ hệ thống
+  VNPost qua cổng kết nối InVanDon247
 
-                titleParts.push(
-                    location
-                );
-            }
+ </div>
 
+ `;
 
-            document
-                .getElementById(
-                    "mapTitle"
-                )
-                .textContent =
-                titleParts.join(
-                    " • "
-                ) ||
-                "Vị trí bưu cục";
 
+ document
+  .getElementById('screen-result')
+  .innerHTML=html;
 
-            document
-                .getElementById(
-                    "mapOpenLink"
-                )
-                .href =
-                mapUrl;
+}
 
 
-            const frame =
-                document.getElementById(
-                    "mapFrame"
-                );
+/* =========================
+   GOOGLE MAPS
+========================= */
 
+function openMap(
+ address,
+ title,
+ coords
+){
 
-            frame.src =
-                embedUrl || "";
+ const panel=
+  document.getElementById(
+   'map-panel'
+  );
 
 
-            document
-                .getElementById(
-                    "mapSection"
-                )
-                .style.display =
-                "block";
+ panel.classList.add('show');
 
 
-            setTimeout(
-                () => {
+ document
+  .getElementById('map-title')
+  .textContent=
+   title+' — '+address;
 
-                    document
-                        .getElementById(
-                            "mapSection"
-                        )
-                        .scrollIntoView({
-                            behavior:
-                                "smooth",
-                            block:
-                                "start"
-                        });
 
-                },
-                100
-            );
-        }
+ const q=
+  coords
+   ? `${coords.lat},${coords.lng}`
+   : address;
 
 
-        /* =========================================================
-           BUILD PRINT DOCUMENT
-        ========================================================== */
+ const maps=
+  'https://www.google.com/maps/search/?api=1&query='+
+  encodeURIComponent(q);
 
-        function buildPrintDocument(
-            data
-        ) {
 
-            const info =
-                data.info || {};
+ document
+  .getElementById('map-link')
+  .href=maps;
 
 
-            const locate =
-                Array.isArray(
-                    data.locate
-                )
-                    ? data.locate
-                    : [];
+ document
+  .getElementById('map-frame')
+  .src=
+   'https://www.google.com/maps?q='+
+   encodeURIComponent(q)+
+   '&output=embed';
 
 
-            const delivery =
-                Array.isArray(
-                    data.delivery
-                )
-                    ? data.delivery
-                    : [];
+ panel.scrollIntoView({
+  behavior:'smooth',
+  block:'nearest'
+ });
 
+}
 
-            const trackingId =
-                firstValue(
-                    info,
-                    [
-                        "ID",
-                        "id"
-                    ],
-                    currentTrackingCode
-                );
 
+/* =========================
+   RENDER BẢN IN A4
+========================= */
 
-            const weight =
-                firstValue(
-                    info,
-                    [
-                        "Weight",
-                        "WEIGHT",
-                        "weight"
-                    ],
-                    "0"
-                );
+function renderPrint(data){
 
+ const info=
+  data.info||{};
 
-            /* -----------------------------------------------------
-               STATUS
-            ----------------------------------------------------- */
+ const locate=
+  data.locate||[];
 
-            let statusText = "";
+ const delivery=
+  data.delivery||[];
 
 
-            if (
-                delivery.length > 0
-            ) {
+ const perPage=24;
 
-                statusText =
-                    getStatusText(
-                        delivery[
-                            delivery.length - 1
-                        ]
-                    );
-            }
+ const pages=[];
 
 
-            if (
-                !statusText &&
-                locate.length > 0
-            ) {
+ for(
+  let i=0;
+  i<locate.length;
+  i+=perPage
+ ){
 
-                statusText =
-                    getStatusText(
-                        locate[
-                            locate.length - 1
-                        ]
-                    );
-            }
+  pages.push(
+   locate.slice(
+    i,
+    i+perPage
+   )
+  );
 
+ }
 
-            if (!statusText) {
 
-                statusText =
-                    "ĐANG VẬN CHUYỂN";
-            }
+ if(!pages.length){
+  pages.push([]);
+ }
 
 
-            const printDate =
-                new Date()
-                    .toLocaleString(
-                        "vi-VN"
-                    );
+ document
+  .getElementById('print-area')
+  .innerHTML=
 
+ pages.map((chunk,p)=>{
 
-            const nuocNhan =
-                firstValue(
-                    info,
-                    [
-                        "Nuoc_Chapnhan",
-                        "NUOC_CHAPNHAN",
-                        "NuocChapNhan"
-                    ],
-                    "VN"
-                );
+  const start=
+   p*perPage;
 
 
-            const nuocPhat =
-                firstValue(
-                    info,
-                    [
-                        "Nuoc_Phat",
-                        "NUOC_PHAT",
-                        "NuocPhat"
-                    ],
-                    "VN"
-                );
+  return `
 
+  <div class="print-page">
 
-            const bcNhan =
-                firstValue(
-                    info,
-                    [
-                        "BC_GUI",
-                        "BC_GUI_TEXT",
-                        "BCNhan",
-                        "BC_NHAN"
-                    ],
-                    "-"
-                );
 
+   <div class="print-header">
 
-            const bcPhat =
-                firstValue(
-                    info,
-                    [
-                        "BC_PHAT_TEXT",
-                        "BC_PHAT",
-                        "BCPhat",
-                        "BCPhatText"
-                    ],
-                    "-"
-                );
+    <div>
 
+     <img
+      class="print-logo"
+      src="https://vietnampost.vn/uploads/storage/vnp/2025/09/15/3aa71b839430793ee9e4b9f47415c54a878027ec.jpg"
+     >
 
-            /* -----------------------------------------------------
-               HISTORY
-            ----------------------------------------------------- */
+     <div class="print-brand">
 
-            let historyHtml = "";
+      InVanDon247
 
+      <small>
+       Hệ thống chuyển đổi & in phiếu bưu gửi A4 tự động
+      </small>
 
-            locate.forEach(
-                (
-                    item,
-                    index
-                ) => {
+     </div>
 
-                    const date =
-                        getDate(item);
+    </div>
 
-                    const time =
-                        getTime(item);
 
-                    const status =
-                        getStatusText(item);
+    <div class="print-meta">
 
-                    const postcode =
-                        getPostCode(item);
+     Ngày in:
+     ${esc(
+      new Date()
+       .toLocaleString('vi-VN')
+     )}
 
-                    const location =
-                        getLocation(item);
+     <br>
 
-                    const latest =
-                        index ===
-                        locate.length - 1;
+     Đơn vị:
+     <b>
+      VNPOST (Bưu điện Việt Nam)
+     </b>
 
+    </div>
 
-                    historyHtml += `
+   </div>
 
-                        <div class="a4-history-item ${latest ? "latest" : ""}">
 
-                            <div class="a4-time">
+   ${
+    p===0
 
-                                ${escapeHtml(date)}
+    ?
 
-                                ${
-                                    time
-                                        ? "<br>" +
-                                          escapeHtml(time)
-                                        : ""
-                                }
+    `
 
-                            </div>
+    <div class="print-title">
 
+     <b>
+      XÁC NHẬN HÀNH TRÌNH BƯU GỬI
+     </b>
 
-                            <div class="a4-event">
+     <div class="print-code">
+      ${esc(info.ID)}
+     </div>
 
-                                <span class="a4-event-main">
-                                    ${escapeHtml(
-                                        status || "-"
-                                    )}
-                                </span>
+    </div>
 
 
-                                ${
-                                    postcode
-                                        ? `
-                                            <span class="a4-event-postcode">
-                                                Mã bưu cục:
-                                                ${escapeHtml(postcode)}
-                                            </span>
-                                          `
-                                        : ""
-                                }
+    <div class="print-summary">
 
 
-                                ${
-                                    location
-                                        ? `
-                                            <span class="a4-location">
-                                                ${escapeHtml(location)}
-                                            </span>
-                                          `
-                                        : ""
-                                }
+     <div class="pbox">
 
-                            </div>
+      <h4>
+       THÔNG TIN TỔNG QUAN
+      </h4>
 
-                        </div>
-                    `;
-                }
-            );
 
+      <div class="prow">
 
-            /* -----------------------------------------------------
-               DELIVERY TABLE A4
-            ----------------------------------------------------- */
+       <span>
+        Mã bưu gửi:
+       </span>
 
-            let deliveryHtml = "";
+       <b>
+        ${esc(info.ID)}
+       </b>
 
+      </div>
 
-            if (
-                delivery.length > 0
-            ) {
 
-                deliveryHtml =
-                    delivery
-                        .map(
-                            (
-                                item
-                            ) => {
+      <div class="prow">
 
-                                const date =
-                                    getDate(item);
+       <span>
+        Khối lượng:
+       </span>
 
-                                const time =
-                                    getTime(item);
+       <b>
+        ${esc(info.Weight||0)}
+        gram
+       </b>
 
+      </div>
 
-                                const office =
-                                    extractDeliveryOffice(
-                                        info,
-                                        item,
-                                        locate
-                                    );
 
+      <div class="prow">
 
-                                const postman =
-                                    getPostmanInfo(
-                                        item,
-                                        locate
-                                    );
+       <span>
+        Trạng thái:
+       </span>
 
+       <b>
+        ${esc(
+         latestStatus(data)
+        )}
+       </b>
 
-                                const detail =
-                                    getStatusText(
-                                        item
-                                    );
+      </div>
 
+     </div>
 
-                                return `
 
-                                    <tr>
+     <div class="pbox">
 
-                                        <td>
-                                            ${escapeHtml(
-                                                [
-                                                    date,
-                                                    time
-                                                ]
-                                                .filter(Boolean)
-                                                .join(" ") ||
-                                                "-"
-                                            )}
-                                        </td>
+      <h4>
+       TUYẾN VẬN CHUYỂN
+      </h4>
 
 
-                                        <td>
+      <div class="prow">
 
-                                            ${
-                                                office.code
-                                                    ? `
-                                                        <strong>
-                                                            ${escapeHtml(
-                                                                office.code
-                                                            )}
-                                                        </strong>
-                                                      `
-                                                    : ""
-                                            }
+       <span>
+        Bưu cục gửi:
+       </span>
 
+       <b>
+        ${esc(
+         info.BC_GUI||'-'
+        )}
+       </b>
 
-                                            ${
-                                                office.name
-                                                    ? `
-                                                        <br>
-                                                        ${escapeHtml(
-                                                            office.name
-                                                        )}
-                                                      `
-                                                    : office.display
-                                                        ? escapeHtml(
-                                                            office.display
-                                                        )
-                                                        : "-"
-                                            }
+      </div>
 
-                                        </td>
 
+      <div class="prow">
 
-                                        <td>
+       <span>
+        Bưu cục phát:
+       </span>
 
-                                            ${
-                                                postman.name
-                                                    ? `
-                                                        ${escapeHtml(
-                                                            postman.name
-                                                        )}
-                                                      `
-                                                    : ""
-                                            }
+       <b>
+        ${esc(
+         info.BC_PHAT||'-'
+        )}
+       </b>
 
+      </div>
 
-                                            ${
-                                                postman.phone
-                                                    ? `
-                                                        ${
-                                                            postman.name
-                                                                ? "<br>"
-                                                                : ""
-                                                        }
-                                                        <span style="color:#0068b7;">
-                                                            ☎ ${escapeHtml(
-                                                                postman.phone
-                                                            )}
-                                                        </span>
-                                                      `
-                                                    : ""
-                                            }
 
+      <div class="prow">
 
-                                            ${
-                                                !postman.name &&
-                                                !postman.phone
-                                                    ? "-"
-                                                    : ""
-                                            }
+       <span>
+        Nước gửi/nhận:
+       </span>
 
-                                        </td>
+       <b>
+        ${esc(
+         info.Nuoc_Chapnhan||'VN'
+        )}
 
+        →
 
-                                        <td>
-                                            ${escapeHtml(
-                                                detail || "-"
-                                            )}
-                                        </td>
+        ${esc(
+         info.Nuoc_Phat||'VN'
+        )}
+       </b>
 
-                                    </tr>
-                                `;
-                            }
-                        )
-                        .join("");
+      </div>
 
-            } else {
 
-                deliveryHtml = `
-                    <tr>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                    </tr>
-                `;
-            }
+      <div class="prow">
 
+       <span>
+        BC hiện tại:
+       </span>
 
-            /* -----------------------------------------------------
-               PRINT HTML
-            ----------------------------------------------------- */
+       <b>
+        ${esc(
+         locate.length
+          ? getOffice(
+             locate[
+              locate.length-1
+             ]
+            ).full
+          : '-'
+        )}
+       </b>
 
-            document
-                .getElementById(
-                    "print-root"
-                )
-                .innerHTML = `
+      </div>
 
-                    <div class="a4-document">
+     </div>
 
 
-                        <div class="a4-header">
+    </div>
 
-                            <div>
+    `
 
-                                <div class="a4-brand">
-                                    InVanDon247
-                                </div>
+    : ''
 
-                                <div class="a4-brand-sub">
-                                    Hệ thống chuyển đổi & in phiếu bưu gửi A4
-                                </div>
+   }
 
-                            </div>
 
+   <div class="print-history-title">
 
-                            <div class="a4-meta">
+    CHI TIẾT LỊCH SỬ HÀNH TRÌNH
+    (${locate.length} CÔNG ĐOẠN)
 
-                                Ngày in:
-                                ${escapeHtml(printDate)}
+   </div>
 
-                                <br>
 
-                                Đơn vị:
-                                <strong>
-                                    VNPOST - Bưu điện Việt Nam
-                                </strong>
+   <div class="print-columns">
 
-                            </div>
+    ${
+     chunk.map((item,j)=>`
 
-                        </div>
+     <div
+      class="p-event ${
+       start+j===locate.length-1
+        ? 'latest'
+        : ''
+      }"
+     >
 
+      <div class="p-time">
 
-                        <div class="a4-title">
+       ${esc(
+        (item.Date||'')+
+        ' '+
+        (item.TimeDetail||'')
+       )}
 
-                            <div class="a4-title-main">
-                                XÁC NHẬN HÀNH TRÌNH BƯU GỬI
-                            </div>
+      </div>
 
-                            <div class="a4-tracking">
-                                ${escapeHtml(trackingId)}
-                            </div>
 
-                        </div>
+      <div class="p-status">
 
+       ${esc(
+        cleanStatus(
+         item.StatusText
+        )
+       )}
 
-                        <div class="a4-summary">
+      </div>
 
 
-                            <div class="a4-box">
+      <div class="p-meta">
 
-                                <div class="a4-box-title">
-                                    Thông tin tổng quan
-                                </div>
+       Bưu cục:
 
+       <b>
+        ${esc(
+         getOffice(item).full
+        )}
+       </b>
 
-                                <div class="a4-line">
+      </div>
 
-                                    <span class="a4-label">
-                                        Mã bưu gửi:
-                                    </span>
 
-                                    <span class="a4-value">
-                                        ${escapeHtml(trackingId)}
-                                    </span>
+      <div class="p-address">
 
-                                </div>
+       ${esc(
+        getAddress(item)
+       )}
 
+      </div>
 
-                                <div class="a4-line">
+     </div>
 
-                                    <span class="a4-label">
-                                        Khối lượng:
-                                    </span>
+     `).join('')
+    }
 
-                                    <span class="a4-value">
-                                        ${escapeHtml(weight)} g
-                                    </span>
+   </div>
 
-                                </div>
 
+   ${
+    p===pages.length-1
 
-                                <div class="a4-line">
+    ?
 
-                                    <span class="a4-label">
-                                        Trạng thái:
-                                    </span>
+    `
 
-                                    <span class="a4-status">
-                                        ${escapeHtml(statusText)}
-                                    </span>
+    <div class="print-delivery">
 
-                                </div>
+     <h4>
+      THÔNG TIN PHÁT
+     </h4>
 
-                            </div>
 
+     <div class="prow">
 
-                            <div class="a4-box">
+      <span>
+       Bưu cục phát:
+      </span>
 
-                                <div class="a4-box-title">
-                                    Tuyến vận chuyển
-                                </div>
+      <b>
+       ${esc(
+        locate.length
+         ? getOffice(
+            locate[
+             locate.length-1
+            ]
+           ).full
+         : '-'
+       )}
+      </b>
 
+     </div>
 
-                                <div class="a4-line">
 
-                                    <span class="a4-label">
-                                        Bưu cục nhận:
-                                    </span>
+     <div class="prow">
 
-                                    <span class="a4-value">
-                                        ${escapeHtml(bcNhan)}
-                                    </span>
+      <span>
+       Bưu tá:
+      </span>
 
-                                </div>
+      <b>
+       ${esc(
+        getDeliveryPerson(data).name
+       )}
 
+       —
 
-                                <div class="a4-line">
+       ${esc(
+        getDeliveryPerson(data).phone
+       )}
+      </b>
 
-                                    <span class="a4-label">
-                                        Bưu cục phát:
-                                    </span>
+     </div>
 
-                                    <span class="a4-value">
-                                        ${escapeHtml(bcPhat)}
-                                    </span>
 
-                                </div>
+     <div class="prow">
 
+      <span>
+       Người nhận:
+      </span>
 
-                                <div class="a4-line">
+      <b>
+       ${esc(
+        getDeliveryPerson(data).receiver
+       )}
+      </b>
 
-                                    <span class="a4-label">
-                                        Nước gửi/nhận:
-                                    </span>
+     </div>
 
-                                    <span class="a4-value">
-                                        ${escapeHtml(nuocNhan)}
-                                        →
-                                        ${escapeHtml(nuocPhat)}
-                                    </span>
 
-                                </div>
+     <table>
 
-                            </div>
+      <thead>
 
-                        </div>
+       <tr>
 
+        <th>Ngày</th>
+        <th>Bưu cục</th>
+        <th>Bưu tá</th>
+        <th>Chi tiết</th>
 
-                        <div class="a4-section-title">
-                            Chi tiết lịch sử hành trình
-                            (${locate.length} công đoạn)
-                        </div>
+       </tr>
 
+      </thead>
 
-                        <div class="a4-history">
-                            ${historyHtml}
-                        </div>
 
+      <tbody>
 
-                        <div class="a4-section-title">
-                            Thông tin phát
-                        </div>
+       ${
+        delivery.map(d=>{
 
+         const o=
+          getOffice({
+           StatusText:
+            d.STATUSTEXT||
+            d.StatusText,
 
-                        <table class="a4-delivery-table">
+           POSCode:
+            d.POSCODE||
+            d.POSCode||
+            d.ToPOSCode
+          });
 
-                            <thead>
 
-                                <tr>
-                                    <th>Ngày</th>
-                                    <th>Bưu cục</th>
-                                    <th>Bưu tá</th>
-                                    <th>Chi tiết</th>
-                                </tr>
+         const pi=
+          getDeliveryPerson({
+           delivery:[d]
+          });
 
-                            </thead>
 
+         return `
 
-                            <tbody>
-                                ${deliveryHtml}
-                            </tbody>
+         <tr>
 
-                        </table>
+          <td>
+           ${esc(
+            d.NGAY_PHAT||
+            d.DATE||
+            d.Date||
+            '-'
+           )}
+          </td>
 
 
-                        <div class="a4-footer">
+          <td>
+           ${esc(o.full)}
+          </td>
 
-                            Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost
-                            qua cổng kết nối InVanDon247
-                            • Phiếu được tạo tự động
 
-                        </div>
+          <td>
+           ${esc(pi.name)}
 
-                    </div>
-                `;
-        }
+           ${
+            pi.phone!=='-'
+             ? ' - '+esc(pi.phone)
+             : ''
+           }
 
+          </td>
 
-        /* =========================================================
-           PRINT A4
-        ========================================================== */
 
-        function printA4() {
+          <td>
+           ${esc(
+            d.STATUSTEXT||
+            d.StatusText||
+            '-'
+           )}
+          </td>
 
-            if (!currentData) {
+         </tr>
 
-                alert(
-                    "Vui lòng tra cứu vận đơn trước."
-                );
+         `;
 
-                return;
-            }
+        }).join('')
+       }
 
+      </tbody>
 
-            buildPrintDocument(
-                currentData
-            );
+     </table>
 
+    </div>
 
-            setTimeout(
-                () => {
-                    window.print();
-                },
-                100
-            );
-        }
+    `
 
+    : ''
 
-        /* =========================================================
-           DOWNLOAD PDF
-        ========================================================== */
+   }
 
-        async function downloadPDF() {
 
-            if (!currentData) {
+   <div class="print-footer">
 
-                alert(
-                    "Vui lòng tra cứu vận đơn trước."
-                );
+    Dữ liệu được truy xuất từ hệ thống VNPost
+    qua InVanDon247
 
-                return;
-            }
+    • Trang ${p+1}/${pages.length}
 
+   </div>
 
-            if (
-                typeof html2pdf ===
-                "undefined"
-            ) {
 
-                alert(
-                    "Thư viện tạo PDF chưa tải xong. Vui lòng thử lại."
-                );
+  </div>
 
-                return;
-            }
+  `;
 
+ }).join('');
 
-            buildPrintDocument(
-                currentData
-            );
+}
 
 
-            const element =
-                document.querySelector(
-                    "#print-root .a4-document"
-                );
+/* =========================
+   IN A4
+========================= */
 
+function printA4(){
 
-            if (!element) {
+ if(!currentData){
+  return;
+ }
 
-                alert(
-                    "Không tạo được nội dung PDF."
-                );
+ window.print();
 
-                return;
-            }
+}
 
 
-            const fileCode =
-                currentTrackingCode
-                    .replace(
-                        /[^a-zA-Z0-9_-]/g,
-                        "_"
-                    );
+/* =========================
+   TẢI PDF
+========================= */
 
+async function downloadPDF(){
 
-            const options = {
+ if(!currentData){
+  return;
+ }
 
-                margin: [
-                    8,
-                    10,
-                    8,
-                    10
-                ],
 
-                filename:
-                    "VanDon_VNPost_" +
-                    fileCode +
-                    ".pdf",
+ const el=
+  document.getElementById(
+   'print-area'
+  );
 
-                image: {
-                    type: "jpeg",
-                    quality: 0.82
-                },
 
-                html2canvas: {
-                    scale: 1.5,
-                    useCORS: true,
-                    backgroundColor:
-                        "#ffffff",
-                    logging: false
-                },
+ const old=
+  el.style.display;
 
-                jsPDF: {
-                    unit: "mm",
-                    format: "a4",
-                    orientation:
-                        "portrait",
-                    compress: true
-                },
 
-                pagebreak: {
-                    mode: [
-                        "css",
-                        "legacy"
-                    ],
+ el.style.display='block';
 
-                    avoid: [
-                        ".a4-history-item",
-                        ".a4-box",
-                        ".a4-delivery-table"
-                    ]
-                }
-            };
 
+ try{
 
-            const pdfButton =
-                document.querySelector(
-                    ".pdf-btn"
-                );
+  const opt={
 
+   margin:0,
 
-            try {
+   filename:
+    `VanDon_VNPost_${
+     currentTrackingCode||
+     '247'
+    }.pdf`,
 
-                if (pdfButton) {
+   image:{
+    type:'jpeg',
+    quality:.78
+   },
 
-                    pdfButton.disabled =
-                        true;
+   html2canvas:{
+    scale:1.25,
+    useCORS:true,
+    backgroundColor:'#fff',
+    logging:false
+   },
 
-                    pdfButton.innerText =
-                        "⏳ Đang tạo PDF...";
-                }
+   jsPDF:{
+    unit:'mm',
+    format:'a4',
+    orientation:'portrait'
+   },
 
+   pagebreak:{
+    mode:[
+     'css',
+     'legacy'
+    ],
+    avoid:[
+     '.p-event'
+    ]
+   }
 
-                await html2pdf()
-                    .set(options)
-                    .from(element)
-                    .save();
+  };
 
-            } catch (error) {
 
-                console.error(
-                    "PDF error:",
-                    error
-                );
+  await html2pdf()
+   .set(opt)
+   .from(el)
+   .save();
 
 
-                alert(
-                    "Không thể tạo PDF: " +
-                    error.message
-                );
+ }
+ finally{
 
-            } finally {
+  el.style.display=old;
 
-                if (pdfButton) {
+ }
 
-                    pdfButton.disabled =
-                        false;
+}
 
-                    pdfButton.innerText =
-                        "📥 Tải xuống PDF";
-                }
-            }
-        }
 
+/* =========================
+   KHỞI ĐỘNG
+========================= */
 
-        /* =========================================================
-           ENTER KEY
-        ========================================================== */
+window.addEventListener(
+ 'load',
+ loadCaptcha
+);
 
-        document
-            .getElementById(
-                "captchaText"
-            )
-            .addEventListener(
-                "keydown",
-                function(event) {
-
-                    if (
-                        event.key ===
-                        "Enter"
-                    ) {
-
-                        submitTracking();
-                    }
-
-                }
-            );
-
-
-        document
-            .getElementById(
-                "trackingCode"
-            )
-            .addEventListener(
-                "keydown",
-                function(event) {
-
-                    if (
-                        event.key ===
-                        "Enter"
-                    ) {
-
-                        document
-                            .getElementById(
-                                "captchaText"
-                            )
-                            .focus();
-                    }
-
-                }
-            );
-
-
-        /* =========================================================
-           LOAD
-        ========================================================== */
-
-        window.addEventListener(
-            "load",
-            function() {
-
-                loadCaptcha();
-
-            }
-        );
-
-    </script>
+</script>
 
 </body>
 </html>

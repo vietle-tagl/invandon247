@@ -322,8 +322,14 @@ body{
 .parcel-grid{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
-  gap:10px 16px;
+  gap:12px 16px;
   font-size:12px
+}
+
+.parcel-col{
+  display:flex;
+  flex-direction:column;
+  gap:8px
 }
 
 .parcel-item{
@@ -354,6 +360,12 @@ body{
   color:var(--green);
   font-weight:700;
   margin-top:2px;
+}
+
+.sub-detail{
+  font-size:11.5px;
+  color:#555;
+  padding-left:24px
 }
 
 .section-title{
@@ -436,7 +448,6 @@ body{
   line-height:1.35
 }
 
-/* Icon Mũi tên chỉ đường cho trạng thái chi tiết */
 .map-btn{
   width:28px;
   height:28px;
@@ -503,7 +514,7 @@ body{
   width:33%
 }
 
-/* ================= MAP (ĐẶT Ở DƯỚI CÙNG) ================= */
+/* ================= MAP (DƯỚI CÙNG) ================= */
 
 .map-panel{
   display:none;
@@ -1136,7 +1147,6 @@ function latestStatus(data){
   return loc.length ? String(loc[loc.length - 1].StatusText || '-').trim() : 'ĐANG VẬN CHUYỂN';
 }
 
-/* ĐỊNH DẠNG TRẠNG THÁI VÀ TÁCH DÒNG NGƯỜI NHẬN */
 function formatStatusHTML(statusStr) {
   const parts = statusStr.split(/\s*[\.\-]\s*Người nhận\s*:\s*/i);
   if (parts.length > 1) {
@@ -1262,24 +1272,47 @@ function renderScreen(data){
   const delivery = data.delivery || [];
   const status = latestStatus(data);
 
+  // Lấy thông tin bưu cục nhận và bưu cục phát
+  const fromOffice = info.FromPOSCode ? `${info.FromPOSCode}${info.FromPOSName ? ' - ' + info.FromPOSName : ''}` : (info.BC_NHAN || '-');
+  const toOffice = info.ToPOSCode ? `${info.ToPOSCode}${info.ToPOSName ? ' - ' + info.ToPOSName : ''}` : (info.BC_PHAT || '-');
+
   const html = `
   <div class="parcel-box">
     <div class="parcel-box-header">
       📌 CHI TIẾT BƯU GỬI
     </div>
     <div class="parcel-grid">
-      <div class="parcel-item">
-        <span class="icon">✉</span>
-        <span>Mã vận đơn: <b>${esc(info.ID)}</b></span>
+
+      <!-- Cột 1: Mã vận đơn & Bưu cục nhận -->
+      <div class="parcel-col">
+        <div class="parcel-item">
+          <span class="icon">✉</span>
+          <span>Mã vận đơn: <b>${esc(info.ID)}</b></span>
+        </div>
+        <div class="sub-detail">
+          Bưu cục nhận: <b>${esc(fromOffice)}</b>
+        </div>
       </div>
-      <div class="parcel-item">
-        <span class="icon">⚖</span>
-        <span>Khối lượng: <b>${esc(info.Weight || 0)} gam</b></span>
+
+      <!-- Cột 2: Khối lượng & Bưu cục phát -->
+      <div class="parcel-col">
+        <div class="parcel-item">
+          <span class="icon">⚖</span>
+          <span>Khối lượng: <b>${esc(info.Weight || 0)} gam</b></span>
+        </div>
+        <div class="sub-detail">
+          Bưu cục phát: <b>${esc(toOffice)}</b>
+        </div>
       </div>
-      <div class="parcel-item">
-        <span class="icon">📍</span>
-        <span>Trạng thái: ${formatStatusHTML(status)}</span>
+
+      <!-- Cột 3: Trạng thái -->
+      <div class="parcel-col">
+        <div class="parcel-item">
+          <span class="icon">📍</span>
+          <span>Trạng thái: ${formatStatusHTML(status)}</span>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -1308,7 +1341,6 @@ function renderScreen(data){
             ${esc(address)}
           </div>
 
-          <!-- Mũi tên xanh định vị -->
           <button
             class="map-btn"
             title="Xem vị trí trên bản đồ"
@@ -1376,7 +1408,6 @@ function renderScreen(data){
   document.getElementById('screen-result').innerHTML = html;
 }
 
-/* GOOGLE MAPS - MỞ VÀ CUỘN XUỐNG DƯỚI CÙNG */
 function openMap(address, title, coords){
   const panel = document.getElementById('map-panel');
   panel.classList.add('show');
@@ -1410,6 +1441,10 @@ function renderPrint(data){
   const info = data.info || {};
   const locate = data.locate || [];
   const delivery = data.delivery || [];
+
+  const fromOffice = info.FromPOSCode ? `${info.FromPOSCode}${info.FromPOSName ? ' - ' + info.FromPOSName : ''}` : (info.BC_NHAN || '-');
+  const toOffice = info.ToPOSCode ? `${info.ToPOSCode}${info.ToPOSName ? ' - ' + info.ToPOSName : ''}` : (info.BC_PHAT || '-');
+
   const perPage = 24;
   const pages = [];
 
@@ -1441,8 +1476,14 @@ function renderPrint(data){
             <div class="print-parcel-box">
               <div class="print-parcel-title">✉ CHI TIẾT BƯU GỬI</div>
               <div class="print-parcel-grid">
-                <div>Mã vận đơn: <b>${esc(info.ID)}</b></div>
-                <div>Khối lượng: <b>${esc(info.Weight || 0)} gram</b></div>
+                <div>
+                  Mã vận đơn: <b>${esc(info.ID)}</b><br>
+                  <span style="color:#555">Bưu cục nhận: ${esc(fromOffice)}</span>
+                </div>
+                <div>
+                  Khối lượng: <b>${esc(info.Weight || 0)} gram</b><br>
+                  <span style="color:#555">Bưu cục phát: ${esc(toOffice)}</span>
+                </div>
                 <div>Trạng thái: <b style="color:var(--green)">${esc(latestStatus(data))}</b></div>
               </div>
             </div>

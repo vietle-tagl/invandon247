@@ -525,16 +525,22 @@
 
         .delivery-table th:nth-child(1),
         .delivery-table td:nth-child(1) {
-            width: 22%;
+            width: 18%;
         }
 
         .delivery-table th:nth-child(2),
         .delivery-table td:nth-child(2) {
-            width: 28%;
+            width: 25%;
         }
 
-        .delivery-table td:last-child {
-            width: 50%;
+        .delivery-table th:nth-child(3),
+        .delivery-table td:nth-child(3) {
+            width: 22%;
+        }
+
+        .delivery-table th:nth-child(4),
+        .delivery-table td:nth-child(4) {
+            width: 35%;
         }
 
         /* =========================================================
@@ -823,17 +829,10 @@
             vertical-align: top;
         }
 
-        .a4-delivery-table th:nth-child(1) {
-            width: 25%;
-        }
-
-        .a4-delivery-table th:nth-child(2) {
-            width: 28%;
-        }
-
-        .a4-delivery-table th:nth-child(3) {
-            width: 47%;
-        }
+        .a4-delivery-table th:nth-child(1) { width: 18%; }
+        .a4-delivery-table th:nth-child(2) { width: 25%; }
+        .a4-delivery-table th:nth-child(3) { width: 22%; }
+        .a4-delivery-table th:nth-child(4) { width: 35%; }
 
         .a4-footer {
             border-top: 1px solid #d5dbe0;
@@ -1011,6 +1010,7 @@
                             <tr>
                                 <th>Ngày</th>
                                 <th>Bưu cục</th>
+                                <th>Bưu tá</th>
                                 <th>Chi tiết</th>
                             </tr>
                         </thead>
@@ -1108,6 +1108,16 @@
             ], "");
         }
 
+        function getPostmanInfo(item) {
+            const name = firstValue(item, ["Postman", "PostmanName", "POSTMAN", "StaffName", "NguoiGiao", "NGUOI_GIAO"], "");
+            const phone = firstValue(item, ["SO_DT", "SoDT", "Phone", "PHONE", "PostmanPhone"], "");
+            
+            if (name && phone) return `${name} (${phone})`;
+            if (name) return name;
+            if (phone) return phone;
+            return "-";
+        }
+
         function getLatitude(item) {
             return firstValue(item, ["Lat", "LAT", "lat", "Latitude", "LATITUDE", "latitude"], "");
         }
@@ -1116,34 +1126,43 @@
             return firstValue(item, ["Long", "LNG", "Lng", "lng", "Longitude", "LONGITUDE", "longitude"], "");
         }
 
-        /* HÀM TRÍCH XUẤT THÔNG TIN BƯU CỤC PHÁT CHUẨN XÁC THEO DỮ LIỆU VNPOST */
+        /* HÀM TRÍCH XUẤT BƯU CỤC PHÁT ƯU TIÊN MÃ BƯU CỤC HOẶC TÊN BƯU CỤC TRONG LOCATE */
         function extractDeliveryOffice(deliveryItem, locateList) {
-            let office = getPostName(deliveryItem);
-            let postcode = getPostCode(deliveryItem);
+            let code = getPostCode(deliveryItem);
+            let name = getPostName(deliveryItem);
 
-            if (!office || office === "-") {
-                office = postcode;
-            }
-
-            // Nếu phần delivery bị trống hoàn toàn, truy vết từ dòng lịch sử mới nhất
-            if ((!office || office === "-") && Array.isArray(locateList) && locateList.length > 0) {
-                const lastLocate = locateList[locateList.length - 1];
-                const locateCode = getPostCode(lastLocate);
-                const locateStatus = getStatusText(lastLocate);
-
-                if (locateCode) {
-                    office = locateCode;
-                }
-                
-                if ((!office || office === "-") && locateStatus) {
-                    const match = locateStatus.match(/\(([^)]+)\)/);
-                    if (match && match[1]) {
-                        office = match[1];
+            // Tìm trong locateList dòng tương ứng với mã bưu cục phát để lấy tên đầy đủ
+            if (code && Array.isArray(locateList)) {
+                const matchedLocate = locateList.slice().reverse().find(loc => getPostCode(loc) === code);
+                if (matchedLocate) {
+                    const matchedName = getPostName(matchedLocate);
+                    if (matchedName) {
+                        return `${code} - ${matchedName}`;
                     }
                 }
             }
 
-            return office || "-";
+            if (code && name && name !== "-") {
+                return `${code} - ${name}`;
+            }
+            if (code) {
+                return code;
+            }
+            if (name && name !== "-") {
+                return name;
+            }
+
+            // Nếu không có, tra lịch sử dòng mới nhất
+            if (Array.isArray(locateList) && locateList.length > 0) {
+                const lastLocate = locateList[locateList.length - 1];
+                const lastCode = getPostCode(lastLocate);
+                const lastName = getPostName(lastLocate);
+                if (lastCode && lastName) return `${lastCode} - ${lastName}`;
+                if (lastCode) return lastCode;
+                if (lastName) return lastName;
+            }
+
+            return "-";
         }
 
         function makeGoogleMapsUrl(item) {
@@ -1367,7 +1386,7 @@
             const body = document.getElementById("deliveryBody");
 
             if (!Array.isArray(deliveryList) || deliveryList.length === 0) {
-                body.innerHTML = `<tr><td>-</td><td>-</td><td>-</td></tr>`;
+                body.innerHTML = `<tr><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
                 return;
             }
 
@@ -1375,6 +1394,7 @@
                 const date = getDate(item);
                 const time = getTime(item);
                 const office = extractDeliveryOffice(item, locateList);
+                const postman = getPostmanInfo(item);
                 const detail = getStatusText(item);
                 const fullDateTime = [date, time].filter(Boolean).join(" ");
 
@@ -1382,6 +1402,7 @@
                     <tr>
                         <td>${escapeHtml(fullDateTime || "-")}</td>
                         <td>${escapeHtml(office)}</td>
+                        <td>${escapeHtml(postman)}</td>
                         <td>${escapeHtml(detail || "-")}</td>
                     </tr>
                 `;
@@ -1464,18 +1485,20 @@
                     const date = getDate(item);
                     const time = getTime(item);
                     const office = extractDeliveryOffice(item, locate);
+                    const postman = getPostmanInfo(item);
                     const detail = getStatusText(item);
 
                     return `
                         <tr>
                             <td>${escapeHtml([date, time].filter(Boolean).join(" ") || "-")}</td>
                             <td>${escapeHtml(office)}</td>
+                            <td>${escapeHtml(postman)}</td>
                             <td>${escapeHtml(detail || "-")}</td>
                         </tr>
                     `;
                 }).join("");
             } else {
-                deliveryHtml = `<tr><td>-</td><td>-</td><td>-</td></tr>`;
+                deliveryHtml = `<tr><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
             }
 
             document.getElementById("print-root").innerHTML = `
@@ -1520,6 +1543,7 @@
                             <tr>
                                 <th>Ngày</th>
                                 <th>Bưu cục</th>
+                                <th>Bưu tá</th>
                                 <th>Chi tiết</th>
                             </tr>
                         </thead>

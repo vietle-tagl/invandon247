@@ -36,21 +36,27 @@ body{
 
 
 /* =========================================================
-   HEADER
+   HEADER (CĂN THẲNG LỀ VỚI CONTAINER 1100PX)
 ========================================================= */
 
 .topbar{
   height:68px;
   background:#fff;
   border-bottom:1px solid #ddd;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 max(24px,calc((100% - 1100px)/2));
   position:sticky;
   top:0;
   z-index:20;
   box-shadow:0 2px 8px rgba(0,0,0,.05)
+}
+
+.topbar-inner{
+  max-width:1100px;
+  margin:0 auto;
+  padding:0 14px;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between
 }
 
 .brand{
@@ -106,7 +112,7 @@ body{
 
 
 /* =========================================================
-   PAGE
+   PAGE CONTAINER
 ========================================================= */
 
 .page{
@@ -343,7 +349,6 @@ body{
   line-height:1
 }
 
-/* CĂN GIỮA LƯỚI CHI TIẾT BƯU GỬI */
 .detail-grid{
   display:grid;
   grid-template-columns:1fr 1fr 1.2fr;
@@ -554,7 +559,7 @@ body{
 
 
 /* =========================================================
-   DELIVERY (BẢNG 3 CỘT GỘP BƯU TÁ)
+   DELIVERY (3 CỘT GỘP BƯU TÁ)
 ========================================================= */
 
 .delivery{
@@ -584,7 +589,6 @@ body{
   color:#2d3748
 }
 
-/* PHÂN CHIA TỶ LỆ 3 CỘT: NGÀY (20%) - BƯU CỤC/BƯU TÁ (38%) - CHI TIẾT (42%) */
 .delivery th:nth-child(1),
 .delivery td:nth-child(1){ width:20% }
 .delivery th:nth-child(2),
@@ -805,8 +809,6 @@ body{
 
 @media(max-width:760px){
 
-  .topbar{ padding:0 12px }
-
   .brand-logo{
     width:62px;
     flex-basis:62px
@@ -882,38 +884,40 @@ body{
 ======================================================== -->
 
 <header class="topbar no-print">
+  <div class="topbar-inner">
 
-  <div class="brand">
+    <div class="brand">
 
-    <div class="brand-logo" aria-label="Vietnam Post">
+      <div class="brand-logo" aria-label="Vietnam Post">
 
-      <img
-        src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png"
-        alt="Vietnam Post"
-        loading="eager"
-        decoding="async"
-        referrerpolicy="no-referrer"
-      >
+        <img
+          src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png"
+          alt="Vietnam Post"
+          loading="eager"
+          decoding="async"
+          referrerpolicy="no-referrer"
+        >
+
+      </div>
+
+      <div>
+        <strong>InVanDon247</strong>
+        <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
+      </div>
 
     </div>
 
-    <div>
-      <strong>InVanDon247</strong>
-      <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
-    </div>
+
+    <nav class="nav">
+
+      <a href="#">Trang chủ</a>
+      <a href="#search">Tra cứu</a>
+      <a href="#result">Hướng dẫn</a>
+      <a href="#">Giới thiệu</a>
+
+    </nav>
 
   </div>
-
-
-  <nav class="nav">
-
-    <a href="#">Trang chủ</a>
-    <a href="#search">Tra cứu</a>
-    <a href="#result">Hướng dẫn</a>
-    <a href="#">Giới thiệu</a>
-
-  </nav>
-
 </header>
 
 
@@ -954,7 +958,7 @@ body{
       <input
         id="trackingCode"
         type="text"
-        placeholder="Ví dụ: RB608707992VN"
+        placeholder="Ví dụ: RB608708009VN"
         autocomplete="off"
       >
 
@@ -1106,21 +1110,16 @@ const esc = s =>
 
 
 /* =========================================================
-   CLEAN STATUS (LOẠI BỎ ĐOẠN LẶP LẠI "NGƯỜI NHẬN:(...)")
+   CLEAN STATUS (CHỈ GIỮ LẠI TÊN TRẠNG THÁI NGẮN GỌN)
 ========================================================= */
 
 function cleanStatus(s){
 
   return String(s || '-')
-    .replace(
-      /\s*\(\d{4,7}\s*:[^)]+\)/g,
-      ''
-    )
-    .replace(
-      /\s*\.\s*Người nhận\s*:[^.]*/gi,
-      ''
-    )
-    .replace(/\s{2,}/g,' ')
+    .replace(/\s*\(\d{4,7}\s*:[^)]+\)/g, '')   // Loại bỏ mã bưu cục (590000 : ...)
+    .replace(/\s*[\.\,]\s*Người nhận\s*:.*$/gi, '') // Cắt sạch phần Người nhận & Ghi chú phía sau
+    .replace(/\s*[\.\,]\s*Ghi chú\s*:.*$/gi, '')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 
 }
@@ -1328,7 +1327,7 @@ function getDeliveryTime(d){
 
 
 /* =========================================================
-   DELIVERY PERSON
+   DELIVERY PERSON & RECEIVER
 ========================================================= */
 
 function getDeliveryPerson(data){
@@ -1430,22 +1429,16 @@ function getDeliveryPerson(data){
   let receiver='-';
 
 
-  const rm =
-    st.match(
-      /Người nhận\s*:\s*(.*)$/i
-    );
+  // Trích xuất toàn bộ chuỗi thông tin người nhận (bao gồm cả Ghi chú phía sau)
+  const rm = st.match(/Người nhận\s*:\s*(.*)$/i);
 
 
   if(rm){
 
     receiver =
       rm[1]
-        .replace(
-          /^\(\s*\)\s*/,
-          ''
-        )
-        .trim()
-        .replace(/[.]+$/,'') || '-';
+        .replace(/^\(\s*\)\s*/, '') // Bỏ ngoặc đơn rỗng () nếu có
+        .trim();
 
   }
 
@@ -2108,7 +2101,7 @@ function renderScreen(data){
 
 
   <!-- =====================================================
-       THÔNG TIN PHÁT (ĐÃ THU GỌN THÀNH 3 CỘT)
+       THÔNG TIN PHÁT (BẢNG 3 CỘT KHÔNG BỊ MẤT CHỮ)
   ====================================================== -->
 
   <div class="delivery">
@@ -2188,11 +2181,9 @@ function renderScreen(data){
 
                     <td>
                       ${esc(
-                        cleanStatus(
-                          d.STATUSTEXT ||
-                          d.StatusText ||
-                          '-'
-                        )
+                        d.STATUSTEXT ||
+                        d.StatusText ||
+                        '-'
                       )}
                     </td>
 
@@ -2743,11 +2734,9 @@ function renderPrint(data){
                             <td>
 
                               ${esc(
-                                cleanStatus(
-                                  d.STATUSTEXT ||
-                                  d.StatusText ||
-                                  '-'
-                                )
+                                d.STATUSTEXT ||
+                                d.StatusText ||
+                                '-'
                               )}
 
                             </td>

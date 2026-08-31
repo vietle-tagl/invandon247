@@ -1,4 +1,13 @@
-"dependencies": {
-  "puppeteer-core": "latest",
-  "@sparticuz/chromium": "latest"
+{
+  "name": "invandon247",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "puppeteer-core": "^23.0.0",
+    "@sparticuz/chromium": "^123.0.0",
+    "vercel": "^34.0.0",
+    "@vercel/node": "^3.0.0"
+  }
 }

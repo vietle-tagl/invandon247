@@ -1,8 +1,19 @@
 {
   "functions": {
     "api/pdf.js": {
-      "memory": 1024,
-      "maxDuration": 15
+      "runtime": "nodejs18.x",
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/proxy.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

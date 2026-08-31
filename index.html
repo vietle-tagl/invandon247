@@ -331,7 +331,6 @@ body{
   margin-bottom:20px
 }
 
-/* TẠO CĂN CHỈNH THẲNG HÀNG CHO TIÊU ĐỀ */
 .detail-title{
   color:#0b6bb8;
   font-size:13px;
@@ -344,7 +343,7 @@ body{
   line-height:1
 }
 
-/* CĂN CHỈNH LƯỚI 2 HÀNG X 3 CỘT */
+/* CĂN GIỮA LƯỚI CHI TIẾT BƯU GỬI */
 .detail-grid{
   display:grid;
   grid-template-columns:1fr 1fr 1.2fr;
@@ -354,7 +353,6 @@ body{
   color:#4a5568
 }
 
-/* CĂN GIỮA TUYỆT ĐỐI CHO ICON VÀ CHỮ TRÊN CÙNG 1 HÀNG */
 .detail-item{
   display:flex;
   align-items:center;
@@ -376,18 +374,17 @@ body{
   flex:0 0 16px
 }
 
-/* ICON LOCATION GIỌT NƯỚC THEO MẪU */
-.pin-icon{
-  width:14px;
-  height:16px;
-  fill:#0b6bb8;
-  display:block
-}
-
 .status-pin-icon{
   width:14px;
   height:16px;
   fill:#e53e3e;
+  display:block
+}
+
+.pin-icon{
+  width:14px;
+  height:16px;
+  fill:#0b6bb8;
   display:block
 }
 
@@ -557,7 +554,7 @@ body{
 
 
 /* =========================================================
-   DELIVERY
+   DELIVERY (BẢNG 3 CỘT GỘP BƯU TÁ)
 ========================================================= */
 
 .delivery{
@@ -587,14 +584,19 @@ body{
   color:#2d3748
 }
 
+/* PHÂN CHIA TỶ LỆ 3 CỘT: NGÀY (20%) - BƯU CỤC/BƯU TÁ (38%) - CHI TIẾT (42%) */
 .delivery th:nth-child(1),
-.delivery td:nth-child(1){ width:18% }
+.delivery td:nth-child(1){ width:20% }
 .delivery th:nth-child(2),
-.delivery td:nth-child(2){ width:25% }
+.delivery td:nth-child(2){ width:38% }
 .delivery th:nth-child(3),
-.delivery td:nth-child(3){ width:24% }
-.delivery th:nth-child(4),
-.delivery td:nth-child(4){ width:33% }
+.delivery td:nth-child(3){ width:42% }
+
+.postman-info{
+  margin-top:4px;
+  color:#718096;
+  font-size:10.5px
+}
 
 .screen-footer{
   text-align:center;
@@ -780,10 +782,9 @@ body{
   vertical-align:top
 }
 
-.print-delivery th:nth-child(1), .print-delivery td:nth-child(1){ width:18% }
-.print-delivery th:nth-child(2), .print-delivery td:nth-child(2){ width:25% }
-.print-delivery th:nth-child(3), .print-delivery td:nth-child(3){ width:24% }
-.print-delivery th:nth-child(4), .print-delivery td:nth-child(4){ width:33% }
+.print-delivery th:nth-child(1), .print-delivery td:nth-child(1){ width:20% }
+.print-delivery th:nth-child(2), .print-delivery td:nth-child(2){ width:38% }
+.print-delivery th:nth-child(3), .print-delivery td:nth-child(3){ width:42% }
 
 .print-footer{
   position:absolute;
@@ -846,7 +847,7 @@ body{
 
   .delivery{ overflow-x:auto }
 
-  .delivery table{ min-width:680px }
+  .delivery table{ min-width:580px }
 }
 
 
@@ -1105,7 +1106,7 @@ const esc = s =>
 
 
 /* =========================================================
-   CLEAN STATUS
+   CLEAN STATUS (LOẠI BỎ ĐOẠN LẶP LẠI "NGƯỜI NHẬN:(...)")
 ========================================================= */
 
 function cleanStatus(s){
@@ -1113,6 +1114,10 @@ function cleanStatus(s){
   return String(s || '-')
     .replace(
       /\s*\(\d{4,7}\s*:[^)]+\)/g,
+      ''
+    )
+    .replace(
+      /\s*\.\s*Người nhận\s*:[^.]*/gi,
       ''
     )
     .replace(/\s{2,}/g,' ')
@@ -1945,7 +1950,7 @@ function renderScreen(data){
 
   const html = `
 
-  <!-- KHUNG CHI TIẾT BƯU GỬI ĐÃ CÂN BẰNG THẲNG ĐỀU -->
+  <!-- KHUNG CHI TIẾT BƯU GỬI -->
   <div class="detail-box">
 
     <div class="detail-title">
@@ -1959,7 +1964,7 @@ function renderScreen(data){
 
     <div class="detail-grid">
 
-      <!-- HÀNG 1: Mã vận đơn | Khối lượng | Trạng thái -->
+      <!-- HÀNG 1 -->
       <div class="detail-item">
         <span class="icon">✉</span>
         Mã vận đơn: <b>${esc(info.ID)}</b>
@@ -1971,7 +1976,6 @@ function renderScreen(data){
       </div>
 
       <div class="detail-item">
-        <!-- MAP PIN ICON THAY CHO 📍 CĂN THẲNG ĐỀU -->
         <span class="icon">
           <svg class="status-pin-icon" viewBox="0 0 24 24">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
@@ -1980,7 +1984,7 @@ function renderScreen(data){
         Trạng thái: <span class="status-text">&nbsp;${esc(cleanStatus(status))}</span>
       </div>
 
-      <!-- HÀNG 2: Bưu cục gửi | Bưu cục phát | Người nhận -->
+      <!-- HÀNG 2 -->
       <div class="detail-item">
         <span class="icon">📤</span>
         Bưu cục gửi: <b>${esc(info.BC_GUI || '-')}</b>
@@ -2003,7 +2007,7 @@ function renderScreen(data){
 
 
   <div class="section-title">
-    THÔNG TIN TRẠNG THÁI (${locate.length} sự kiện)
+    THÔNG TIN TRẠNG THÁI (${locate.length} SỰ KIỆN)
   </div>
 
 
@@ -2104,7 +2108,7 @@ function renderScreen(data){
 
 
   <!-- =====================================================
-       THÔNG TIN PHÁT
+       THÔNG TIN PHÁT (ĐÃ THU GỌN THÀNH 3 CỘT)
   ====================================================== -->
 
   <div class="delivery">
@@ -2125,9 +2129,7 @@ function renderScreen(data){
 
           <th>Ngày</th>
 
-          <th>Bưu cục</th>
-
-          <th>Bưu tá</th>
+          <th>Bưu cục / Bưu tá</th>
 
           <th>Chi tiết</th>
 
@@ -2157,6 +2159,12 @@ function renderScreen(data){
                     });
 
 
+                  const postmanText =
+                    pi.name !== '-'
+                      ? pi.name + (pi.phone !== '-' ? ' - ' + pi.phone : '')
+                      : '';
+
+
                   return `
 
                   <tr>
@@ -2169,35 +2177,22 @@ function renderScreen(data){
 
 
                     <td>
-                      ${esc(
-                        o.full
-                      )}
-                    </td>
-
-
-                    <td>
-
-                      ${esc(
-                        pi.name
-                      )}
-
+                      <b>${esc(o.full)}</b>
                       ${
-                        pi.phone !== '-'
-                          ? ' - ' +
-                            esc(
-                              pi.phone
-                            )
+                        postmanText
+                          ? `<div class="postman-info">Bưu tá: ${esc(postmanText)}</div>`
                           : ''
                       }
-
                     </td>
 
 
                     <td>
                       ${esc(
-                        d.STATUSTEXT ||
-                        d.StatusText ||
-                        '-'
+                        cleanStatus(
+                          d.STATUSTEXT ||
+                          d.StatusText ||
+                          '-'
+                        )
                       )}
                     </td>
 
@@ -2210,7 +2205,7 @@ function renderScreen(data){
 
             : `
               <tr>
-                <td colspan="4">
+                <td colspan="3">
                   -
                 </td>
               </tr>
@@ -2491,7 +2486,7 @@ function renderPrint(data){
 
 
           <!-- ==========================================
-               TITLE + SUMMARY (GOM CHUNG TRONG 1 KHUNG)
+               TITLE + SUMMARY
           =========================================== -->
 
           ${
@@ -2547,7 +2542,7 @@ function renderPrint(data){
 
                     <div class="prow">
                       <span>Trạng thái:</span>
-                      <b>${esc(latestStatus(data))}</b>
+                      <b>${esc(cleanStatus(latestStatus(data)))}</b>
                     </div>
 
                     <div class="prow">
@@ -2655,7 +2650,7 @@ function renderPrint(data){
 
 
           <!-- ==========================================
-               DELIVERY
+               DELIVERY (PRINT 3 CỘT)
           =========================================== -->
 
           ${
@@ -2681,11 +2676,7 @@ function renderPrint(data){
                       </th>
 
                       <th>
-                        Bưu cục
-                      </th>
-
-                      <th>
-                        Bưu tá
+                        Bưu cục / Bưu tá
                       </th>
 
                       <th>
@@ -2717,6 +2708,12 @@ function renderPrint(data){
                             });
 
 
+                          const postmanText =
+                            pi.name !== '-'
+                              ? pi.name + (pi.phone !== '-' ? ' - ' + pi.phone : '')
+                              : '';
+
+
                           return `
 
                           <tr>
@@ -2732,25 +2729,11 @@ function renderPrint(data){
 
                             <td>
 
-                              ${esc(
-                                o.full
-                              )}
-
-                            </td>
-
-
-                            <td>
-
-                              ${esc(
-                                pi.name
-                              )}
+                              <b>${esc(o.full)}</b>
 
                               ${
-                                pi.phone !== '-'
-                                  ? ' - ' +
-                                    esc(
-                                      pi.phone
-                                    )
+                                postmanText
+                                  ? `<br><span style="color:#666;">Bưu tá: ${esc(postmanText)}</span>`
                                   : ''
                               }
 
@@ -2760,9 +2743,11 @@ function renderPrint(data){
                             <td>
 
                               ${esc(
-                                d.STATUSTEXT ||
-                                d.StatusText ||
-                                '-'
+                                cleanStatus(
+                                  d.STATUSTEXT ||
+                                  d.StatusText ||
+                                  '-'
+                                )
                               )}
 
                             </td>

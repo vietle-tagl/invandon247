@@ -1357,23 +1357,22 @@ async function printA4(){
 }
 
 async function downloadPDF(){
-  if(!currentData){ alert('Vui lòng tra cứu vận đơn trước.'); return; }
-  if(typeof html2pdf === 'undefined'){ alert('Thư viện tạo PDF chưa tải xong.'); return; }
-  const el = document.getElementById('print-area');
-  const old = el.style.display;
-  el.style.display='block';
-  try{
-    const opt={
-      margin: 0,
-      filename: `InVanDon247_VNPost_${safeTrackingFilename()}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    await html2pdf().set(opt).from(el).save();
-  }finally{
-    el.style.display = old;
+  if(!currentData){
+    alert('Vui lòng tra cứu vận đơn trước.');
+    return;
   }
+
+  /*
+     KHÔNG dùng html2pdf/html2canvas ở đây nữa.
+     html2canvas biến toàn bộ trang thành ảnh rồi nhúng ảnh vào PDF,
+     nên file vừa nặng vừa dễ bị mờ và sai tỷ lệ so với bản In A4.
+
+     Thay vào đó dùng chính cơ chế in A4 của trình duyệt. Khi người dùng
+     chọn "Lưu dưới dạng PDF", trình duyệt tạo PDF từ layout/CSS in gốc
+     (vector/text), vì vậy kết quả giống nút "In A4": nét hơn, đúng lề
+     và thường nhẹ hơn đáng kể.
+  */
+  await printA4();
 }
 
 document.getElementById('trackingCode').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('captchaText').focus(); });

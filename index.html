@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InVanDon247 - Tra cứu VNPost</title>
+<title>InVanDon247 - Tra cứu & In bản A4 VNPost</title>
+
+<!-- Import Google Fonts chuẩn tiếng Việt nét đẹp cho cả màn hình và bản in -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -29,7 +34,7 @@ html{ scroll-behavior:smooth; }
 
 body{
   margin:0;
-  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background:var(--bg-main);
   color:var(--text-main);
   line-height:1.5;
@@ -396,17 +401,22 @@ body{
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
 /* =========================================================
-   PRINT STYLESHEET (THIẾT KẾ CHUẨN IN A4 KHÔNG LÃNG PHÍ)
+   PRINT STYLESHEET (THIẾT KẾ CHUẨN IN A4 & SỬA LỖI PHÔNG/PHÂN TRANG)
 ========================================================= */
 #print-area{ display:none; }
 
 @page {
   size: A4 portrait;
-  margin: 6mm 8mm 6mm 8mm; /* Sát lề trên và tối ưu vùng in */
+  margin: 5mm 8mm 5mm 8mm; /* Sát lề trên tối ưu khoảng trống */
 }
 
 @media print {
-  body { background: #fff !important; font-family: Arial, sans-serif !important; }
+  body { 
+    background: #fff !important; 
+    font-family: 'Inter', Arial, Helvetica, sans-serif !important; 
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .no-print, .topbar, .page, .search-card, .result-head, .result-card { display: none !important; }
   #print-area { display: block !important; width: 100%; }
 
@@ -414,27 +424,32 @@ body{
     width: 100%;
     box-sizing: border-box;
     page-break-after: always;
-    font-size: 11px;
-    color: #000;
+    font-size: 10.5px;
+    color: #0f172a;
+    font-family: 'Inter', Arial, Helvetica, sans-serif !important;
   }
   .print-page:last-child { page-break-after: auto; }
 
-  /* Header in */
+  /* Header bản in bao gồm Thương hiệu InVanDon247 */
   .p-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 2px solid #0a4b88;
-    padding-bottom: 4px;
-    margin-bottom: 6px;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
   }
-  .p-header-left { display: flex; align-items: center; gap: 8px; }
-  .p-logo { width: 55px; height: 35px; object-fit: contain; }
-  .p-title-main { font-size: 16px; font-weight: 800; color: #0a4b88; text-transform: uppercase; letter-spacing: 0.5px; }
+  .p-header-left { display: flex; align-items: center; gap: 10px; }
+  .p-logo { width: 50px; height: 32px; object-fit: contain; }
+  .p-brand-info { line-height: 1.2; }
+  .p-brand-name { font-size: 16px; font-weight: 800; color: #0a4b88; letter-spacing: -0.3px; }
+  .p-brand-sub { font-size: 9px; color: #475569; font-weight: 500; }
   
-  /* Bảng Chi Tiết Bưu Gửi */
+  .p-title-main { font-size: 15px; font-weight: 800; color: #0a4b88; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  /* Khung Chi Tiết Bưu Gửi */
   .p-section-box {
-    border: 1px solid #475569;
+    border: 1px solid #334155;
     margin-bottom: 8px;
     background: #fff;
   }
@@ -444,7 +459,7 @@ body{
     font-weight: 800;
     color: #0a4b88;
     padding: 4px 8px;
-    border-bottom: 1px solid #475569;
+    border-bottom: 1px solid #334155;
     text-transform: uppercase;
   }
   .p-grid-info {
@@ -452,17 +467,16 @@ body{
     grid-template-columns: 1fr 1fr 1fr;
     gap: 4px 12px;
     padding: 6px 8px;
-    font-size: 10.5px;
+    font-size: 10px;
     line-height: 1.4;
   }
-  .p-grid-info div { font-size: 10.5px; }
-  .p-grid-info b { font-weight: 700; color: #000; }
+  .p-grid-info div { font-size: 10px; }
+  .p-grid-info b { font-weight: 700; color: #0f172a; }
 
   /* Bảng Hành Trình 2 Cột */
   .p-timeline-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 8px;
   }
   .p-timeline-table td {
     width: 50%;
@@ -474,36 +488,36 @@ body{
   .p-event-card {
     border: 1px solid #cbd5e1;
     border-radius: 2px;
-    padding: 4px 6px;
+    padding: 3px 5px;
     margin-bottom: 4px;
-    font-size: 9.5px;
+    font-size: 9px;
     line-height: 1.35;
     background: #fff;
     page-break-inside: avoid;
   }
-  .p-event-time { color: #dc2626; font-weight: 700; margin-bottom: 1px; font-size: 9.5px; }
+  .p-event-time { color: #dc2626; font-weight: 700; margin-bottom: 1px; font-size: 9px; }
   .p-event-desc { font-weight: 600; color: #0f172a; }
-  .p-event-office { color: #475569; font-size: 9px; }
+  .p-event-office { color: #475569; font-size: 8.5px; }
 
   /* Bảng Thông Tin Phát */
   .p-delivery-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 10px;
-    margin-top: 4px;
+    font-size: 9.5px;
   }
   .p-delivery-table th, .p-delivery-table td {
-    border: 1px solid #475569;
-    padding: 5px 6px;
+    border: 1px solid #334155;
+    padding: 4px 6px;
     text-align: left;
     vertical-align: top;
   }
   .p-delivery-table th { background: #f1f5f9; font-weight: 700; }
 
+  /* Footer chân trang */
   .p-footer {
     text-align: center;
-    font-size: 9px;
-    color: #64748b;
+    font-size: 8.5px;
+    color: #475569;
     border-top: 1px solid #cbd5e1;
     padding-top: 4px;
     margin-top: 6px;
@@ -568,7 +582,7 @@ body{
     <div class="form-grid">
       <div class="field">
         <label>1. Mã vận đơn VNPost</label>
-        <input id="trackingCode" type="text" placeholder="Ví dụ: RB608708026VN" autocomplete="off">
+        <input id="trackingCode" type="text" placeholder="Ví dụ: RF600343015VN" autocomplete="off">
       </div>
 
       <div class="field">
@@ -918,7 +932,7 @@ function openMap(address, title, coords){
 }
 
 /* =========================================================
-   HÀM DÀN TRANG IN A4 TỐI ƯU (ĐÚNG PHONG CÁCH YÊU CẦU)
+   HÀM DÀN TRANG IN A4 CHUẨN (ĐÃ SỬA PHÂN TRANG VÀ BRANDING)
 ========================================================= */
 function renderPrint(data){
   const info = data.info || {};
@@ -926,8 +940,8 @@ function renderPrint(data){
   const delivery = data.delivery || [];
   const dp = getDeliveryPerson(data);
 
-  // Phân chia tối đa 28 sự kiện mỗi trang A4 để không sinh ra trang 3 lãng phí
-  const itemsPerPage = 28;
+  // Giới hạn 20 sự kiện/trang để vừa vặn A4 và không bị rớt trang lỗi
+  const itemsPerPage = 20;
   const pages = [];
 
   for (let i = 0; i < locate.length; i += itemsPerPage) {
@@ -935,24 +949,32 @@ function renderPrint(data){
   }
   if (!pages.length) pages.push([]);
 
+  const totalPages = pages.length;
   const printArea = document.getElementById('print-area');
+
   printArea.innerHTML = pages.map((chunk, pageIndex) => {
-    // Chia sự kiện thành 2 cột đều nhau
+    const currentPageNum = pageIndex + 1;
+    
+    // Chia làm 2 cột sự kiện song song
     const mid = Math.ceil(chunk.length / 2);
     const col1 = chunk.slice(0, mid);
     const col2 = chunk.slice(mid);
 
     return `
     <div class="print-page">
-      <!-- HEADER A4 -->
+      <!-- HEADER CHUẨN BẢN IN LẮP BỔ SUNG THƯƠNG HIỆU INVANDON247 -->
       <div class="p-header">
         <div class="p-header-left">
           <img class="p-logo" src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png" alt="VNPost">
+          <div class="p-brand-info">
+            <div class="p-brand-name">InVanDon247</div>
+            <div class="p-brand-sub">Hệ thống chuyển đổi & in phiếu bưu gửi A4 tự động</div>
+          </div>
         </div>
         <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
       </div>
 
-      <!-- TRANG 1: CHI TIẾT BƯU GỬI -->
+      <!-- TRANG 1: HIỂN THỊ KHUNG CHI TIẾT BƯU GỬI -->
       ${pageIndex === 0 ? `
       <div class="p-section-box">
         <div class="p-section-head">CHI TIẾT BƯU GỬI</div>
@@ -967,7 +989,7 @@ function renderPrint(data){
       </div>
       ` : ''}
 
-      <!-- DÀN BẢNG HÀNH TRÌNH CHIA 2 CỘT -->
+      <!-- KHUNG LỊCH SỬ HÀNH TRÌNH 2 CỘT -->
       <div class="p-section-box">
         <div class="p-section-head">LỊCH SỬ HÀNH TRÌNH (${locate.length} SỰ KIỆN)</div>
         <div style="padding: 4px;">
@@ -999,8 +1021,8 @@ function renderPrint(data){
         </div>
       </div>
 
-      <!-- TRANG CUỐI: THÔNG TIN PHÁT -->
-      ${pageIndex === pages.length - 1 ? `
+      <!-- TRANG CUỐI: HIỂN THỊ BẢNG THÔNG TIN PHÁT -->
+      ${pageIndex === totalPages - 1 ? `
       <div class="p-section-box">
         <div class="p-section-head">THÔNG TIN PHÁT</div>
         <div style="padding: 4px;">
@@ -1033,8 +1055,9 @@ function renderPrint(data){
       </div>
       ` : ''}
 
+      <!-- SỬA LỖI PHÂN TRANG CHÂN TRANG ĐÚNG TRANG CURRENT/TOTAL -->
       <div class="p-footer">
-        Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 — Trang ${pageIndex + 1}/${pages.length}
+        Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 — Trang ${currentPageNum}/${totalPages}
       </div>
     </div>
     `;

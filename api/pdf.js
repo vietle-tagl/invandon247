@@ -1,83 +1,65 @@
-// api/pdf.js
-import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
+import { chromium } from 'puppeteer-core';
+import chromiumBinary from '@sparticuz/chromium';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { trackingCode, captchaText, cookie, data } = req.body;
+
+  // Ở đây bạn cần render HTML (dùng logic renderPrint trong file cũ của bạn)
+  // Để tách bạch, mình giả sử bạn đã có dữ liệu và truyền thẳng HTML vào đây.
+  // Tuy nhiên, do chúng ta không thể gửi HTML sang file khác dễ dàng, 
+  // chúng ta sẽ sử dụng chính file `public/index.html` làm template để render.
+
   try {
-    const { htmlContent, trackingCode } = req.body;
-
-    if (!htmlContent) {
-      return res.status(400).json({ message: 'Missing htmlContent' });
-    }
-
-    // Khởi tạo browser với cấu hình cho Vercel
-    const browser = await puppeteer.launch({
-      args: [
-        ...chromium.args,
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--single-process',
-        '--font-render-hinting=none',
-        '--disable-web-security',
-        '--disable-features=IsolateOrigins,site-per-process',
-      ],
-      defaultViewport: {
-        width: 800,
-        height: 1000,
-        deviceScaleFactor: 1,
-      },
-      executablePath: await chromium.executablePath(
-        'https://github.com/Sparticuz/chromium/releases/download/v121.0.0/chromium-v121.0.0-pack.tar'
-      ),
-      headless: true,
-      ignoreHTTPSErrors: true,
+    // Khởi động Chromium
+    const executablePath = await chromiumBinary.executablePath();
+    const browser = await chromium.launch({
+      args: chromiumBinary.args,
+      executablePath,
+      headless: chromiumBinary.headless,
     });
 
     const page = await browser.newPage();
 
-    // Set content với đầy đủ CSS
-    await page.setContent(htmlContent, {
-      waitUntil: ['networkidle0', 'domcontentloaded'],
-      timeout: 15000,
+    // 1. Điều hướng đến trang web của bạn (hoặc tạo 1 trang HTML tĩnh riêng cho in)
+    // Lưu ý: Vercel cần URL tuyệt đối. Nếu đang deploy dev, hãy thay bằng localhost.
+    const appUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    
+    // Giả sử bạn có 1 đường dẫn để render riêng phần in, hoặc dùng chính index.html
+    await page.goto(`${appUrl}/?print=1&code=${trackingCode}`, { waitUntil: 'networkidle0' });
+
+    // 2. Đợi dữ liệu và hình ảnh tải xong
+    await page.evaluate(async () => {
+      // Nếu trên trang bạn dùng JS để gọi API lấy dữ liệu, bạn cần đợi nó render.
+      // Ở đây mình giả sử bạn truyền dữ liệu vào bằng cách gọi API từ client.
+      // Nếu bạn render bằng JS (client-side), bạn cần đợi vài giây hoặc dùng MutationObserver.
+      await document.fonts.ready;
     });
-
-    // Đợi fonts và render
-    await page.evaluateHandle('document.fonts.ready');
-    await page.waitForTimeout(500);
-
-    // Tạo PDF
+    
+    // 3. Tạo PDF với cấu hình in A4 chuẩn
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: {
-        top: '8mm',
-        bottom: '8mm',
+        top: '6mm',
+        bottom: '6mm',
         left: '8mm',
-        right: '8mm',
+        right: '8mm'
       },
-      preferCSSPageSize: true,
-      displayHeaderFooter: false,
+      // Vì CSS của bạn đã có @page rồi, bạn có thể bỏ margin ở đây nếu muốn dùng @page
     });
 
     await browser.close();
 
-    // Trả về PDF
-    const filename = `InVanDon247_VNPost_${trackingCode || 'unknown'}.pdf`;
+    // 4. Trả về file PDF
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    res.status(200).send(pdfBuffer);
-
+    res.setHeader('Content-Disposition', `attachment; filename="InVanDon247_VNPost_${trackingCode}.pdf"`);
+    res.send(Buffer.from(pdfBuffer));
   } catch (error) {
-    console.error('PDF generation error:', error);
-    res.status(500).json({
-      message: 'Lỗi tạo PDF: ' + (error.message || 'Unknown error'),
-    });
+    console.error('PDF Error:', error);
+    res.status(500).json({ error: 'Failed to generate PDF' });
   }
 }

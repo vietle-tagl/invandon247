@@ -10,10 +10,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-<!-- QUAN TRỌNG: Thêm 2 CDN này để tạo PDF client-side -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
 :root{
   --blue-primary:#0a4b88;
@@ -403,7 +399,7 @@ body{
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
 /* =========================================================
-   PRINT STYLESHEET (THIẾT KẾ CHUẨN IN A4)
+   PRINT STYLESHEET (DÙNG CHO CẢ IN A4 VÀ PUPPETEER)
 ========================================================= */
 #print-area{ display:none; }
 
@@ -519,93 +515,6 @@ body{
     font-family: 'Inter', Arial, Helvetica, sans-serif !important;
   }
   .print-page:last-child { page-break-after: auto; }
-
-  .p-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #0a4b88;
-    padding-bottom: 5px;
-    margin-bottom: 6px;
-  }
-  .p-header-left { display: flex; align-items: center; gap: 10px; }
-  .p-logo { width: 50px; height: 32px; object-fit: contain; }
-  .p-brand-info { line-height: 1.25; }
-  .p-brand-name { font-size: 16px; font-weight: 800; color: #0a4b88; letter-spacing: -0.3px; }
-  .p-brand-sub { font-size: 9px; color: #475569; font-weight: 500; }
-  
-  .p-title-main { font-size: 15px; font-weight: 800; color: #0a4b88; text-transform: uppercase; letter-spacing: 0.5px; }
-  
-  .p-section-box {
-    border: 1px solid #334155;
-    margin-bottom: 6px;
-    background: #fff;
-  }
-  .p-section-head {
-    background: #fff;
-    font-size: 10.5px;
-    font-weight: 800;
-    color: #0a4b88;
-    padding: 3px 6px;
-    border-bottom: 1px solid #334155;
-    text-transform: uppercase;
-  }
-  .p-grid-info {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 4px 10px;
-    padding: 5px 8px;
-    font-size: 9.5px;
-    line-height: 1.35;
-  }
-  .p-grid-info b { font-weight: 700; color: #0f172a; }
-
-  .p-timeline-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  .p-timeline-table td {
-    width: 50%;
-    vertical-align: top;
-    padding: 0 3px;
-    border: none;
-  }
-
-  .p-event-card {
-    border: 1px solid #cbd5e1;
-    border-radius: 2px;
-    padding: 2.5px 5px;
-    margin-bottom: 3.5px;
-    font-size: 8.8px;
-    line-height: 1.3;
-    background: #fff;
-    page-break-inside: avoid;
-  }
-  .p-event-time { color: #dc2626; font-weight: 700; margin-bottom: 1px; font-size: 8.8px; }
-  .p-event-desc { font-weight: 600; color: #0f172a; }
-  .p-event-office { color: #475569; font-size: 8.2px; }
-
-  .p-delivery-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 9px;
-  }
-  .p-delivery-table th, .p-delivery-table td {
-    border: 1px solid #334155;
-    padding: 3px 6px;
-    text-align: left;
-    vertical-align: top;
-  }
-  .p-delivery-table th { background: #f1f5f9; font-weight: 700; }
-
-  .p-footer {
-    text-align: center;
-    font-size: 8.5px;
-    color: #475569;
-    border-top: 1px solid #cbd5e1;
-    padding-top: 3px;
-    margin-top: 5px;
-  }
 }
 
 @media(max-width:760px){
@@ -1016,7 +925,7 @@ function openMap(address, title, coords){
 }
 
 /* =========================================================
-   HÀM DÀN TRANG IN A4 - PHÂN TRANG THEO CHIỀU CAO THỰC TẾ
+   RENDER PRINT AREA - SỬ DỤNG CHUNG CHO IN A4 VÀ SERVER PDF
 ========================================================= */
 
 function buildPrintEventCard(item){
@@ -1118,189 +1027,83 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
     </div>`;
 }
 
-function createPrintMeasureRoot(){
-  const root = document.createElement('div');
-  root.id = 'print-measure-root';
-  root.style.cssText =
-    'position:absolute;left:-100000px;top:0;width:194mm;visibility:hidden;pointer-events:none;z-index:-1;';
-  document.body.appendChild(root);
-  return root;
-}
-
-function measurePrintCardHeights(data){
-  const locate = Array.isArray(data?.locate) ? data.locate : [];
-  const root = createPrintMeasureRoot();
-
-  const section = document.createElement('div');
-  section.className = 'p-section-box';
-  section.innerHTML = `
-    <div class="p-section-head">LỊCH SỬ HÀNH TRÌNH</div>
-    <div style="padding:4px;">
-      <table class="p-timeline-table">
-        <tr><td id="measure-left"></td><td id="measure-right"></td></tr>
-      </table>
-    </div>`;
-  root.appendChild(section);
-
-  const td = section.querySelector('#measure-left');
-  const heights = [];
-
-  for(const item of locate){
-    const holder = document.createElement('div');
-    holder.innerHTML = buildPrintEventCard(item);
-    const card = holder.firstElementChild;
-    td.appendChild(card);
-
-    const cs = getComputedStyle(card);
-    const marginBottom = parseFloat(cs.marginBottom) || 0;
-    heights.push(card.getBoundingClientRect().height + marginBottom);
-
-    td.removeChild(card);
-  }
-
-  root.remove();
-  return heights;
-}
-
-function measurePageBaseHeight(data, pageIndex, totalPages, includeDelivery){
-  const root = createPrintMeasureRoot();
-  root.innerHTML = buildPrintPageHTML(data, [], pageIndex, totalPages, 0, includeDelivery);
-
-  const page = root.firstElementChild;
-  const pageRect = page.getBoundingClientRect();
-  const footer = page.querySelector('.p-footer');
-
-  let contentBottom = footer
-    ? footer.getBoundingClientRect().bottom - pageRect.top
-    : 0;
-
-  contentBottom += 1;
-
-  const pageHeight = pageRect.height;
-  root.remove();
-
-  return {
-    pageHeight,
-    available: Math.max(0, pageHeight - contentBottom)
-  };
-}
-
-function findSplitForChunk(heights, start, count, capacity){
-  if(count <= 0) return 0;
-
-  const prefix = [0];
-  for(let i=0;i<count;i++){
-    prefix.push(prefix[prefix.length - 1] + (heights[start + i] || 0));
-  }
-
-  if(count === 1){
-    return prefix[1] <= capacity ? 1 : 0;
-  }
-
-  let best = -1;
-  let bestBalance = Infinity;
-
-  for(let k=1;k<count;k++){
-    const left = prefix[k];
-    const right = prefix[count] - prefix[k];
-
-    if(left <= capacity && right <= capacity){
-      const balance = Math.abs(left - right);
-      if(balance < bestBalance){
-        bestBalance = balance;
-        best = k;
-      }
-    }
-  }
-
-  return best;
-}
-
 function renderPrint(data){
   const locate = Array.isArray(data?.locate) ? data.locate : [];
   const printArea = document.getElementById('print-area');
-
   if(!printArea) return;
 
-  const heights = measurePrintCardHeights(data);
-  const totalEvents = locate.length;
-  const pages = [];
-  let start = 0;
-  let pageIndex = 0;
+  // Sử dụng logic chia 2 cột đơn giản: Nửa trái, nửa phải
+  const half = Math.ceil(locate.length / 2);
+  const left = locate.slice(0, half);
+  const right = locate.slice(half);
 
-  const MEASURE_TOTAL = 999;
+  printArea.innerHTML = `
+    <div class="print-page">
+      <div class="p-header">
+        <div class="p-header-left">
+          <img class="p-logo" src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png" alt="VNPost">
+          <div class="p-brand-info">
+            <div class="p-brand-name">InVanDon247</div>
+            <div class="p-brand-sub">Công cụ tra cứu và tạo phiếu vận đơn A4</div>
+          </div>
+        </div>
+        <div class="p-title-wrap">
+          <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
+          <div class="p-title-code">Mã vận đơn: ${esc(data?.info?.ID || currentTrackingCode || '-')} (Đơn vị VNPOST - Bưu điện Việt Nam)</div>
+        </div>
+      </div>
 
-  while(start < totalEvents || pageIndex === 0){
-    const remaining = totalEvents - start;
+      <div class="p-section-box">
+        <div class="p-section-head">CHI TIẾT BƯU GỬI</div>
+        <div class="p-grid-info">
+          <div>Mã vận đơn: <b>${esc(data?.info?.ID)}</b></div>
+          <div>Khối lượng: <b>${esc(data?.info?.Weight || 0)} gam</b></div>
+          <div>Trạng thái: <b style="color:#059669">${esc(cleanStatus(latestStatus(data)))}</b></div>
+          <div>Bưu cục gửi: <b>${esc(data?.info?.BC_GUI || '-')}</b></div>
+          <div>Bưu cục phát: <b>${esc(data?.info?.BC_PHAT || '-')}</b></div>
+          <div>Người nhận: <b>${esc(getDeliveryPerson(data).receiver !== '-' ? getDeliveryPerson(data).receiver : '-')}</b></div>
+        </div>
+      </div>
 
-    if(remaining > 0){
-      const lastBase = measurePageBaseHeight(data, pageIndex, MEASURE_TOTAL, true);
-      const splitAll = findSplitForChunk(heights, start, remaining, lastBase.available);
+      <div class="p-section-box p-timeline-box">
+        <div class="p-section-head">LỊCH SỬ HÀNH TRÌNH (${locate.length} SỰ KIỆN)</div>
+        <div style="padding:4px;">
+          <table class="p-timeline-table">
+            <tr>
+              <td>${left.map(buildPrintEventCard).join('')}</td>
+              <td>${right.map(buildPrintEventCard).join('')}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
 
-      if(splitAll > 0){
-        pages.push({
-          start,
-          count: remaining,
-          split: splitAll,
-          includeDelivery: true
-        });
-        start = totalEvents;
-        break;
-      }
-    }else{
-      pages.push({
-        start: totalEvents,
-        count: 0,
-        split: 0,
-        includeDelivery: true
-      });
-      break;
-    }
+      <div class="p-section-box p-delivery-box">
+        <div class="p-section-head">THÔNG TIN PHÁT</div>
+        <div style="padding:3px;">
+          <table class="p-delivery-table">
+            <thead>
+              <tr>
+                <th style="width:20%;">Ngày</th>
+                <th style="width:40%;">Bưu cục / Bưu tá</th>
+                <th style="width:40%;">Chi tiết</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data?.delivery?.length ? data.delivery.map(d => {
+                const o = getOfficeForDelivery(data, d);
+                const pi = getDeliveryPerson({delivery:[d]});
+                const postmanText = pi.name !== '-' ? pi.name + (pi.phone !== '-' ? ' - ' + pi.phone : '') : '';
+                return `<tr><td>${esc(getDeliveryTime(d))}</td><td><b>${esc(o.full)}</b>${postmanText ? `<br><span style="color:#475569;">Bưu tá: ${esc(postmanText)}</span>` : ''}</td><td>${esc(d.STATUSTEXT || d.StatusText || '-')}</td></tr>`;
+              }).join('') : `<tr><td colspan="3" style="text-align:center;">Chưa có dữ liệu phát</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-    const base = measurePageBaseHeight(data, pageIndex, MEASURE_TOTAL, false);
-    let maxCount = 0;
-
-    const limit = remaining > 1 ? remaining - 1 : remaining;
-
-    for(let count=1; count<=limit; count++){
-      const split = findSplitForChunk(heights, start, count, base.available);
-      if(split <= 0) break;
-      maxCount = count;
-    }
-
-    if(maxCount === 0 && remaining > 0){
-      maxCount = 1;
-    }
-
-    const split = findSplitForChunk(heights, start, maxCount, base.available);
-
-    pages.push({
-      start,
-      count: maxCount,
-      split: split > 0 ? split : 1,
-      includeDelivery: false
-    });
-
-    start += maxCount;
-    pageIndex++;
-
-    if(pageIndex > totalEvents + 5) break;
-  }
-
-  const totalPages = pages.length || 1;
-
-  printArea.innerHTML = pages.map((p, i) => {
-    const chunk = locate.slice(p.start, p.start + p.count);
-
-    return buildPrintPageHTML(
-      data,
-      chunk,
-      i,
-      totalPages,
-      p.split,
-      p.includeDelivery
-    );
-  }).join('');
+      <div class="p-footer">
+        Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 — Trang 1/1
+      </div>
+    </div>`;
 }
 
 function safeTrackingFilename(){
@@ -1313,28 +1116,13 @@ async function printA4(){
     alert('Vui lòng tra cứu vận đơn trước.');
     return;
   }
-
-  try{
-    if(document.fonts?.ready) await document.fonts.ready;
-  }catch(_){}
-
+  try{ if(document.fonts?.ready) await document.fonts.ready; }catch(_){}
   renderPrint(currentData);
-
-  const oldTitle = document.title;
-  const printFilename = `InVanDon247_VNPost_${safeTrackingFilename()}`;
-  document.title = printFilename;
-
-  const restoreTitle = () => {
-    document.title = oldTitle;
-    window.removeEventListener('afterprint', restoreTitle);
-  };
-  window.addEventListener('afterprint', restoreTitle);
-
   setTimeout(() => window.print(), 80);
 }
 
 /* =========================================================
-   HÀM TẢI XUỐNG PDF (TỐI ƯU CHẤT LƯỢNG CAO - GIỮ LOGO)
+   HÀM TẢI PDF - GỌI SERVER CHROMIUM (PUPPETEER)
 ========================================================= */
 async function downloadPDF(){
   if(!currentData){
@@ -1349,97 +1137,31 @@ async function downloadPDF(){
     pdfBtn.disabled = true;
     pdfBtn.innerHTML = '⏳ Đang tạo PDF...';
 
-    // Render nội dung in
-    renderPrint(currentData);
-    
-    const printArea = document.getElementById('print-area');
-    const pages = printArea.querySelectorAll('.print-page');
-    
-    // Tạo PDF
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-      compress: true,
+    // Gửi dữ liệu lên server API để xử lý
+    const response = await fetch('/api/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        trackingCode: currentTrackingCode,
+        data: currentData 
+      })
     });
 
-    const pageWidth = 210; // mm
-    const pageHeight = 297; // mm
-    
-    let pageIndex = 0;
-
-    // Lặp qua từng trang và chụp riêng biệt (đảm bảo lề, tránh cắt)
-    for (const page of pages) {
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-100000px';
-      tempContainer.style.top = '0';
-      tempContainer.style.width = '210mm';
-      tempContainer.style.boxSizing = 'border-box';
-      tempContainer.style.background = '#ffffff';
-      tempContainer.style.padding = '8mm'; // Lề chuẩn A4
-      
-      const pageClone = page.cloneNode(true);
-      // Bỏ ràng buộc CSS để chụp trọn vẹn
-      pageClone.style.width = '194mm';
-      pageClone.style.height = 'auto';
-      pageClone.style.overflow = 'visible';
-      pageClone.style.margin = '0';
-      pageClone.style.pageBreakAfter = 'auto';
-      pageClone.style.breakAfter = 'auto';
-
-      // CHUYỂN LOGO VỀ BASE64 (Fix 100% mất logo do CORS)
-      const imgs = pageClone.querySelectorAll('img');
-      for (const img of imgs) {
-        try {
-          const imgCanvas = document.createElement('canvas');
-          imgCanvas.width = img.naturalWidth;
-          imgCanvas.height = img.naturalHeight;
-          const ctx = imgCanvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          img.src = imgCanvas.toDataURL('image/png');
-        } catch (e) {
-          // Nếu CORS chặn không cho đọc pixel (trường hợp xấu nhất), giữ nguyên src
-        }
-      }
-
-      tempContainer.appendChild(pageClone);
-      document.body.appendChild(tempContainer);
-
-      // Chờ font và ảnh render xong
-      await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 100));
-
-      // CHỤP VỚI SCALE 3 (Tăng độ phân giải lên gấp 3 lần màn hình)
-      const canvas = await html2canvas(tempContainer, {
-        scale: 3, // Chất lượng cực cao, chữ sắc nét như in
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: tempContainer.scrollWidth,
-        height: tempContainer.scrollHeight
-      });
-
-      // Xóa bản sao tạm
-      document.body.removeChild(tempContainer);
-
-      const imgData = canvas.toDataURL('image/png');
-      
-      if (pageIndex > 0) {
-        pdf.addPage();
-      }
-      
-      const imgWidth = pageWidth - 16; // 210 - (8mm lề trái + 8mm lề phải)
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 8, 8, imgWidth, imgHeight); // Căn lề 8mm đều
-      
-      pageIndex++;
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Lỗi máy chủ khi tạo PDF');
     }
 
-    pdf.save(`InVanDon247_VNPost_${safeTrackingFilename()}.pdf`);
+    // Nhận file PDF về và tải xuống
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `InVanDon247_VNPost_${safeTrackingFilename()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
 
   }catch(error){
     console.error('PDF Error:', error);
@@ -1447,11 +1169,6 @@ async function downloadPDF(){
   }finally{
     pdfBtn.disabled = false;
     pdfBtn.innerHTML = originalText;
-    
-    const printArea = document.getElementById('print-area');
-    if (printArea) {
-      printArea.style.display = 'none';
-    }
   }
 }
 

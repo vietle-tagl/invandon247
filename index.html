@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InVanDon247 - Tra cứu & In bản A4 VNPost</title>
 
-<!-- Import Google Fonts chuẩn tiếng Việt nét đẹp cho cả màn hình và bản in -->
+<!-- Google Fonts chuẩn tiếng Việt nét đẹp -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -401,13 +401,13 @@ body{
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
 /* =========================================================
-   PRINT STYLESHEET (THIẾT KẾ CHUẨN IN A4 & SỬA LỖI PHÔNG/PHÂN TRANG)
+   PRINT STYLESHEET (THIẾT KẾ CHUẨN IN A4)
 ========================================================= */
 #print-area{ display:none; }
 
 @page {
   size: A4 portrait;
-  margin: 5mm 8mm 5mm 8mm; /* Sát lề trên tối ưu khoảng trống */
+  margin: 6mm 8mm 6mm 8mm;
 }
 
 @media print {
@@ -424,24 +424,24 @@ body{
     width: 100%;
     box-sizing: border-box;
     page-break-after: always;
-    font-size: 10.5px;
+    font-size: 10px;
     color: #0f172a;
     font-family: 'Inter', Arial, Helvetica, sans-serif !important;
   }
   .print-page:last-child { page-break-after: auto; }
 
-  /* Header bản in bao gồm Thương hiệu InVanDon247 */
+  /* Header bản in đồng bộ thương hiệu */
   .p-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 2px solid #0a4b88;
-    padding-bottom: 6px;
-    margin-bottom: 8px;
+    padding-bottom: 5px;
+    margin-bottom: 6px;
   }
   .p-header-left { display: flex; align-items: center; gap: 10px; }
   .p-logo { width: 50px; height: 32px; object-fit: contain; }
-  .p-brand-info { line-height: 1.2; }
+  .p-brand-info { line-height: 1.25; }
   .p-brand-name { font-size: 16px; font-weight: 800; color: #0a4b88; letter-spacing: -0.3px; }
   .p-brand-sub { font-size: 9px; color: #475569; font-weight: 500; }
   
@@ -450,27 +450,26 @@ body{
   /* Khung Chi Tiết Bưu Gửi */
   .p-section-box {
     border: 1px solid #334155;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     background: #fff;
   }
   .p-section-head {
     background: #fff;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 800;
     color: #0a4b88;
-    padding: 4px 8px;
+    padding: 3px 6px;
     border-bottom: 1px solid #334155;
     text-transform: uppercase;
   }
   .p-grid-info {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 4px 12px;
-    padding: 6px 8px;
-    font-size: 10px;
-    line-height: 1.4;
+    gap: 4px 10px;
+    padding: 5px 8px;
+    font-size: 9.5px;
+    line-height: 1.35;
   }
-  .p-grid-info div { font-size: 10px; }
   .p-grid-info b { font-weight: 700; color: #0f172a; }
 
   /* Bảng Hành Trình 2 Cột */
@@ -488,26 +487,26 @@ body{
   .p-event-card {
     border: 1px solid #cbd5e1;
     border-radius: 2px;
-    padding: 3px 5px;
-    margin-bottom: 4px;
-    font-size: 9px;
-    line-height: 1.35;
+    padding: 2.5px 5px;
+    margin-bottom: 3.5px;
+    font-size: 8.8px;
+    line-height: 1.3;
     background: #fff;
     page-break-inside: avoid;
   }
-  .p-event-time { color: #dc2626; font-weight: 700; margin-bottom: 1px; font-size: 9px; }
+  .p-event-time { color: #dc2626; font-weight: 700; margin-bottom: 1px; font-size: 8.8px; }
   .p-event-desc { font-weight: 600; color: #0f172a; }
-  .p-event-office { color: #475569; font-size: 8.5px; }
+  .p-event-office { color: #475569; font-size: 8.2px; }
 
   /* Bảng Thông Tin Phát */
   .p-delivery-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 9.5px;
+    font-size: 9px;
   }
   .p-delivery-table th, .p-delivery-table td {
     border: 1px solid #334155;
-    padding: 4px 6px;
+    padding: 3px 6px;
     text-align: left;
     vertical-align: top;
   }
@@ -519,8 +518,8 @@ body{
     font-size: 8.5px;
     color: #475569;
     border-top: 1px solid #cbd5e1;
-    padding-top: 4px;
-    margin-top: 6px;
+    padding-top: 3px;
+    margin-top: 5px;
   }
 }
 
@@ -932,7 +931,7 @@ function openMap(address, title, coords){
 }
 
 /* =========================================================
-   HÀM DÀN TRANG IN A4 CHUẨN (ĐÃ SỬA PHÂN TRANG VÀ BRANDING)
+   HÀM DÀN TRANG IN A4 ĐÃ XỬ LÝ DỨT ĐIỂM KHOẢNG TRỐNG
 ========================================================= */
 function renderPrint(data){
   const info = data.info || {};
@@ -940,14 +939,26 @@ function renderPrint(data){
   const delivery = data.delivery || [];
   const dp = getDeliveryPerson(data);
 
-  // Giới hạn 20 sự kiện/trang để vừa vặn A4 và không bị rớt trang lỗi
-  const itemsPerPage = 20;
-  const pages = [];
+  // Thuật toán phân trang thông minh: 
+  // Trang 1 chứa 24 sự kiện (do có khung Chi Tiết Bưu Gửi)
+  // Trang 2 trở đi không có Chi Tiết Bưu Gửi nên chứa được 32 sự kiện/trang
+  const PAGE_1_CAPACITY = 24; 
+  const PAGE_NEXT_CAPACITY = 32;
 
-  for (let i = 0; i < locate.length; i += itemsPerPage) {
-    pages.push(locate.slice(i, i + itemsPerPage));
+  const pages = [];
+  let remainingLocate = [...locate];
+
+  if (remainingLocate.length > 0) {
+    // Cắt dữ liệu cho Trang 1
+    pages.push(remainingLocate.splice(0, PAGE_1_CAPACITY));
+    
+    // Cắt dữ liệu cho Trang 2, 3...
+    while (remainingLocate.length > 0) {
+      pages.push(remainingLocate.splice(0, PAGE_NEXT_CAPACITY));
+    }
+  } else {
+    pages.push([]);
   }
-  if (!pages.length) pages.push([]);
 
   const totalPages = pages.length;
   const printArea = document.getElementById('print-area');
@@ -955,26 +966,26 @@ function renderPrint(data){
   printArea.innerHTML = pages.map((chunk, pageIndex) => {
     const currentPageNum = pageIndex + 1;
     
-    // Chia làm 2 cột sự kiện song song
+    // Chia dữ liệu làm 2 cột cân bằng
     const mid = Math.ceil(chunk.length / 2);
     const col1 = chunk.slice(0, mid);
     const col2 = chunk.slice(mid);
 
     return `
     <div class="print-page">
-      <!-- HEADER CHUẨN BẢN IN LẮP BỔ SUNG THƯƠNG HIỆU INVANDON247 -->
+      <!-- HEADER TRANG IN BỔ SUNG ĐÚNG BRANDING VÀ SLOGAN -->
       <div class="p-header">
         <div class="p-header-left">
           <img class="p-logo" src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png" alt="VNPost">
           <div class="p-brand-info">
             <div class="p-brand-name">InVanDon247</div>
-            <div class="p-brand-sub">Hệ thống chuyển đổi & in phiếu bưu gửi A4 tự động</div>
+            <div class="p-brand-sub">Công cụ tra cứu và tạo phiếu vận đơn A4</div>
           </div>
         </div>
         <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
       </div>
 
-      <!-- TRANG 1: HIỂN THỊ KHUNG CHI TIẾT BƯU GỬI -->
+      <!-- TRANG 1: KHUNG CHI TIẾT BƯU GỬI -->
       ${pageIndex === 0 ? `
       <div class="p-section-box">
         <div class="p-section-head">CHI TIẾT BƯU GỬI</div>
@@ -995,7 +1006,7 @@ function renderPrint(data){
         <div style="padding: 4px;">
           <table class="p-timeline-table">
             <tr>
-              <!-- CỘT 1 -->
+              <!-- CỘT LEFT -->
               <td>
                 ${col1.map(item => `
                   <div class="p-event-card">
@@ -1006,7 +1017,7 @@ function renderPrint(data){
                 `).join('')}
               </td>
 
-              <!-- CỘT 2 -->
+              <!-- CỘT RIGHT -->
               <td>
                 ${col2.map(item => `
                   <div class="p-event-card">
@@ -1021,11 +1032,11 @@ function renderPrint(data){
         </div>
       </div>
 
-      <!-- TRANG CUỐI: HIỂN THỊ BẢNG THÔNG TIN PHÁT -->
+      <!-- TRANG CUỐI: KHUNG THÔNG TIN PHÁT -->
       ${pageIndex === totalPages - 1 ? `
       <div class="p-section-box">
         <div class="p-section-head">THÔNG TIN PHÁT</div>
-        <div style="padding: 4px;">
+        <div style="padding: 3px;">
           <table class="p-delivery-table">
             <thead>
               <tr>
@@ -1055,7 +1066,7 @@ function renderPrint(data){
       </div>
       ` : ''}
 
-      <!-- SỬA LỖI PHÂN TRANG CHÂN TRANG ĐÚNG TRANG CURRENT/TOTAL -->
+      <!-- FOOTER ĐÁNH SỐ TRANG RÕ RÀNG -->
       <div class="p-footer">
         Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 — Trang ${currentPageNum}/${totalPages}
       </div>

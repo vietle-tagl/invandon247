@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
+<!-- KHÔNG CÒN CẦN html2canvas VÀ jspdf NỮA (Đã chuyển sang Server - Puppeteer) -->
+
 <style>
 :root{
   --blue-primary:#0a4b88;
@@ -39,9 +41,7 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* =========================================================
-   HEADER (WEB)
-========================================================= */
+/* HEADER (WEB) */
 .topbar{
   height:68px;
   background:rgba(255, 255, 255, 0.95);
@@ -119,9 +119,7 @@ body{
   background:var(--blue-light);
 }
 
-/* =========================================================
-   PAGE CONTAINER
-========================================================= */
+/* PAGE CONTAINER */
 .page{
   max-width:1140px;
   margin:16px auto 40px;
@@ -398,9 +396,7 @@ body{
 
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
-/* =========================================================
-   PRINT STYLESHEET (DÙNG CHO CẢ IN A4 VÀ PUPPETEER)
-========================================================= */
+/* PRINT STYLESHEET (IN A4) */
 #print-area{ display:none; }
 
 .print-page{
@@ -925,7 +921,7 @@ function openMap(address, title, coords){
 }
 
 /* =========================================================
-   RENDER PRINT AREA - SỬ DỤNG CHUNG CHO IN A4 VÀ SERVER PDF
+   HÀM DÀN TRANG IN A4 - PHÂN TRANG THEO CHIỀU CAO THỰC TẾ
 ========================================================= */
 
 function buildPrintEventCard(item){
@@ -1027,83 +1023,189 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
     </div>`;
 }
 
+function createPrintMeasureRoot(){
+  const root = document.createElement('div');
+  root.id = 'print-measure-root';
+  root.style.cssText =
+    'position:absolute;left:-100000px;top:0;width:194mm;visibility:hidden;pointer-events:none;z-index:-1;';
+  document.body.appendChild(root);
+  return root;
+}
+
+function measurePrintCardHeights(data){
+  const locate = Array.isArray(data?.locate) ? data.locate : [];
+  const root = createPrintMeasureRoot();
+
+  const section = document.createElement('div');
+  section.className = 'p-section-box';
+  section.innerHTML = `
+    <div class="p-section-head">LỊCH SỬ HÀNH TRÌNH</div>
+    <div style="padding:4px;">
+      <table class="p-timeline-table">
+        <tr><td id="measure-left"></td><td id="measure-right"></td></tr>
+      </table>
+    </div>`;
+  root.appendChild(section);
+
+  const td = section.querySelector('#measure-left');
+  const heights = [];
+
+  for(const item of locate){
+    const holder = document.createElement('div');
+    holder.innerHTML = buildPrintEventCard(item);
+    const card = holder.firstElementChild;
+    td.appendChild(card);
+
+    const cs = getComputedStyle(card);
+    const marginBottom = parseFloat(cs.marginBottom) || 0;
+    heights.push(card.getBoundingClientRect().height + marginBottom);
+
+    td.removeChild(card);
+  }
+
+  root.remove();
+  return heights;
+}
+
+function measurePageBaseHeight(data, pageIndex, totalPages, includeDelivery){
+  const root = createPrintMeasureRoot();
+  root.innerHTML = buildPrintPageHTML(data, [], pageIndex, totalPages, 0, includeDelivery);
+
+  const page = root.firstElementChild;
+  const pageRect = page.getBoundingClientRect();
+  const footer = page.querySelector('.p-footer');
+
+  let contentBottom = footer
+    ? footer.getBoundingClientRect().bottom - pageRect.top
+    : 0;
+
+  contentBottom += 1;
+
+  const pageHeight = pageRect.height;
+  root.remove();
+
+  return {
+    pageHeight,
+    available: Math.max(0, pageHeight - contentBottom)
+  };
+}
+
+function findSplitForChunk(heights, start, count, capacity){
+  if(count <= 0) return 0;
+
+  const prefix = [0];
+  for(let i=0;i<count;i++){
+    prefix.push(prefix[prefix.length - 1] + (heights[start + i] || 0));
+  }
+
+  if(count === 1){
+    return prefix[1] <= capacity ? 1 : 0;
+  }
+
+  let best = -1;
+  let bestBalance = Infinity;
+
+  for(let k=1;k<count;k++){
+    const left = prefix[k];
+    const right = prefix[count] - prefix[k];
+
+    if(left <= capacity && right <= capacity){
+      const balance = Math.abs(left - right);
+      if(balance < bestBalance){
+        bestBalance = balance;
+        best = k;
+      }
+    }
+  }
+
+  return best;
+}
+
 function renderPrint(data){
   const locate = Array.isArray(data?.locate) ? data.locate : [];
   const printArea = document.getElementById('print-area');
+
   if(!printArea) return;
 
-  // Sử dụng logic chia 2 cột đơn giản: Nửa trái, nửa phải
-  const half = Math.ceil(locate.length / 2);
-  const left = locate.slice(0, half);
-  const right = locate.slice(half);
+  const heights = measurePrintCardHeights(data);
+  const totalEvents = locate.length;
+  const pages = [];
+  let start = 0;
+  let pageIndex = 0;
 
-  printArea.innerHTML = `
-    <div class="print-page">
-      <div class="p-header">
-        <div class="p-header-left">
-          <img class="p-logo" src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png" alt="VNPost">
-          <div class="p-brand-info">
-            <div class="p-brand-name">InVanDon247</div>
-            <div class="p-brand-sub">Công cụ tra cứu và tạo phiếu vận đơn A4</div>
-          </div>
-        </div>
-        <div class="p-title-wrap">
-          <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
-          <div class="p-title-code">Mã vận đơn: ${esc(data?.info?.ID || currentTrackingCode || '-')} (Đơn vị VNPOST - Bưu điện Việt Nam)</div>
-        </div>
-      </div>
+  const MEASURE_TOTAL = 999;
 
-      <div class="p-section-box">
-        <div class="p-section-head">CHI TIẾT BƯU GỬI</div>
-        <div class="p-grid-info">
-          <div>Mã vận đơn: <b>${esc(data?.info?.ID)}</b></div>
-          <div>Khối lượng: <b>${esc(data?.info?.Weight || 0)} gam</b></div>
-          <div>Trạng thái: <b style="color:#059669">${esc(cleanStatus(latestStatus(data)))}</b></div>
-          <div>Bưu cục gửi: <b>${esc(data?.info?.BC_GUI || '-')}</b></div>
-          <div>Bưu cục phát: <b>${esc(data?.info?.BC_PHAT || '-')}</b></div>
-          <div>Người nhận: <b>${esc(getDeliveryPerson(data).receiver !== '-' ? getDeliveryPerson(data).receiver : '-')}</b></div>
-        </div>
-      </div>
+  while(start < totalEvents || pageIndex === 0){
+    const remaining = totalEvents - start;
 
-      <div class="p-section-box p-timeline-box">
-        <div class="p-section-head">LỊCH SỬ HÀNH TRÌNH (${locate.length} SỰ KIỆN)</div>
-        <div style="padding:4px;">
-          <table class="p-timeline-table">
-            <tr>
-              <td>${left.map(buildPrintEventCard).join('')}</td>
-              <td>${right.map(buildPrintEventCard).join('')}</td>
-            </tr>
-          </table>
-        </div>
-      </div>
+    if(remaining > 0){
+      const lastBase = measurePageBaseHeight(data, pageIndex, MEASURE_TOTAL, true);
+      const splitAll = findSplitForChunk(heights, start, remaining, lastBase.available);
 
-      <div class="p-section-box p-delivery-box">
-        <div class="p-section-head">THÔNG TIN PHÁT</div>
-        <div style="padding:3px;">
-          <table class="p-delivery-table">
-            <thead>
-              <tr>
-                <th style="width:20%;">Ngày</th>
-                <th style="width:40%;">Bưu cục / Bưu tá</th>
-                <th style="width:40%;">Chi tiết</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data?.delivery?.length ? data.delivery.map(d => {
-                const o = getOfficeForDelivery(data, d);
-                const pi = getDeliveryPerson({delivery:[d]});
-                const postmanText = pi.name !== '-' ? pi.name + (pi.phone !== '-' ? ' - ' + pi.phone : '') : '';
-                return `<tr><td>${esc(getDeliveryTime(d))}</td><td><b>${esc(o.full)}</b>${postmanText ? `<br><span style="color:#475569;">Bưu tá: ${esc(postmanText)}</span>` : ''}</td><td>${esc(d.STATUSTEXT || d.StatusText || '-')}</td></tr>`;
-              }).join('') : `<tr><td colspan="3" style="text-align:center;">Chưa có dữ liệu phát</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      if(splitAll > 0){
+        pages.push({
+          start,
+          count: remaining,
+          split: splitAll,
+          includeDelivery: true
+        });
+        start = totalEvents;
+        break;
+      }
+    }else{
+      pages.push({
+        start: totalEvents,
+        count: 0,
+        split: 0,
+        includeDelivery: true
+      });
+      break;
+    }
 
-      <div class="p-footer">
-        Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 — Trang 1/1
-      </div>
-    </div>`;
+    const base = measurePageBaseHeight(data, pageIndex, MEASURE_TOTAL, false);
+    let maxCount = 0;
+
+    const limit = remaining > 1 ? remaining - 1 : remaining;
+
+    for(let count=1; count<=limit; count++){
+      const split = findSplitForChunk(heights, start, count, base.available);
+      if(split <= 0) break;
+      maxCount = count;
+    }
+
+    if(maxCount === 0 && remaining > 0){
+      maxCount = 1;
+    }
+
+    const split = findSplitForChunk(heights, start, maxCount, base.available);
+
+    pages.push({
+      start,
+      count: maxCount,
+      split: split > 0 ? split : 1,
+      includeDelivery: false
+    });
+
+    start += maxCount;
+    pageIndex++;
+
+    if(pageIndex > totalEvents + 5) break;
+  }
+
+  const totalPages = pages.length || 1;
+
+  printArea.innerHTML = pages.map((p, i) => {
+    const chunk = locate.slice(p.start, p.start + p.count);
+
+    return buildPrintPageHTML(
+      data,
+      chunk,
+      i,
+      totalPages,
+      p.split,
+      p.includeDelivery
+    );
+  }).join('');
 }
 
 function safeTrackingFilename(){
@@ -1116,13 +1218,28 @@ async function printA4(){
     alert('Vui lòng tra cứu vận đơn trước.');
     return;
   }
-  try{ if(document.fonts?.ready) await document.fonts.ready; }catch(_){}
+
+  try{
+    if(document.fonts?.ready) await document.fonts.ready;
+  }catch(_){}
+
   renderPrint(currentData);
+
+  const oldTitle = document.title;
+  const printFilename = `InVanDon247_VNPost_${safeTrackingFilename()}`;
+  document.title = printFilename;
+
+  const restoreTitle = () => {
+    document.title = oldTitle;
+    window.removeEventListener('afterprint', restoreTitle);
+  };
+  window.addEventListener('afterprint', restoreTitle);
+
   setTimeout(() => window.print(), 80);
 }
 
 /* =========================================================
-   HÀM TẢI PDF - GỌI SERVER CHROMIUM (PUPPETEER)
+   HÀM TẢI XUỐNG PDF - GỌI SERVER PUPPETEER
 ========================================================= */
 async function downloadPDF(){
   if(!currentData){
@@ -1137,7 +1254,7 @@ async function downloadPDF(){
     pdfBtn.disabled = true;
     pdfBtn.innerHTML = '⏳ Đang tạo PDF...';
 
-    // Gửi dữ liệu lên server API để xử lý
+    // Gửi dữ liệu đã tra cứu lên Server để Puppeteer xử lý
     const response = await fetch('/api/pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

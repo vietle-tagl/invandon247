@@ -2,11 +2,11 @@ import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 
 export async function POST(req) {
+  let browser = null;
   try {
-    // Cấu hình đường dẫn Chromium tối ưu cho môi trường Vercel Serverless
     const executablePath = await chromium.executablePath();
 
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: executablePath,
@@ -14,32 +14,17 @@ export async function POST(req) {
     });
 
     const page = await browser.newPage();
+    // (Đoạn code nhận HTML và render PDF của bạn ở đây...)
 
-    // 1. Nhận nội dung HTML hoặc URL từ client
-    // const { html } = await req.json();
-    // await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
 
-    // 2. Tạo PDF
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-    });
-
-    await browser.close();
-
-    // 3. Trả về file PDF cho phía client
     return new Response(pdfBuffer, {
       status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'inline; filename="don-hang.pdf"',
-      },
+      headers: { 'Content-Type': 'application/pdf' },
     });
   } catch (error) {
-    console.error('Puppeteer PDF Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  } finally {
+    if (browser) await browser.close();
   }
 }

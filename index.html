@@ -409,17 +409,15 @@ body{
 
 .print-page{
   width:194mm;
-  height:auto; /* Sửa từ 285mm thành auto để không bị cắt khi PDF */
-  min-height: 285mm; /* Giữ chiều cao tối thiểu để đảm bảo bố cục */
+  height:285mm;
   box-sizing:border-box;
-  overflow:visible; /* Quan trọng: Cho phép tràn nội dung để html2canvas chụp đủ */
+  overflow:hidden;
   page-break-after:always;
   break-after:page;
   font-size:10px;
   color:#0f172a;
   font-family:'Inter',Arial,Helvetica,sans-serif !important;
   background:#fff;
-  padding-bottom: 15px; /* Tạo khoảng trống cho footer */
 }
 .print-page:last-child{
   page-break-after:auto;
@@ -511,7 +509,8 @@ body{
 
   .print-page {
     width: 194mm;
-    height: 285mm; /* Khôi phục lại chiều cao cố định khi in thật */
+    height: 285mm;
+    box-sizing: border-box;
     overflow: hidden;
     page-break-after: always;
     break-after: page;
@@ -520,6 +519,93 @@ body{
     font-family: 'Inter', Arial, Helvetica, sans-serif !important;
   }
   .print-page:last-child { page-break-after: auto; }
+
+  .p-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #0a4b88;
+    padding-bottom: 5px;
+    margin-bottom: 6px;
+  }
+  .p-header-left { display: flex; align-items: center; gap: 10px; }
+  .p-logo { width: 50px; height: 32px; object-fit: contain; }
+  .p-brand-info { line-height: 1.25; }
+  .p-brand-name { font-size: 16px; font-weight: 800; color: #0a4b88; letter-spacing: -0.3px; }
+  .p-brand-sub { font-size: 9px; color: #475569; font-weight: 500; }
+  
+  .p-title-main { font-size: 15px; font-weight: 800; color: #0a4b88; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  .p-section-box {
+    border: 1px solid #334155;
+    margin-bottom: 6px;
+    background: #fff;
+  }
+  .p-section-head {
+    background: #fff;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #0a4b88;
+    padding: 3px 6px;
+    border-bottom: 1px solid #334155;
+    text-transform: uppercase;
+  }
+  .p-grid-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px 10px;
+    padding: 5px 8px;
+    font-size: 9.5px;
+    line-height: 1.35;
+  }
+  .p-grid-info b { font-weight: 700; color: #0f172a; }
+
+  .p-timeline-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .p-timeline-table td {
+    width: 50%;
+    vertical-align: top;
+    padding: 0 3px;
+    border: none;
+  }
+
+  .p-event-card {
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    padding: 2.5px 5px;
+    margin-bottom: 3.5px;
+    font-size: 8.8px;
+    line-height: 1.3;
+    background: #fff;
+    page-break-inside: avoid;
+  }
+  .p-event-time { color: #dc2626; font-weight: 700; margin-bottom: 1px; font-size: 8.8px; }
+  .p-event-desc { font-weight: 600; color: #0f172a; }
+  .p-event-office { color: #475569; font-size: 8.2px; }
+
+  .p-delivery-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9px;
+  }
+  .p-delivery-table th, .p-delivery-table td {
+    border: 1px solid #334155;
+    padding: 3px 6px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .p-delivery-table th { background: #f1f5f9; font-weight: 700; }
+
+  .p-footer {
+    text-align: center;
+    font-size: 8.5px;
+    color: #475569;
+    border-top: 1px solid #cbd5e1;
+    padding-top: 3px;
+    margin-top: 5px;
+  }
 }
 
 @media(max-width:760px){
@@ -1249,7 +1335,7 @@ async function printA4(){
 
 /* =========================================================
    HÀM TẢI XUỐNG PDF (CLIENT-SIDE - KHÔNG CẦN SERVER)
-   ĐÃ SỬA LỖI: Mất Logo, Cắt trang, Chia đúng nhiều trang PDF
+   ĐÃ SỬA HOÀN TOÀN: Chất lượng cao, Giữ logo, Đúng lề, Nhẹ dung lượng
 ========================================================= */
 async function downloadPDF(){
   if(!currentData){
@@ -1264,68 +1350,13 @@ async function downloadPDF(){
     pdfBtn.disabled = true;
     pdfBtn.innerHTML = '⏳ Đang tạo PDF...';
 
-    // 1. Render nội dung in vào vùng print-area (sử dụng đúng logic đã tính toán trước đó)
+    // 1. Render nội dung in vào vùng print-area
     renderPrint(currentData);
     
-    // 2. Tạo bản sao (Clone) để xử lý không làm ảnh hưởng tới giao diện web
     const printArea = document.getElementById('print-area');
-    const printClone = printArea.cloneNode(true);
+    const pages = printArea.querySelectorAll('.print-page');
     
-    // 3. Ép kiểu dáng cho bản sao: Chặn mọi ràng buộc height/overflow để chụp đủ chiều cao
-    printClone.style.display = 'block';
-    printClone.style.position = 'absolute';
-    printClone.style.left = '-100000px'; // Đưa ra ngoài màn hình để không hiện trên web nhưng vẫn render
-    printClone.style.top = '0';
-    printClone.style.width = '210mm'; // Full khổ A4
-    printClone.style.zIndex = '9999';
-    printClone.style.background = '#ffffff';
-    printClone.style.padding = '8mm'; // Lề chuẩn A4
-    printClone.style.boxSizing = 'border-box';
-    printClone.style.overflow = 'visible'; // Cho phép tràn hết nội dung để chụp
-    printClone.style.pointerEvents = 'none';
-    
-    // 4. Đảm bảo tất cả các Page con đều hiển thị và cho phép tràn chiều cao thật
-    const pages = printClone.querySelectorAll('.print-page');
-    pages.forEach(page => {
-      page.style.height = 'auto'; // Bỏ chiều cao cứng 285mm
-      page.style.minHeight = 'auto'; // Bỏ min-height
-      page.style.overflow = 'visible'; // Bỏ hidden để không cắt
-      page.style.pageBreakAfter = 'auto'; // Bỏ break để chụp liền mạch
-      page.style.breakAfter = 'auto';
-      page.style.marginBottom = '0'; 
-    });
-    
-    document.body.appendChild(printClone);
-
-    // 5. Chờ cho tất cả ảnh (đặc biệt là Logo) tải xong trước khi chụp
-    await document.fonts.ready;
-    const images = printClone.querySelectorAll('img');
-    await Promise.all(Array.from(images).map(img => {
-      if (img.complete && img.naturalWidth > 0) return;
-      return new Promise(resolve => {
-        img.onload = resolve;
-        img.onerror = resolve;
-      });
-    }));
-
-    await new Promise(resolve => setTimeout(resolve, 300)); // Đợi thêm 300ms cho render ổn định
-
-    // 6. Chuyển đổi HTML sang Canvas với cấu hình chống CORS
-    const canvas = await html2canvas(printClone, {
-      scale: 2,                // Độ phân giải cao cho chữ sắc nét
-      useCORS: true,           // Cho phép tải ảnh chéo domain (Quan trọng cho Logo)
-      allowTaint: false,
-      logging: false,
-      backgroundColor: '#ffffff',
-      windowWidth: printClone.scrollWidth,
-      windowHeight: printClone.scrollHeight
-    });
-
-    // Xóa bản clone khỏi DOM
-    document.body.removeChild(printClone);
-
-    // 7. Tạo PDF và Chia trang chuẩn xác dựa trên chiều cao canvas thực tế
-    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+    // Tạo PDF
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -1336,40 +1367,82 @@ async function downloadPDF(){
 
     const pageWidth = 210; // mm
     const pageHeight = 297; // mm
+    
+    // 2. Lặp qua từng trang trong print-area, chụp từng trang một để giữ đúng lề và logo
+    let pageIndex = 0;
+    for (const page of pages) {
+      // Tạo bản sao chỉ chứa 1 trang để chụp
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-100000px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '210mm';
+      tempContainer.style.boxSizing = 'border-box';
+      tempContainer.style.background = '#ffffff';
+      tempContainer.style.padding = '8mm'; // Lề chuẩn A4
+      
+      const pageClone = page.cloneNode(true);
+      // Bỏ các ràng buộc để chụp được trọn vẹn nội dung trang
+      pageClone.style.width = '194mm'; // Chiều rộng nội dung bên trong lề
+      pageClone.style.height = 'auto';
+      pageClone.style.overflow = 'visible';
+      pageClone.style.margin = '0';
+      pageClone.style.pageBreakAfter = 'auto';
+      pageClone.style.breakAfter = 'auto';
 
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Chuyển logo về Base64 trước khi chụp để tránh mất ảnh do CORS
+      const imgs = pageClone.querySelectorAll('img');
+      for (const img of imgs) {
+        try {
+          const imgCanvas = document.createElement('canvas');
+          imgCanvas.width = img.naturalWidth;
+          imgCanvas.height = img.naturalHeight;
+          const ctx = imgCanvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          img.src = imgCanvas.toDataURL('image/png');
+        } catch (e) {
+          // Nếu không chuyển được (do CORS), giữ nguyên src gốc
+        }
+      }
 
-    // Nếu ảnh cao hơn 1 trang thì chia thành nhiều trang
-    let remainingHeight = imgHeight;
-    let sourceY = 0;
-    let pageCount = 1;
+      tempContainer.appendChild(pageClone);
+      document.body.appendChild(tempContainer);
 
-    while (remainingHeight > 0) {
-      if (pageCount > 1) {
-        pdf.addPage(); // Thêm trang mới
+      // Chờ ảnh và font render xong
+      await document.fonts.ready;
+      await new Promise(r => setTimeout(r, 100));
+
+      // 3. Chụp Trang riêng lẻ (scale 1.5 là vừa đủ nét mà không bị nặng file)
+      const canvas = await html2canvas(tempContainer, {
+        scale: 1.5,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: tempContainer.scrollWidth,
+        height: tempContainer.scrollHeight
+      });
+
+      // Xóa bản sao tạm
+      document.body.removeChild(tempContainer);
+
+      // 4. Chuyển đổi từng trang sang PNG (PNG nén chữ và màu tốt hơn JPEG, nhẹ hơn nhiều)
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Thêm vào PDF
+      if (pageIndex > 0) {
+        pdf.addPage();
       }
       
-      const currentHeight = Math.min(remainingHeight, pageHeight - 10); // Trừ 10mm đáy để không bị cắt chữ
-      const ratio = currentHeight / imgHeight;
-      const canvasHeight = Math.floor(canvas.height * ratio);
+      const imgWidth = pageWidth - 16; // 210 - (8mm lề trái + 8mm lề phải)
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Cắt canvas cho từng trang riêng lẻ
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = canvas.width;
-      tempCanvas.height = canvasHeight;
-      const ctx = tempCanvas.getContext('2d');
-      ctx.drawImage(canvas, 0, sourceY, canvas.width, canvasHeight, 0, 0, canvas.width, canvasHeight);
+      pdf.addImage(imgData, 'PNG', 8, 8, imgWidth, imgHeight); // Căn lề 8mm đều 4 phía
       
-      const pageImgData = tempCanvas.toDataURL('image/jpeg', 0.95);
-      pdf.addImage(pageImgData, 'JPEG', 0, 0, imgWidth, currentHeight);
-      
-      remainingHeight -= currentHeight;
-      sourceY += canvasHeight;
-      pageCount++;
+      pageIndex++;
     }
 
-    // 8. Lưu file PDF
+    // 5. Lưu file PDF
     pdf.save(`InVanDon247_VNPost_${safeTrackingFilename()}.pdf`);
 
   }catch(error){

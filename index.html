@@ -10,8 +10,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 <style>
 :root{
   --blue-primary:#0a4b88;
@@ -405,8 +403,6 @@ body{
 ========================================================= */
 #print-area{ display:none; }
 
-
-/* ===== PRINT LAYOUT ENGINE (dùng cả khi đo trang trước khi in) ===== */
 .print-page{
   width:194mm;
   height:285mm;
@@ -520,7 +516,6 @@ body{
   }
   .print-page:last-child { page-break-after: auto; }
 
-  /* Header bản in đồng bộ thương hiệu */
   .p-header {
     display: flex;
     justify-content: space-between;
@@ -537,7 +532,6 @@ body{
   
   .p-title-main { font-size: 15px; font-weight: 800; color: #0a4b88; text-transform: uppercase; letter-spacing: 0.5px; }
   
-  /* Khung Chi Tiết Bưu Gửi */
   .p-section-box {
     border: 1px solid #334155;
     margin-bottom: 6px;
@@ -562,7 +556,6 @@ body{
   }
   .p-grid-info b { font-weight: 700; color: #0f172a; }
 
-  /* Bảng Hành Trình 2 Cột */
   .p-timeline-table {
     width: 100%;
     border-collapse: collapse;
@@ -588,7 +581,6 @@ body{
   .p-event-desc { font-weight: 600; color: #0f172a; }
   .p-event-office { color: #475569; font-size: 8.2px; }
 
-  /* Bảng Thông Tin Phát */
   .p-delivery-table {
     width: 100%;
     border-collapse: collapse;
@@ -602,7 +594,6 @@ body{
   }
   .p-delivery-table th { background: #f1f5f9; font-weight: 700; }
 
-  /* Footer chân trang */
   .p-footer {
     text-align: center;
     font-size: 8.5px;
@@ -1022,7 +1013,6 @@ function openMap(address, title, coords){
 
 /* =========================================================
    HÀM DÀN TRANG IN A4 - PHÂN TRANG THEO CHIỀU CAO THỰC TẾ
-   Không còn cắt theo "24/32 sự kiện" cố định.
 ========================================================= */
 
 function buildPrintEventCard(item){
@@ -1180,7 +1170,6 @@ function measurePageBaseHeight(data, pageIndex, totalPages, includeDelivery){
     ? footer.getBoundingClientRect().bottom - pageRect.top
     : 0;
 
-  // Dự phòng nhỏ cho sai số làm tròn px/mm.
   contentBottom += 1;
 
   const pageHeight = pageRect.height;
@@ -1207,9 +1196,6 @@ function findSplitForChunk(heights, start, count, capacity){
   let best = -1;
   let bestBalance = Infinity;
 
-  // Giữ thứ tự dữ liệu: các sự kiện đầu nằm cột trái,
-  // phần còn lại nằm cột phải. Chọn điểm chia cân bằng nhất
-  // trong số các điểm vẫn nằm gọn trên trang.
   for(let k=1;k<count;k++){
     const left = prefix[k];
     const right = prefix[count] - prefix[k];
@@ -1238,14 +1224,11 @@ function renderPrint(data){
   let start = 0;
   let pageIndex = 0;
 
-  // Footer luôn một dòng nên số trang tạm không ảnh hưởng chiều cao.
   const MEASURE_TOTAL = 999;
 
   while(start < totalEvents || pageIndex === 0){
     const remaining = totalEvents - start;
 
-    // Ưu tiên thử đặt TOÀN BỘ phần còn lại vào trang cuối,
-    // bao gồm cả "Thông tin phát".
     if(remaining > 0){
       const lastBase = measurePageBaseHeight(data, pageIndex, MEASURE_TOTAL, true);
       const splitAll = findSplitForChunk(heights, start, remaining, lastBase.available);
@@ -1261,7 +1244,6 @@ function renderPrint(data){
         break;
       }
     }else{
-      // Không có lịch sử nhưng vẫn tạo trang chứa Thông tin phát.
       pages.push({
         start: totalEvents,
         count: 0,
@@ -1271,12 +1253,9 @@ function renderPrint(data){
       break;
     }
 
-    // Chưa thể kết thúc tại đây -> tạo trang trung gian.
     const base = measurePageBaseHeight(data, pageIndex, MEASURE_TOTAL, false);
     let maxCount = 0;
 
-    // Nếu còn từ 2 sự kiện trở lên, chừa ít nhất 1 sự kiện
-    // cho trang cuối cùng để bảng "Thông tin phát" có chỗ.
     const limit = remaining > 1 ? remaining - 1 : remaining;
 
     for(let count=1; count<=limit; count++){
@@ -1301,7 +1280,6 @@ function renderPrint(data){
     start += maxCount;
     pageIndex++;
 
-    // Bảo vệ vòng lặp trong trường hợp dữ liệu bất thường.
     if(pageIndex > totalEvents + 5) break;
   }
 
@@ -1332,16 +1310,12 @@ async function printA4(){
     return;
   }
 
-  // Chờ font tải xong rồi đo lại chiều cao thẻ in.
-  // Điều này giúp tránh trường hợp font chưa tải khiến điểm ngắt trang bị lệch.
   try{
     if(document.fonts?.ready) await document.fonts.ready;
   }catch(_){}
 
   renderPrint(currentData);
 
-  // Đổi tiêu đề tài liệu trước khi mở hộp thoại in.
-  // Chrome/Edge/Foxit thường dùng document.title làm tên PDF mặc định.
   const oldTitle = document.title;
   const printFilename = `InVanDon247_VNPost_${safeTrackingFilename()}`;
   document.title = printFilename;
@@ -1352,27 +1326,92 @@ async function printA4(){
   };
   window.addEventListener('afterprint', restoreTitle);
 
-  // Cho trình duyệt hoàn tất reflow trước khi mở hộp thoại in.
   setTimeout(() => window.print(), 80);
 }
 
+/* =========================================================
+   HÀM TẢI XUỐNG PDF (GỬI HTML SANG SERVER VERCEL PUPPETEER)
+========================================================= */
 async function downloadPDF(){
   if(!currentData){
     alert('Vui lòng tra cứu vận đơn trước.');
     return;
   }
 
-  /*
-     KHÔNG dùng html2pdf/html2canvas ở đây nữa.
-     html2canvas biến toàn bộ trang thành ảnh rồi nhúng ảnh vào PDF,
-     nên file vừa nặng vừa dễ bị mờ và sai tỷ lệ so với bản In A4.
+  const pdfBtn = document.querySelector('.pdf-btn');
+  const originalText = pdfBtn.innerHTML;
 
-     Thay vào đó dùng chính cơ chế in A4 của trình duyệt. Khi người dùng
-     chọn "Lưu dưới dạng PDF", trình duyệt tạo PDF từ layout/CSS in gốc
-     (vector/text), vì vậy kết quả giống nút "In A4": nét hơn, đúng lề
-     và thường nhẹ hơn đáng kể.
-  */
-  await printA4();
+  try{
+    pdfBtn.disabled = true;
+    pdfBtn.innerHTML = '⏳ Đang tạo PDF...';
+
+    if(document.fonts?.ready) await document.fonts.ready;
+    renderPrint(currentData);
+
+    // Thu thập toàn bộ CSS của trang
+    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map(el => el.outerHTML)
+      .join('\n');
+
+    const printHTML = document.getElementById('print-area').innerHTML;
+
+    // Đóng gói thành tài liệu HTML hoàn chỉnh
+    const fullHTMLDocument = `
+      <!DOCTYPE html>
+      <html lang="vi">
+      <head>
+        <meta charset="UTF-8">
+        ${styles}
+        <style>
+          body { background: #fff !important; margin: 0; padding: 0; }
+          #print-area { display: block !important; width: 100%; }
+        </style>
+      </head>
+      <body>
+        <div id="print-area">
+          ${printHTML}
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Gọi API Vercel Serverless Function
+    const response = await fetch('/api/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        htmlContent: fullHTMLDocument,
+        trackingCode: safeTrackingFilename()
+      })
+    });
+
+    if(!response.ok){
+      let errText = 'Không thể tạo file PDF';
+      try {
+        const errData = await response.json();
+        errText = errData.message || errText;
+      } catch(_) {}
+      throw new Error(errText);
+    }
+
+    // Tải xuống file dạng đính kèm
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `InVanDon247_VNPost_${safeTrackingFilename()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    
+    a.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+
+  }catch(error){
+    alert('Lỗi tải PDF: ' + error.message);
+  }finally{
+    pdfBtn.disabled = false;
+    pdfBtn.innerHTML = originalText;
+  }
 }
 
 document.getElementById('trackingCode').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('captchaText').focus(); });

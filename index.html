@@ -60,10 +60,6 @@ body{
   text-decoration:none
 }
 
-/*
-  LOGO VNPOST CHUẨN
-  Dùng trực tiếp hình PNG bạn đã cung cấp.
-*/
 .brand-logo{
   width:72px;
   height:48px;
@@ -188,12 +184,6 @@ body{
   flex:1
 }
 
-/*
-  Khi CAPTCHA chưa tải:
-  - Không hiện icon lỗi
-  - Không hiện khung trắng xấu
-  - Chỉ để trống khu vực
-*/
 .captcha-slot{
   width:100px;
   height:38px;
@@ -334,12 +324,14 @@ body{
 
 .summary-strip{
   background:#f4f5f6;
-  margin:0 -8px 12px;
-  padding:10px 8px;
+  margin:16px -8px 12px;
+  padding:12px;
   display:grid;
-  grid-template-columns:1fr 1fr 1fr;
+  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
   gap:12px;
-  font-size:11px
+  font-size:12px;
+  border-radius:6px;
+  border:1px solid #e2e8f0
 }
 
 .summary-item{
@@ -349,8 +341,10 @@ body{
 }
 
 .summary-icon{
-  font-size:18px;
-  color:#222
+  font-size:16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center
 }
 
 .summary-item b{
@@ -362,28 +356,11 @@ body{
   font-weight:700
 }
 
-.route-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  padding:0 8px 14px;
-  font-size:11px
-}
-
-.route-grid div{
-  padding:4px 0
-}
-
-.route-grid b{
-  display:inline-block;
-  min-width:110px
-}
-
 .section-title{
   font-size:12px;
   font-weight:700;
   color:#4e555c;
-  margin:8px 8px 10px;
+  margin:16px 8px 10px;
   text-transform:uppercase
 }
 
@@ -484,7 +461,7 @@ body{
 
 .map-panel{
   display:none;
-  margin:4px 8px 14px;
+  margin:16px 8px 14px;
   border:1px solid #d9dee3;
   border-radius:6px;
   overflow:hidden
@@ -618,11 +595,6 @@ body{
   margin-bottom:7px
 }
 
-
-/*
-  Logo VNPost trong bản A4.
-  Dùng cùng ảnh chuẩn với header.
-*/
 .print-logo{
   width:62px;
   height:42px;
@@ -678,23 +650,26 @@ body{
 }
 
 .print-summary{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
   margin-bottom:7px
 }
 
 .pbox{
   border:1px solid #cdd3d8;
-  padding:5px
+  padding:6px
 }
 
 .pbox h4{
-  font-size:7.5px;
+  font-size:8px;
   color:var(--blue);
   margin:0 0 4px;
   border-bottom:1px dashed #ddd;
   padding-bottom:2px
+}
+
+.pgrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4px
 }
 
 .prow{
@@ -845,8 +820,7 @@ body{
   }
 
   .form-grid,
-  .summary-strip,
-  .route-grid{
+  .summary-strip{
     grid-template-columns:1fr
   }
 
@@ -935,7 +909,6 @@ body{
 
     <div class="brand-logo" aria-label="Vietnam Post">
 
-      <!-- LOGO VNPOST CHUẨN -->
       <img
         src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png"
         alt="Vietnam Post"
@@ -1027,11 +1000,6 @@ body{
           placeholder="Nhập mã CAPTCHA"
           autocomplete="off"
         >
-
-        <!--
-          Khu vực CAPTCHA lúc chưa tải sẽ hoàn toàn trống.
-          Khi tải thành công mới hiện hình.
-        -->
 
         <div class="captcha-slot">
 
@@ -1627,11 +1595,6 @@ async function loadCaptcha(){
     ++captchaRequestId;
 
 
-  /*
-    Xóa CAPTCHA cũ trước khi tải CAPTCHA mới.
-    Khu vực sẽ hoàn toàn trống.
-  */
-
   img.classList.remove(
     'loaded'
   );
@@ -1646,12 +1609,6 @@ async function loadCaptcha(){
 
   reload.disabled=true;
 
-
-
-  /*
-    Thử tối đa 3 lần.
-    Không hiển thị lỗi CAPTCHA ra giao diện.
-  */
 
   for(
     let attempt=1;
@@ -1697,11 +1654,6 @@ async function loadCaptcha(){
             data.captchaUrl
           );
 
-
-        /*
-          Kiểm tra ảnh trước khi đưa
-          vào giao diện.
-        */
 
         await new Promise(
           (resolve,reject) => {
@@ -1756,11 +1708,6 @@ async function loadCaptcha(){
       }
 
     }catch(e){
-
-      /*
-        Không hiện lỗi CAPTCHA.
-        Âm thầm thử lại.
-      */
 
     }
 
@@ -2013,20 +1960,6 @@ function renderScreen(data){
     data.delivery || [];
 
 
-  const latestOffice =
-    locate.length
-      ? getOffice(
-          locate[
-            locate.length - 1
-          ]
-        )
-      : {
-          code:'-',
-          name:'',
-          full:'-'
-        };
-
-
   const status =
     latestStatus(data);
 
@@ -2067,11 +2000,40 @@ function renderScreen(data){
 
     </div>
 
+    <div class="summary-item">
+
+      <span class="summary-icon">
+        📤
+      </span>
+
+      <div>
+        Bưu cục gửi:
+        <b>
+          ${esc(info.BC_GUI || '-')}
+        </b>
+      </div>
+
+    </div>
 
     <div class="summary-item">
 
       <span class="summary-icon">
-        ●
+        📥
+      </span>
+
+      <div>
+        Bưu cục phát:
+        <b>
+          ${esc(info.BC_PHAT || '-')}
+        </b>
+      </div>
+
+    </div>
+
+    <div class="summary-item" style="grid-column: 1 / -1;">
+
+      <span class="summary-icon" style="font-size:18px;">
+        📍
       </span>
 
       <div>
@@ -2081,44 +2043,6 @@ function renderScreen(data){
         </span>
       </div>
 
-    </div>
-
-  </div>
-
-
-
-  <div class="route-grid">
-
-    <div>
-      <b>Nước chấp nhận:</b>
-      ${esc(
-        info.Nuoc_Chapnhan ||
-        'VN - VIETNAM'
-      )}
-    </div>
-
-    <div>
-      <b>Nước phát:</b>
-      ${esc(
-        info.Nuoc_Phat ||
-        'VN - VIETNAM'
-      )}
-    </div>
-
-    <div>
-      <b>Bưu cục nhận:</b>
-      ${esc(
-        info.BC_GUI ||
-        '-'
-      )}
-    </div>
-
-    <div>
-      <b>Bưu cục phát:</b>
-      ${esc(
-        info.BC_PHAT ||
-        '-'
-      )}
     </div>
 
   </div>
@@ -2221,38 +2145,6 @@ function renderScreen(data){
         }
       ).join('')
     }
-
-  </div>
-
-
-
-  <div
-    id="map-panel"
-    class="map-panel"
-  >
-
-    <div class="map-toolbar">
-
-      <b id="map-title">
-        Vị trí bưu cục
-      </b>
-
-      <a
-        id="map-link"
-        target="_blank"
-        rel="noopener"
-      >
-        Mở Google Maps ↗
-      </a>
-
-    </div>
-
-
-    <iframe
-      id="map-frame"
-      class="map-frame"
-      loading="lazy"
-    ></iframe>
 
   </div>
 
@@ -2380,6 +2272,37 @@ function renderScreen(data){
   </div>
 
 
+  <!-- BẢN ĐỒ CHUYỂN XUỐNG DƯỚI CÙNG -->
+  <div
+    id="map-panel"
+    class="map-panel"
+  >
+
+    <div class="map-toolbar">
+
+      <b id="map-title">
+        Vị trí bưu cục
+      </b>
+
+      <a
+        id="map-link"
+        target="_blank"
+        rel="noopener"
+      >
+        Mở Google Maps ↗
+      </a>
+
+    </div>
+
+
+    <iframe
+      id="map-frame"
+      class="map-frame"
+      loading="lazy"
+    ></iframe>
+
+  </div>
+
 
   <div class="screen-footer">
 
@@ -2472,7 +2395,6 @@ function openMap(
 
 /* =========================================================
    VNPOST LOGO
-   Dùng ảnh PNG chuẩn thay cho SVG tự vẽ.
 ========================================================= */
 
 function vnpostLogoImg(){
@@ -2617,7 +2539,7 @@ function renderPrint(data){
 
 
           <!-- ==========================================
-               TITLE + SUMMARY
+               TITLE + SUMMARY (GOM CHUNG TRONG 1 KHUNG)
           =========================================== -->
 
           ${
@@ -2643,147 +2565,47 @@ function renderPrint(data){
 
               <div class="print-summary">
 
-
                 <div class="pbox">
 
                   <h4>
-                    THÔNG TIN TỔNG QUAN
+                    CHI TIẾT BƯU GỬI
                   </h4>
 
+                  <div class="pgrid">
 
-                  <div class="prow">
+                    <div class="prow">
+                      <span>Mã bưu gửi:</span>
+                      <b>${esc(info.ID)}</b>
+                    </div>
 
-                    <span>
-                      Mã bưu gửi:
-                    </span>
+                    <div class="prow">
+                      <span>Bưu cục gửi:</span>
+                      <b>${esc(info.BC_GUI || '-')}</b>
+                    </div>
 
-                    <b>
-                      ${esc(info.ID)}
-                    </b>
+                    <div class="prow">
+                      <span>Khối lượng:</span>
+                      <b>${esc(info.Weight || 0)} gram</b>
+                    </div>
 
-                  </div>
+                    <div class="prow">
+                      <span>Bưu cục phát:</span>
+                      <b>${esc(info.BC_PHAT || '-')}</b>
+                    </div>
 
+                    <div class="prow">
+                      <span>Trạng thái:</span>
+                      <b>${esc(latestStatus(data))}</b>
+                    </div>
 
-                  <div class="prow">
-
-                    <span>
-                      Khối lượng:
-                    </span>
-
-                    <b>
-                      ${esc(
-                        info.Weight || 0
-                      )}
-                      gram
-                    </b>
-
-                  </div>
-
-
-                  <div class="prow">
-
-                    <span>
-                      Trạng thái:
-                    </span>
-
-                    <b>
-                      ${esc(
-                        latestStatus(data)
-                      )}
-                    </b>
+                    <div class="prow">
+                      <span>BC hiện tại:</span>
+                      <b>${esc(locate.length ? getOffice(locate[locate.length - 1]).full : '-')}</b>
+                    </div>
 
                   </div>
 
                 </div>
-
-
-
-                <div class="pbox">
-
-                  <h4>
-                    TUYẾN VẬN CHUYỂN
-                  </h4>
-
-
-                  <div class="prow">
-
-                    <span>
-                      Bưu cục gửi:
-                    </span>
-
-                    <b>
-                      ${esc(
-                        info.BC_GUI || '-'
-                      )}
-                    </b>
-
-                  </div>
-
-
-                  <div class="prow">
-
-                    <span>
-                      Bưu cục phát:
-                    </span>
-
-                    <b>
-                      ${esc(
-                        info.BC_PHAT || '-'
-                      )}
-                    </b>
-
-                  </div>
-
-
-                  <div class="prow">
-
-                    <span>
-                      Nước gửi/nhận:
-                    </span>
-
-                    <b>
-
-                      ${esc(
-                        info.Nuoc_Chapnhan ||
-                        'VN'
-                      )}
-
-                      →
-
-                      ${esc(
-                        info.Nuoc_Phat ||
-                        'VN'
-                      )}
-
-                    </b>
-
-                  </div>
-
-
-                  <div class="prow">
-
-                    <span>
-                      BC hiện tại:
-                    </span>
-
-                    <b>
-
-                      ${esc(
-                        locate.length
-                          ? getOffice(
-                              locate[
-                                locate.length - 1
-                              ]
-                            ).full
-                          : '-'
-                      )}
-
-                    </b>
-
-                  </div>
-
-                </div>
-
 
               </div>
 

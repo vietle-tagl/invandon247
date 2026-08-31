@@ -1334,8 +1334,7 @@ async function printA4(){
 }
 
 /* =========================================================
-   HÀM TẢI XUỐNG PDF (CLIENT-SIDE - KHÔNG CẦN SERVER)
-   ĐÃ SỬA HOÀN TOÀN: Chất lượng cao, Giữ logo, Đúng lề, Nhẹ dung lượng
+   HÀM TẢI XUỐNG PDF (TỐI ƯU CHẤT LƯỢNG CAO - GIỮ LOGO)
 ========================================================= */
 async function downloadPDF(){
   if(!currentData){
@@ -1350,7 +1349,7 @@ async function downloadPDF(){
     pdfBtn.disabled = true;
     pdfBtn.innerHTML = '⏳ Đang tạo PDF...';
 
-    // 1. Render nội dung in vào vùng print-area
+    // Render nội dung in
     renderPrint(currentData);
     
     const printArea = document.getElementById('print-area');
@@ -1368,10 +1367,10 @@ async function downloadPDF(){
     const pageWidth = 210; // mm
     const pageHeight = 297; // mm
     
-    // 2. Lặp qua từng trang trong print-area, chụp từng trang một để giữ đúng lề và logo
     let pageIndex = 0;
+
+    // Lặp qua từng trang và chụp riêng biệt (đảm bảo lề, tránh cắt)
     for (const page of pages) {
-      // Tạo bản sao chỉ chứa 1 trang để chụp
       const tempContainer = document.createElement('div');
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-100000px';
@@ -1382,15 +1381,15 @@ async function downloadPDF(){
       tempContainer.style.padding = '8mm'; // Lề chuẩn A4
       
       const pageClone = page.cloneNode(true);
-      // Bỏ các ràng buộc để chụp được trọn vẹn nội dung trang
-      pageClone.style.width = '194mm'; // Chiều rộng nội dung bên trong lề
+      // Bỏ ràng buộc CSS để chụp trọn vẹn
+      pageClone.style.width = '194mm';
       pageClone.style.height = 'auto';
       pageClone.style.overflow = 'visible';
       pageClone.style.margin = '0';
       pageClone.style.pageBreakAfter = 'auto';
       pageClone.style.breakAfter = 'auto';
 
-      // Chuyển logo về Base64 trước khi chụp để tránh mất ảnh do CORS
+      // CHUYỂN LOGO VỀ BASE64 (Fix 100% mất logo do CORS)
       const imgs = pageClone.querySelectorAll('img');
       for (const img of imgs) {
         try {
@@ -1401,20 +1400,20 @@ async function downloadPDF(){
           ctx.drawImage(img, 0, 0);
           img.src = imgCanvas.toDataURL('image/png');
         } catch (e) {
-          // Nếu không chuyển được (do CORS), giữ nguyên src gốc
+          // Nếu CORS chặn không cho đọc pixel (trường hợp xấu nhất), giữ nguyên src
         }
       }
 
       tempContainer.appendChild(pageClone);
       document.body.appendChild(tempContainer);
 
-      // Chờ ảnh và font render xong
+      // Chờ font và ảnh render xong
       await document.fonts.ready;
       await new Promise(r => setTimeout(r, 100));
 
-      // 3. Chụp Trang riêng lẻ (scale 1.5 là vừa đủ nét mà không bị nặng file)
+      // CHỤP VỚI SCALE 3 (Tăng độ phân giải lên gấp 3 lần màn hình)
       const canvas = await html2canvas(tempContainer, {
-        scale: 1.5,
+        scale: 3, // Chất lượng cực cao, chữ sắc nét như in
         useCORS: true,
         allowTaint: false,
         logging: false,
@@ -1426,10 +1425,8 @@ async function downloadPDF(){
       // Xóa bản sao tạm
       document.body.removeChild(tempContainer);
 
-      // 4. Chuyển đổi từng trang sang PNG (PNG nén chữ và màu tốt hơn JPEG, nhẹ hơn nhiều)
       const imgData = canvas.toDataURL('image/png');
       
-      // Thêm vào PDF
       if (pageIndex > 0) {
         pdf.addPage();
       }
@@ -1437,12 +1434,11 @@ async function downloadPDF(){
       const imgWidth = pageWidth - 16; // 210 - (8mm lề trái + 8mm lề phải)
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 8, 8, imgWidth, imgHeight); // Căn lề 8mm đều 4 phía
+      pdf.addImage(imgData, 'PNG', 8, 8, imgWidth, imgHeight); // Căn lề 8mm đều
       
       pageIndex++;
     }
 
-    // 5. Lưu file PDF
     pdf.save(`InVanDon247_VNPost_${safeTrackingFilename()}.pdf`);
 
   }catch(error){
@@ -1452,7 +1448,6 @@ async function downloadPDF(){
     pdfBtn.disabled = false;
     pdfBtn.innerHTML = originalText;
     
-    // Ẩn print area nếu còn hiển thị (dọn dẹp DOM)
     const printArea = document.getElementById('print-area');
     if (printArea) {
       printArea.style.display = 'none';

@@ -331,18 +331,20 @@ body{
   margin-bottom:20px
 }
 
+/* TẠO CĂN CHỈNH THẲNG HÀNG CHO TIÊU ĐỀ */
 .detail-title{
-  color:#d9381e;
+  color:#0b6bb8;
   font-size:13px;
   font-weight:700;
   text-transform:uppercase;
   margin-bottom:12px;
   display:flex;
   align-items:center;
-  gap:6px
+  gap:6px;
+  line-height:1
 }
 
-/* Lưới 2 hàng 3 cột chuẩn yêu cầu */
+/* CĂN CHỈNH LƯỚI 2 HÀNG X 3 CỘT */
 .detail-grid{
   display:grid;
   grid-template-columns:1fr 1fr 1.2fr;
@@ -352,13 +354,15 @@ body{
   color:#4a5568
 }
 
+/* CĂN GIỮA TUYỆT ĐỐI CHO ICON VÀ CHỮ TRÊN CÙNG 1 HÀNG */
 .detail-item{
   display:flex;
   align-items:center;
   gap:6px;
   white-space:nowrap;
   overflow:hidden;
-  text-overflow:ellipsis
+  text-overflow:ellipsis;
+  line-height:1.2
 }
 
 .detail-item .icon{
@@ -366,18 +370,25 @@ body{
   color:#64748b;
   display:inline-flex;
   align-items:center;
-  justify-content:center
-}
-
-/* Geolocation icon styling */
-.geo-icon{
+  justify-content:center;
   width:16px;
   height:16px;
-  fill:none;
-  stroke:#e53e3e;
-  stroke-width:2;
-  stroke-linecap:round;
-  stroke-linejoin:round
+  flex:0 0 16px
+}
+
+/* ICON LOCATION GIỌT NƯỚC THEO MẪU */
+.pin-icon{
+  width:14px;
+  height:16px;
+  fill:#0b6bb8;
+  display:block
+}
+
+.status-pin-icon{
+  width:14px;
+  height:16px;
+  fill:#e53e3e;
+  display:block
 }
 
 .detail-item b{
@@ -1934,11 +1945,16 @@ function renderScreen(data){
 
   const html = `
 
-  <!-- KHUNG CHI TIẾT BƯU GỬI ĐÃ CẬP NHẬT THEO YÊU CẦU -->
+  <!-- KHUNG CHI TIẾT BƯU GỬI ĐÃ CÂN BẰNG THẲNG ĐỀU -->
   <div class="detail-box">
 
     <div class="detail-title">
-      📌 CHI TIẾT BƯU GỬI
+      <span class="icon">
+        <svg class="pin-icon" viewBox="0 0 24 24">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+      </span>
+      CHI TIẾT BƯU GỬI
     </div>
 
     <div class="detail-grid">
@@ -1955,15 +1971,13 @@ function renderScreen(data){
       </div>
 
       <div class="detail-item">
-        <!-- GEOLOCATION ICON SVG -->
+        <!-- MAP PIN ICON THAY CHO 📍 CĂN THẲNG ĐỀU -->
         <span class="icon">
-          <svg class="geo-icon" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
-            <circle cx="12" cy="12" r="8"></circle>
+          <svg class="status-pin-icon" viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
           </svg>
         </span>
-        Trạng thái: <span class="status-text">${esc(cleanStatus(status))}</span>
+        Trạng thái: <span class="status-text">&nbsp;${esc(cleanStatus(status))}</span>
       </div>
 
       <!-- HÀNG 2: Bưu cục gửi | Bưu cục phát | Người nhận -->
@@ -1979,7 +1993,7 @@ function renderScreen(data){
 
       <div class="detail-item">
         <span class="icon">👤</span>
-        Người nhận: <span class="receiver-text">${esc(dp.receiver !== '-' ? dp.receiver : '-')}</span>
+        Người nhận: <span class="receiver-text">&nbsp;${esc(dp.receiver !== '-' ? dp.receiver : '-')}</span>
       </div>
 
     </div>

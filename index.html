@@ -436,7 +436,9 @@ body{
 .p-brand-info{line-height:1.25;}
 .p-brand-name{font-size:16px;font-weight:800;color:#0a4b88;letter-spacing:-0.3px;}
 .p-brand-sub{font-size:9px;color:#475569;font-weight:500;}
+.p-title-wrap{text-align:right;line-height:1.2;}
 .p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px;}
+.p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap;}
 .p-section-box{border:1px solid #334155;margin-bottom:6px;background:#fff;}
 .p-section-head{
   background:#fff;
@@ -1051,7 +1053,10 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
             <div class="p-brand-sub">Công cụ tra cứu và tạo phiếu vận đơn A4</div>
           </div>
         </div>
-        <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
+        <div class="p-title-wrap">
+          <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
+          <div class="p-title-code">Mã vận đơn: ${esc(info.ID || currentTrackingCode || '-')} (Đơn vị VNPOST - Bưu điện Việt Nam)</div>
+        </div>
       </div>
 
       ${pageIndex === 0 ? `
@@ -1316,6 +1321,11 @@ function renderPrint(data){
   }).join('');
 }
 
+function safeTrackingFilename(){
+  const raw = String(currentTrackingCode || currentData?.info?.ID || '247').trim();
+  return raw.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
 async function printA4(){
   if(!currentData){
     alert('Vui lòng tra cứu vận đơn trước.');
@@ -1330,6 +1340,18 @@ async function printA4(){
 
   renderPrint(currentData);
 
+  // Đổi tiêu đề tài liệu trước khi mở hộp thoại in.
+  // Chrome/Edge/Foxit thường dùng document.title làm tên PDF mặc định.
+  const oldTitle = document.title;
+  const printFilename = `InVanDon247_VNPost_${safeTrackingFilename()}`;
+  document.title = printFilename;
+
+  const restoreTitle = () => {
+    document.title = oldTitle;
+    window.removeEventListener('afterprint', restoreTitle);
+  };
+  window.addEventListener('afterprint', restoreTitle);
+
   // Cho trình duyệt hoàn tất reflow trước khi mở hộp thoại in.
   setTimeout(() => window.print(), 80);
 }
@@ -1343,7 +1365,7 @@ async function downloadPDF(){
   try{
     const opt={
       margin: 0,
-      filename: `VanDon_VNPost_${currentTrackingCode || '247'}.pdf`,
+      filename: `InVanDon247_VNPost_${safeTrackingFilename()}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }

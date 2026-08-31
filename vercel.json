@@ -1,8 +1,7 @@
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+  "functions": {
+    "api/pdf.js": {
+      "maxDuration": 10
     }
-  ]
+  }
 }

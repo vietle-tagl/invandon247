@@ -1225,16 +1225,26 @@ async function printA4(){
 
   renderPrint(currentData);
 
+  // 1. Đổi tên Tab (Title của trang web) để trình duyệt lấy tên này
   const oldTitle = document.title;
   const printFilename = `InVanDon247_VNPost_${safeTrackingFilename()}`;
   document.title = printFilename;
 
+  // 2. Ép trình duyệt lưu đúng tên file bằng cách dùng thẻ <base> (Cách chuẩn nhất cho Chrome/Edge)
+  const base = document.createElement('base');
+  base.href = window.location.href.split('#')[0];
+  base.target = '_self';
+  base.setAttribute('download', `${printFilename}.pdf`);
+  document.head.appendChild(base);
+
   const restoreTitle = () => {
     document.title = oldTitle;
     window.removeEventListener('afterprint', restoreTitle);
+    if(base.parentNode) base.parentNode.removeChild(base);
   };
   window.addEventListener('afterprint', restoreTitle);
 
+  // 3. Gọi lệnh in
   setTimeout(() => window.print(), 80);
 }
 

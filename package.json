@@ -1,13 +1,10 @@
 {
   "name": "invandon247",
   "version": "1.0.0",
-  "description": "In van don A4 VNPost",
-  "type": "module",
-  "scripts": {
-    "start": "vercel dev"
-  },
   "dependencies": {
-    "@sparticuz/chromium": "^121.0.0",
-    "puppeteer-core": "^21.11.0"
+    "vercel": "latest",
+    "@vercel/node": "latest",
+    "puppeteer-core": "latest",
+    "@sparticuz/chromium": "latest"
   }
 }

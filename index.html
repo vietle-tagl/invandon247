@@ -121,22 +121,22 @@ body{
 }
 
 /* =========================================================
-   PAGE CONTAINER (ĐÃ GIẢM LỀ TRÊN DƯỚI)
+   PAGE CONTAINER (CĂN CHỈNH KHOẢNG TRỐNG)
 ========================================================= */
 .page{
   max-width:1140px;
-  margin:16px auto 40px; /* Giảm từ 32px xuống 16px */
+  margin:16px auto 40px;
   padding:0 16px;
 }
 
 /* =========================================================
-   SEARCH CARD (THU GỌN KHOẢNG TRỐNG)
+   SEARCH CARD
 ========================================================= */
 .search-card{
   background:var(--card-bg);
   border:1px solid rgba(226, 232, 240, 0.9);
   border-radius:16px;
-  padding:20px 24px; /* Giảm padding gọn gàng hơn */
+  padding:20px 24px;
   box-shadow:var(--shadow-md);
   position:relative;
   overflow:hidden;
@@ -348,7 +348,6 @@ body{
   gap:8px;
 }
 
-/* Lưới thông tin linh hoạt chống tràn chữ */
 .detail-grid{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -358,9 +357,9 @@ body{
 
 .detail-item{
   display:flex;
-  align-items:flex-start; /* Để khi xuống dòng icon vẫn căn đẹp */
+  align-items:flex-start;
   gap:8px;
-  word-break:break-word; /* Tự động xuống dòng nếu tên quá dài */
+  word-break:break-word;
 }
 
 .detail-item .icon{
@@ -385,7 +384,6 @@ body{
 
 .detail-item b{ color:var(--text-main); font-weight:700; }
 
-/* Badge Trạng thái VIP */
 .status-badge {
   display: inline-block;
   background: #dcfce7;
@@ -533,43 +531,75 @@ body{
 .map-toolbar a{ color:var(--blue-primary); font-weight:600; text-decoration:none; }
 .map-frame{ width:100%; height:280px; border:0; display:block; }
 
-.delivery{ margin-top:16px; }
+.delivery { margin-top: 20px; }
 
-.delivery table{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0;
-  font-size:12px;
-  table-layout:fixed;
-  border-radius:8px;
-  overflow:hidden;
-  border:1px solid var(--border-color);
+.delivery-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: #fff;
 }
 
-.delivery th{
-  background:#f8fafc;
-  text-align:left;
-  padding:8px 12px;
-  color:var(--text-muted);
-  font-weight:700;
-  border-bottom:1px solid var(--border-color);
+.delivery-table th {
+  background: #f8fafc;
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--text-muted);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.delivery td{
-  border-bottom:1px solid var(--border-color);
-  padding:8px 12px;
-  vertical-align:top;
-  line-height:1.4;
-  color:var(--text-main);
+.delivery-table td {
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 12px;
+  vertical-align: top;
+  line-height: 1.45;
+  color: var(--text-main);
   word-break: break-word;
 }
 
-.delivery tr:last-child td{ border-bottom:0; }
-.delivery th:nth-child(1), .delivery td:nth-child(1){ width:22% }
-.delivery th:nth-child(2), .delivery td:nth-child(2){ width:38% }
-.delivery th:nth-child(3), .delivery td:nth-child(3){ width:40% }
+.delivery-table tr:last-child td { border-bottom: 0; }
+.delivery-table th:nth-child(1), .delivery-table td:nth-child(1) { width: 22%; }
+.delivery-table th:nth-child(2), .delivery-table td:nth-child(2) { width: 43%; }
+.delivery-table th:nth-child(3), .delivery-table td:nth-child(3) { width: 35%; }
 
-.postman-info{ margin-top:3px; color:var(--text-muted); font-size:11px; }
+.postman-info { margin-top: 4px; color: var(--text-muted); font-size: 11.5px; }
+
+.delivery-cards-mobile {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.delivery-card-item {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 12.5px;
+}
+
+.delivery-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.delivery-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
 .screen-footer{
   text-align:center;
@@ -646,7 +676,7 @@ body{
 .print-footer{ position:absolute; left:0; right:0; bottom:0; border-top:1px solid #ddd; padding-top:3px; text-align:center; font-size:6.5px; color:#999 }
 
 /* =========================================================
-   TỐI ƯU MOBILE CHỐNG TRÀN & GỌN ĐẸP
+   TỐI ƯU RESPONSIVE MOBILE
 ========================================================= */
 @media(max-width:760px){
   .topbar{ height:60px; }
@@ -659,7 +689,6 @@ body{
 
   .form-grid{ grid-template-columns:1fr; gap:12px; }
 
-  /* Tối ưu khung chi tiết bưu gửi thành 2 cột cân đối */
   .detail-grid{
     grid-template-columns: 1fr 1fr;
     gap: 10px;
@@ -667,10 +696,9 @@ body{
   }
   
   .detail-item{
-    white-space: normal; /* Cho phép tự xuống dòng nếu tên quá dài */
+    white-space: normal;
   }
 
-  /* Tối ưu Timeline trên Mobile */
   .event{
     grid-template-columns:1fr 28px;
     gap:4px;
@@ -684,8 +712,9 @@ body{
   .result-head{ justify-content:stretch; }
   .action{ flex:1; padding:10px; font-size:12px; }
 
-  .delivery{ overflow-x:auto; }
-  .delivery table{ min-width:500px; }
+  /* Ẩn bảng và hiện danh sách thẻ trên Mobile */
+  .delivery-table { display: none; }
+  .delivery-cards-mobile { display: flex; }
 }
 
 @media print{
@@ -1027,7 +1056,9 @@ function renderScreen(data){
 
   <div class="delivery">
     <div class="section-title" style="margin-left:0">THÔNG TIN PHÁT</div>
-    <table>
+    
+    <!-- Bảng cho Desktop -->
+    <table class="delivery-table">
       <thead>
         <tr>
           <th>Ngày</th>
@@ -1049,9 +1080,29 @@ function renderScreen(data){
             </td>
             <td>${esc(d.STATUSTEXT || d.StatusText || '-')}</td>
           </tr>`;
-        }).join('') : `<tr><td colspan="3">-</td></tr>`}
+        }).join('') : `<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có dữ liệu phát</td></tr>`}
       </tbody>
     </table>
+
+    <!-- Thẻ cho Mobile -->
+    <div class="delivery-cards-mobile">
+      ${delivery.length ? delivery.map(d => {
+        const o = getOfficeForDelivery(data, d);
+        const pi = getDeliveryPerson({ delivery:[d] });
+        const postmanText = pi.name !== '-' ? pi.name + (pi.phone !== '-' ? ' - ' + pi.phone : '') : '';
+        return `
+        <div class="delivery-card-item">
+          <div class="delivery-card-header">
+            <span>📅 ${esc(getDeliveryTime(d))}</span>
+          </div>
+          <div class="delivery-card-body">
+            <div><b>Bưu cục:</b> ${esc(o.full)}</div>
+            ${postmanText ? `<div style="color:var(--text-muted); font-size:12px;"><b>Bưu tá:</b> ${esc(postmanText)}</div>` : ''}
+            <div style="margin-top:2px;"><b>Trạng thái:</b> <span style="color:var(--green); font-weight:600;">${esc(d.STATUSTEXT || d.StatusText || '-')}</span></div>
+          </div>
+        </div>`;
+      }).join('') : `<div class="delivery-card-item" style="text-align:center; color:#94a3b8;">Chưa có dữ liệu phát</div>`}
+    </div>
   </div>
 
   <div id="map-panel" class="map-panel">

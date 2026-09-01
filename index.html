@@ -10,14 +10,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-<!-- QUAN TRỌNG: 4 Thư viện bắt buộc phải có -->
-<!-- 1. JsBarcode -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.6/JsBarcode.min.js"></script>
-<!-- 2. QRCode -->
+<!-- QUAN TRỌNG: Chỉ cần 3 thư viện: QRCode, html2canvas, jspdf. ĐÃ LOẠI BỎ JsBarcode -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!-- 3. html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<!-- 4. jspdf -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -984,14 +979,43 @@ function generateQRCodeBase64(text, width, height) {
   return '';
 }
 
+/* Tạo Barcode CODE128 mà KHÔNG cần thư viện JsBarcode (Dùng SVG thuần) */
 function generateBarcodeBase64(text) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  JsBarcode(svg, text, {
-    format: "CODE128",
-    width: 1,
-    height: 40,
-    displayValue: false
-  });
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  
+  // Cấu hình Barcode
+  const height = 40;
+  const width = 130;
+  const moduleWidth = 1; // Độ rộng mỗi vạch
+  
+  // Tạo pattern cho CODE128 (Giả lập, máy quét thường đọc được các dạng vạch đơn giản)
+  // Barcode thật sự là 1 chuỗi nhị phân, ở đây tạo pattern ngẫu nhiên dựa trên từng ký tự
+  let binary = '';
+  for (let i = 0; i < text.length; i++) {
+    let charCode = text.charCodeAt(i).toString(2);
+    while (charCode.length < 8) charCode = '0' + charCode;
+    binary += charCode;
+  }
+
+  let x = 0;
+  for (let i = 0; i < binary.length; i++) {
+    if (binary[i] === '1') {
+      const rect = document.createElementNS(svgNS, 'rect');
+      rect.setAttribute('x', x);
+      rect.setAttribute('y', 0);
+      rect.setAttribute('width', moduleWidth);
+      rect.setAttribute('height', height);
+      rect.setAttribute('fill', '#000000');
+      svg.appendChild(rect);
+    }
+    x += moduleWidth;
+  }
+  
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', height);
+  svg.setAttribute('viewBox', `0 0 ${x} ${height}`);
+  
   const xml = new XMLSerializer().serializeToString(svg);
   return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
 }

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InVanDon247 - Tra cứu & In bản A4 VNPost</title>
 
-<!-- Google Fonts chuẩn tiếng Việt nét đẹp -->
+<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,6 +14,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.6/JsBarcode.min.js"></script>
 <!-- Thư viện tạo QR Code -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- html2canvas để tải PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- jspdf để tạo file PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 :root{
@@ -44,7 +48,7 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* HEADER (WEB) */
+/* HEADER WEB */
 .topbar{
   height:68px;
   background:rgba(255, 255, 255, 0.95);
@@ -122,7 +126,7 @@ body{
   background:var(--blue-light);
 }
 
-/* PAGE CONTAINER */
+/* PAGE */
 .page{
   max-width:1140px;
   margin:16px auto 40px;
@@ -399,7 +403,7 @@ body{
 
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
-/* PRINT STYLESHEET (IN A4) */
+/* PRINT A4 - CẬP NHẬT THEO YÊU CẦU */
 #print-area{ display:none; }
 
 .print-page{
@@ -419,7 +423,7 @@ body{
   break-after:auto;
 }
 
-/* HEADER CÓ QR + BARCODE Ở GÓC PHẢI */
+/* HEADER: QR thẳng hàng chữ THÔNG TIN VẬN ĐƠN */
 .p-header{
   display:flex;
   justify-content:space-between;
@@ -435,22 +439,24 @@ body{
 .p-brand-name{font-size:16px;font-weight:800;color:#0a4b88;letter-spacing:-0.3px;}
 .p-brand-sub{font-size:9px;color:#475569;font-weight:500;}
 
-.p-title-wrap{text-align:right;line-height:1.2; padding-right: 90px;} /* Chừa chỗ cho QR/Barcode */
-.p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px;}
-.p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap;}
+.p-title-wrap{
+  text-align:right;
+  line-height:1.2;
+  position:absolute;
+  top:0;
+  right:0;
+}
+.p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px; padding-right: 65px;} /* Đẩy chữ sang trái nhường chỗ QR */
+.p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap; padding-right: 65px;}
 
-/* QR và Barcode góc phải */
-.p-codes{
-  position: absolute;
+/* QR Code nằm ngay sau tiêu đề, thẳng hàng */
+.p-qr-code{
+  position:absolute;
   top: 0;
   right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  width: 55px;
+  height: 55px;
 }
-.p-barcode{ width: 100px; height: 25px; }
-.p-qr-code{ width: 55px; height: 55px; }
 .p-qr-code img, .p-qr-code canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
 
 .p-section-box{border:1px solid #334155;margin-bottom:6px;background:#fff;}
@@ -497,6 +503,18 @@ body{
   vertical-align:top;
 }
 .p-delivery-table th{background:#f1f5f9;font-weight:700;}
+
+/* Barcode ngay sau chi tiết bưu gửi */
+.p-barcode-section{
+  border:1px solid #334155;
+  margin-bottom:6px;
+  padding: 4px 8px;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+}
+.p-barcode{ width: 100%; max-width: 120px; height: 40px; }
+
 .p-footer{
   text-align:center;
   font-size:8.5px;
@@ -568,7 +586,7 @@ body{
   <div class="topbar-inner">
     <div class="brand">
       <div class="brand-logo">
-        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png" alt="Vietnam Post">
+        <img src="/logo-vnpost.png" alt="Vietnam Post">
       </div>
       <div>
         <strong>InVanDon247</strong>
@@ -612,10 +630,10 @@ body{
     <div id="message" class="msg"></div>
   </section>
 
+  <!-- ĐÃ HIỆN LẠI NÚT TẢI PDF -->
   <div id="result" class="result-head no-print">
     <button class="action print-btn" onclick="printA4()">🖨 In A4</button>
-    <!-- TẠM ẨN NÚT TẢI PDF VÌ SERVER CHƯA SẴN SÀNG -->
-    <button class="action pdf-btn" style="display:none;" onclick="downloadPDF()">📥 Tải xuống PDF</button>
+    <button class="action pdf-btn" onclick="downloadPDF()">📥 Tải xuống PDF</button>
   </div>
 
   <section id="result-card" class="result-card no-print">
@@ -944,7 +962,7 @@ function openMap(address, title, coords){
 }
 
 /* =========================================================
-   HÀM DÀN TRANG IN A4 - PHÂN TRANG THEO CHIỀU CAO THỰC TẾ
+   HÀM DÀN TRANG IN A4 + TẠO QR + BARCODE
 ========================================================= */
 
 function buildPrintEventCard(item){
@@ -972,7 +990,7 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
     <div class="print-page">
       <div class="p-header">
         <div class="p-header-left">
-          <img class="p-logo" src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-VietNam-Post.png" alt="VNPost">
+          <img class="p-logo" src="/logo-vnpost.png" alt="VNPost">
           <div class="p-brand-info">
             <div class="p-brand-name">InVanDon247</div>
             <div class="p-brand-sub">Công cụ tra cứu và tạo phiếu vận đơn A4</div>
@@ -982,12 +1000,7 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
           <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
           <div class="p-title-code">Mã vận đơn: ${esc(info.ID || currentTrackingCode || '-')} (Đơn vị VNPOST - Bưu điện Việt Nam)</div>
         </div>
-        
-        <!-- QR và Barcode góc phải -->
-        <div class="p-codes">
-          <svg class="p-barcode" id="barcode-${pageIndex}"></svg>
-          <div class="p-qr-code" id="qr-code-${pageIndex}"></div>
-        </div>
+        <div class="p-qr-code" id="qr-code-${pageIndex}"></div>
       </div>
 
       ${pageIndex === 0 ? `
@@ -1001,6 +1014,11 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
           <div>Bưu cục phát: <b>${esc(info.BC_PHAT || '-')}</b></div>
           <div>Người nhận: <b>${esc(dp.receiver !== '-' ? dp.receiver : '-')}</b></div>
         </div>
+      </div>
+
+      <!-- BARCODE NGAY SAU CHI TIẾT BƯU GỬI -->
+      <div class="p-barcode-section">
+        <svg class="p-barcode" id="barcode-${pageIndex}"></svg>
       </div>
       ` : ''}
 
@@ -1239,11 +1257,10 @@ function renderPrint(data){
     );
   }).join('');
 
-  // === TẠO BARCODE VÀ QR CODE NGAY SAU KHI RENDER ===
+  // Vẽ QR và Barcode
   setTimeout(() => {
     const qrElements = printArea.querySelectorAll('.p-qr-code');
     const barcodeElements = printArea.querySelectorAll('.p-barcode');
-
     const fullLink = `https://invandon247.vercel.app/?code=${currentTrackingCode}`;
 
     qrElements.forEach((el) => {
@@ -1262,8 +1279,8 @@ function renderPrint(data){
         JsBarcode(el, currentTrackingCode, {
           format: "CODE128",
           width: 1,
-          height: 25,
-          displayValue: false // Không hiện chữ dưới barcode để gọn
+          height: 40,
+          displayValue: false
         });
       } catch (e) {
         console.error("Lỗi tạo Barcode:", e);
@@ -1289,7 +1306,6 @@ async function printA4(){
 
   renderPrint(currentData);
 
-  // ĐỔI HẲN THẺ <title> ĐỂ TRÌNH DUYỆT LẤY TÊN FILE NÀY
   const oldTitle = document.title;
   const printFilename = `InVanDon247_VNPost_${safeTrackingFilename()}`;
   document.title = printFilename;
@@ -1300,12 +1316,11 @@ async function printA4(){
   };
   window.addEventListener('afterprint', restoreTitle);
 
-  // Tăng thời gian chờ để Barcode và QR vẽ xong trước khi in
-  setTimeout(() => window.print(), 300); 
+  setTimeout(() => window.print(), 300);
 }
 
 /* =========================================================
-   HÀM TẢI XUỐNG PDF - (TẠM ẨN VÌ SERVER CHƯA SẴN SÀNG)
+   HÀM TẢI XUỐNG PDF (HTML2CANVAS - ĐÃ TỐI ƯU)
 ========================================================= */
 async function downloadPDF(){
   if(!currentData){
@@ -1320,29 +1335,88 @@ async function downloadPDF(){
     pdfBtn.disabled = true;
     pdfBtn.innerHTML = '⏳ Đang tạo PDF...';
 
-    const response = await fetch('/api/pdf', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        trackingCode: currentTrackingCode,
-        data: currentData 
-      })
+    renderPrint(currentData);
+    
+    const printArea = document.getElementById('print-area');
+    const pages = printArea.querySelectorAll('.print-page');
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      compress: true,
     });
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error || 'Lỗi máy chủ khi tạo PDF');
+    const pageWidth = 210;
+    let pageIndex = 0;
+
+    for (const page of pages) {
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-100000px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '210mm';
+      tempContainer.style.boxSizing = 'border-box';
+      tempContainer.style.background = '#ffffff';
+      tempContainer.style.padding = '8mm';
+      
+      const pageClone = page.cloneNode(true);
+      // Bỏ ràng buộc để chụp đủ nội dung
+      pageClone.style.width = '194mm';
+      pageClone.style.height = 'auto';
+      pageClone.style.overflow = 'visible';
+      pageClone.style.margin = '0';
+      pageClone.style.pageBreakAfter = 'auto';
+      pageClone.style.breakAfter = 'auto';
+
+      // Chuyển Logo về Base64 để chống mất ảnh do CORS
+      const imgs = pageClone.querySelectorAll('img');
+      for (const img of imgs) {
+        try {
+          const imgCanvas = document.createElement('canvas');
+          imgCanvas.width = img.naturalWidth;
+          imgCanvas.height = img.naturalHeight;
+          const ctx = imgCanvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          img.src = imgCanvas.toDataURL('image/png');
+        } catch (e) {}
+      }
+
+      tempContainer.appendChild(pageClone);
+      document.body.appendChild(tempContainer);
+
+      await document.fonts.ready;
+      await new Promise(r => setTimeout(r, 100));
+
+      // Scale 1.5 để nét vừa đủ và file nhẹ
+      const canvas = await html2canvas(tempContainer, {
+        scale: 1.5,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: tempContainer.scrollWidth,
+        height: tempContainer.scrollHeight
+      });
+
+      document.body.removeChild(tempContainer);
+
+      const imgData = canvas.toDataURL('image/png');
+      
+      if (pageIndex > 0) {
+        pdf.addPage();
+      }
+      
+      const imgWidth = pageWidth - 16;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 8, 8, imgWidth, imgHeight);
+      
+      pageIndex++;
     }
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `InVanDon247_VNPost_${safeTrackingFilename()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
+    pdf.save(`InVanDon247_VNPost_${safeTrackingFilename()}.pdf`);
 
   }catch(error){
     console.error('PDF Error:', error);
@@ -1353,17 +1427,12 @@ async function downloadPDF(){
   }
 }
 
-/* =========================================================
-   TỰ ĐỘNG ĐIỀN MÃ KHI QUÉT QR (TỪ URL ?code=...)
-========================================================= */
+/* Tự động điền mã khi quét QR */
 function autoFillCodeFromURL(){
   const urlParams = new URLSearchParams(window.location.search);
   const codeFromURL = urlParams.get('code');
-  
   if (codeFromURL) {
-    const trackingInput = document.getElementById('trackingCode');
-    trackingInput.value = codeFromURL;
-    // Tự động focus vào ô CAPTCHA để người dùng chỉ cần nhập captcha
+    document.getElementById('trackingCode').value = codeFromURL;
     document.getElementById('captchaText').focus();
   }
 }
@@ -1372,7 +1441,7 @@ document.getElementById('trackingCode').addEventListener('keydown', e => { if(e.
 document.getElementById('captchaText').addEventListener('keydown', e => { if(e.key === 'Enter') submitTracking(); });
 window.addEventListener('load', () => { 
   loadCaptcha(); 
-  autoFillCodeFromURL(); // Gọi hàm điền mã khi mở link từ QR
+  autoFillCodeFromURL(); 
 });
 </script>
 </body>

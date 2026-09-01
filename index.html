@@ -403,7 +403,7 @@ body{
 
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
-/* PRINT A4 - CẬP NHẬT THEO YÊU CẦU */
+/* PRINT A4 - CHUẨN THEO YÊU CẦU */
 #print-area{ display:none; }
 
 .print-page{
@@ -417,6 +417,8 @@ body{
   color:#0f172a;
   font-family:'Inter',Arial,Helvetica,sans-serif !important;
   background:#fff;
+  padding-top: 12px; /* Hạ header xuống một chút để QR không bị cắt lề trên */
+  position: relative;
 }
 .print-page:last-child{
   page-break-after:auto;
@@ -433,7 +435,7 @@ body{
   margin-bottom:6px;
   position: relative;
 }
-.p-header-left{display:flex;align-items:center;gap:10px;}
+.p-header-left{display:flex;align-items:center;gap:10px; padding-bottom: 4px;}
 .p-logo{width:50px;height:32px;object-fit:contain;display:block;}
 .p-brand-info{line-height:1.25;}
 .p-brand-name{font-size:16px;font-weight:800;color:#0a4b88;letter-spacing:-0.3px;}
@@ -442,20 +444,21 @@ body{
 .p-title-wrap{
   text-align:right;
   line-height:1.2;
-  position:absolute;
-  top:0;
-  right:0;
+  padding-right: 65px; /* Chừa chỗ cho QR */
+  padding-bottom: 4px;
 }
-.p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px; padding-right: 65px;} /* Đẩy chữ sang trái nhường chỗ QR */
-.p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap; padding-right: 65px;}
+.p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px;}
+.p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap;}
 
-/* QR Code nằm ngay sau tiêu đề, thẳng hàng */
+/* QR Code nằm ngay trên đường kẻ xanh */
 .p-qr-code{
   position:absolute;
-  top: 0;
+  top: -12px; /* Nhô lên trên đường kẻ xanh */
   right: 0;
   width: 55px;
   height: 55px;
+  z-index: 10;
+  background: #fff; /* Nền trắng để che đường kẻ */
 }
 .p-qr-code img, .p-qr-code canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
 
@@ -478,6 +481,17 @@ body{
   line-height:1.35;
 }
 .p-grid-info b{font-weight:700;color:#0f172a;}
+
+/* Barcode hiển thị bên trong khung chi tiết bưu gửi */
+.p-barcode-inline {
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dashed #334155;
+  display: flex;
+  justify-content: center;
+}
+.p-barcode-img { width: 100%; max-width: 130px; height: auto; }
+
 .p-timeline-table{width:100%;border-collapse:collapse;table-layout:fixed;}
 .p-timeline-table td{width:50%;vertical-align:top;padding:0 3px;border:none;}
 .p-event-card{
@@ -503,18 +517,6 @@ body{
   vertical-align:top;
 }
 .p-delivery-table th{background:#f1f5f9;font-weight:700;}
-
-/* Barcode ngay sau chi tiết bưu gửi */
-.p-barcode-section{
-  border:1px solid #334155;
-  margin-bottom:6px;
-  padding: 4px 8px;
-  display: flex;
-  justify-content: center;
-  background: #fff;
-}
-.p-barcode{ width: 100%; max-width: 120px; height: 40px; }
-
 .p-footer{
   text-align:center;
   font-size:8.5px;
@@ -630,7 +632,6 @@ body{
     <div id="message" class="msg"></div>
   </section>
 
-  <!-- ĐÃ HIỆN LẠI NÚT TẢI PDF -->
   <div id="result" class="result-head no-print">
     <button class="action print-btn" onclick="printA4()">🖨 In A4</button>
     <button class="action pdf-btn" onclick="downloadPDF()">📥 Tải xuống PDF</button>
@@ -961,9 +962,32 @@ function openMap(address, title, coords){
   panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
-/* =========================================================
-   HÀM DÀN TRANG IN A4 + TẠO QR + BARCODE
-========================================================= */
+/* Hàm tạo ảnh QR và Barcode dạng Base64 để html2canvas đọc được */
+function generateQRCodeBase64(text, width, height) {
+  const qrEl = document.createElement('div');
+  new QRCode(qrEl, {
+    text: text,
+    width: width,
+    height: height,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  const img = qrEl.querySelector('img') || qrEl.querySelector('canvas');
+  return img.toDataURL('image/png');
+}
+
+function generateBarcodeBase64(text) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  JsBarcode(svg, text, {
+    format: "CODE128",
+    width: 1,
+    height: 40,
+    displayValue: false
+  });
+  const xml = new XMLSerializer().serializeToString(svg);
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
+}
 
 function buildPrintEventCard(item){
   return `
@@ -983,8 +1007,9 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
   const left = chunk.slice(0, splitIndex);
   const right = chunk.slice(splitIndex);
 
-  const qrContent = `https://invandon247.vercel.app/?code=${info.ID || currentTrackingCode || '-'}`;
-  const barcodeContent = info.ID || currentTrackingCode || '-';
+  const qrLink = `https://invandon247.vercel.app/?code=${info.ID || currentTrackingCode || '-'}`;
+  const qrBase64 = generateQRCodeBase64(qrLink, 55, 55);
+  const barcodeBase64 = generateBarcodeBase64(info.ID || currentTrackingCode || '-');
 
   return `
     <div class="print-page">
@@ -1000,7 +1025,8 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
           <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
           <div class="p-title-code">Mã vận đơn: ${esc(info.ID || currentTrackingCode || '-')} (Đơn vị VNPOST - Bưu điện Việt Nam)</div>
         </div>
-        <div class="p-qr-code" id="qr-code-${pageIndex}"></div>
+        <!-- QR Code nhô lên trên đường kẻ xanh -->
+        <img class="p-qr-code" src="${qrBase64}" alt="QR Code">
       </div>
 
       ${pageIndex === 0 ? `
@@ -1014,11 +1040,10 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
           <div>Bưu cục phát: <b>${esc(info.BC_PHAT || '-')}</b></div>
           <div>Người nhận: <b>${esc(dp.receiver !== '-' ? dp.receiver : '-')}</b></div>
         </div>
-      </div>
-
-      <!-- BARCODE NGAY SAU CHI TIẾT BƯU GỬI -->
-      <div class="p-barcode-section">
-        <svg class="p-barcode" id="barcode-${pageIndex}"></svg>
+        <!-- Barcode ngay trong khung chi tiết bưu gửi -->
+        <div class="p-barcode-inline">
+          <img class="p-barcode-img" src="${barcodeBase64}" alt="Barcode">
+        </div>
       </div>
       ` : ''}
 
@@ -1256,37 +1281,6 @@ function renderPrint(data){
       p.includeDelivery
     );
   }).join('');
-
-  // Vẽ QR và Barcode
-  setTimeout(() => {
-    const qrElements = printArea.querySelectorAll('.p-qr-code');
-    const barcodeElements = printArea.querySelectorAll('.p-barcode');
-    const fullLink = `https://invandon247.vercel.app/?code=${currentTrackingCode}`;
-
-    qrElements.forEach((el) => {
-      new QRCode(el, {
-        text: fullLink,
-        width: 55,
-        height: 55,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-      });
-    });
-
-    barcodeElements.forEach((el) => {
-      try {
-        JsBarcode(el, currentTrackingCode, {
-          format: "CODE128",
-          width: 1,
-          height: 40,
-          displayValue: false
-        });
-      } catch (e) {
-        console.error("Lỗi tạo Barcode:", e);
-      }
-    });
-  }, 100);
 }
 
 function safeTrackingFilename(){
@@ -1320,7 +1314,7 @@ async function printA4(){
 }
 
 /* =========================================================
-   HÀM TẢI XUỐNG PDF (HTML2CANVAS - ĐÃ TỐI ƯU)
+   HÀM TẢI XUỐNG PDF (HTML2CANVAS - XỬ LÝ QR/BARCODE BẰNG ẢNH)
 ========================================================= */
 async function downloadPDF(){
   if(!currentData){
@@ -1362,7 +1356,6 @@ async function downloadPDF(){
       tempContainer.style.padding = '8mm';
       
       const pageClone = page.cloneNode(true);
-      // Bỏ ràng buộc để chụp đủ nội dung
       pageClone.style.width = '194mm';
       pageClone.style.height = 'auto';
       pageClone.style.overflow = 'visible';
@@ -1373,14 +1366,16 @@ async function downloadPDF(){
       // Chuyển Logo về Base64 để chống mất ảnh do CORS
       const imgs = pageClone.querySelectorAll('img');
       for (const img of imgs) {
-        try {
-          const imgCanvas = document.createElement('canvas');
-          imgCanvas.width = img.naturalWidth;
-          imgCanvas.height = img.naturalHeight;
-          const ctx = imgCanvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          img.src = imgCanvas.toDataURL('image/png');
-        } catch (e) {}
+        if (img.src.startsWith('blob:') || img.src.startsWith('http')) {
+          try {
+            const imgCanvas = document.createElement('canvas');
+            imgCanvas.width = img.naturalWidth;
+            imgCanvas.height = img.naturalHeight;
+            const ctx = imgCanvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            img.src = imgCanvas.toDataURL('image/png');
+          } catch (e) {}
+        }
       }
 
       tempContainer.appendChild(pageClone);

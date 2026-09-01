@@ -703,7 +703,7 @@ body{
 
 <script>
 // =============================================
-// BỘ ĐẾM GOOGLE SHEETS (URL Web App)
+// BỘ ĐẾM GOOGLE SHEETS (URL Web App của bạn)
 // =============================================
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
@@ -711,7 +711,7 @@ async function logToSheet(action) {
   try {
     await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
-      mode: 'cors',
+      mode: 'no-cors', // Bắt buộc dùng no-cors để không bị chặn bởi CORS
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         trackingCode: currentTrackingCode,

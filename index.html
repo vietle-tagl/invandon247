@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Thẻ title mặc định ban đầu -->
 <title>InVanDon247 - Tra cứu & In bản A4 VNPost</title>
 
 <!-- Google Fonts chuẩn tiếng Việt nét đẹp -->
@@ -10,7 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-<!-- KHÔNG CÒN CẦN html2canvas VÀ jspdf NỮA (Đã chuyển sang Server - Puppeteer) -->
+<!-- Thư viện tạo QR Code -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
 :root{
@@ -484,6 +486,40 @@ body{
   margin-top:5px;
 }
 
+/* QR CODE STYLE */
+.p-qr-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-top: 8px;
+  background: #fff;
+}
+
+.p-qr-info {
+  font-size: 9px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.p-qr-info b {
+  color: #0f172a;
+  font-size: 9.5px;
+}
+
+.p-qr-code {
+  width: 60px;
+  height: 60px;
+}
+
+.p-qr-code img, .p-qr-code canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 @page {
   size: A4 portrait;
   margin: 6mm 8mm 6mm 8mm;
@@ -592,7 +628,8 @@ body{
 
   <div id="result" class="result-head no-print">
     <button class="action print-btn" onclick="printA4()">🖨 In A4</button>
-    <button class="action pdf-btn" onclick="downloadPDF()">📥 Tải xuống PDF</button>
+    <!-- TẠM ẨN NÚT TẢI PDF VÌ SERVER CHƯA SẴN SÀNG -->
+    <button class="action pdf-btn" style="display:none;" onclick="downloadPDF()">📥 Tải xuống PDF</button>
   </div>
 
   <section id="result-card" class="result-card no-print">
@@ -942,6 +979,19 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
   const left = chunk.slice(0, splitIndex);
   const right = chunk.slice(splitIndex);
 
+  // Tạo QR Code (Hiển thị ở trang cuối cùng)
+  const isLastPage = (pageIndex === totalPages - 1);
+  const qrSection = isLastPage ? `
+    <div class="p-qr-section">
+      <div class="p-qr-info">
+        <b>Mã QR truy vết:</b><br>
+        Quét mã để xem toàn bộ hành trình vận đơn<br>
+        Mã: ${esc(info.ID || currentTrackingCode || '-')}
+      </div>
+      <div id="qr-code-${pageIndex}" class="p-qr-code"></div>
+    </div>
+  ` : '';
+
   return `
     <div class="print-page">
       <div class="p-header">
@@ -1016,6 +1066,8 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
         </div>
       </div>
       ` : ''}
+
+      ${qrSection}
 
       <div class="p-footer">
         Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 — Trang ${pageIndex + 1}/${totalPages}
@@ -1206,6 +1258,25 @@ function renderPrint(data){
       p.includeDelivery
     );
   }).join('');
+
+  // === TẠO QR CODE SAU KHI RENDER XONG ===
+  setTimeout(() => {
+    const qrElements = printArea.querySelectorAll('.p-qr-code');
+    qrElements.forEach((el, index) => {
+      // Nội dung mã QR: Link tra cứu (có thể đổi thành mã vận đơn thuần nếu muốn)
+      const qrContent = `https://invandon247.vercel.app/?code=${currentTrackingCode}`;
+      
+      // Tạo QR Code
+      new QRCode(el, {
+        text: qrContent,
+        width: 60,
+        height: 60,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H // Mức độ sửa lỗi cao để in ấn không bị lỗi
+      });
+    });
+  }, 100);
 }
 
 function safeTrackingFilename(){
@@ -1225,31 +1296,22 @@ async function printA4(){
 
   renderPrint(currentData);
 
-  // 1. Đổi tên Tab (Title của trang web) để trình duyệt lấy tên này
+  // ĐỔI HẲN THẺ <title> ĐỂ TRÌNH DUYỆT LẤY TÊN FILE NÀY
   const oldTitle = document.title;
   const printFilename = `InVanDon247_VNPost_${safeTrackingFilename()}`;
   document.title = printFilename;
 
-  // 2. Ép trình duyệt lưu đúng tên file bằng cách dùng thẻ <base> (Cách chuẩn nhất cho Chrome/Edge)
-  const base = document.createElement('base');
-  base.href = window.location.href.split('#')[0];
-  base.target = '_self';
-  base.setAttribute('download', `${printFilename}.pdf`);
-  document.head.appendChild(base);
-
   const restoreTitle = () => {
     document.title = oldTitle;
     window.removeEventListener('afterprint', restoreTitle);
-    if(base.parentNode) base.parentNode.removeChild(base);
   };
   window.addEventListener('afterprint', restoreTitle);
 
-  // 3. Gọi lệnh in
-  setTimeout(() => window.print(), 80);
+  setTimeout(() => window.print(), 100); // Tăng nhẹ thời gian chờ để QR render xong
 }
 
 /* =========================================================
-   HÀM TẢI XUỐNG PDF - GỌI SERVER PUPPETEER
+   HÀM TẢI XUỐNG PDF - (TẠM ẨN VÌ SERVER CHƯA SẴN SÀNG)
 ========================================================= */
 async function downloadPDF(){
   if(!currentData){
@@ -1264,7 +1326,6 @@ async function downloadPDF(){
     pdfBtn.disabled = true;
     pdfBtn.innerHTML = '⏳ Đang tạo PDF...';
 
-    // Gửi dữ liệu đã tra cứu lên Server để Puppeteer xử lý
     const response = await fetch('/api/pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1279,7 +1340,6 @@ async function downloadPDF(){
       throw new Error(err.error || 'Lỗi máy chủ khi tạo PDF');
     }
 
-    // Nhận file PDF về và tải xuống
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');

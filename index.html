@@ -51,7 +51,7 @@ body{
 /* HEADER WEB */
 .topbar{
   height:68px;
-  background:rgba(255, 255, 255, 0.95);
+  background:rgba(255,  255, 255, 0.95);
   backdrop-filter:blur(12px);
   border-bottom:1px solid var(--border-color);
   position:sticky;
@@ -403,7 +403,7 @@ body{
 
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
-/* PRINT A4 - CHUẨN THEO YÊU CẦU */
+/* PRINT A4 */
 #print-area{ display:none; }
 
 .print-page{
@@ -417,7 +417,7 @@ body{
   color:#0f172a;
   font-family:'Inter',Arial,Helvetica,sans-serif !important;
   background:#fff;
-  padding-top: 12px; /* Hạ header xuống một chút để QR không bị cắt lề trên */
+  padding-top: 12px;
   position: relative;
 }
 .print-page:last-child{
@@ -425,7 +425,6 @@ body{
   break-after:auto;
 }
 
-/* HEADER: QR thẳng hàng chữ THÔNG TIN VẬN ĐƠN */
 .p-header{
   display:flex;
   justify-content:space-between;
@@ -444,21 +443,20 @@ body{
 .p-title-wrap{
   text-align:right;
   line-height:1.2;
-  padding-right: 65px; /* Chừa chỗ cho QR */
+  padding-right: 65px;
   padding-bottom: 4px;
 }
 .p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px;}
 .p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap;}
 
-/* QR Code nằm ngay trên đường kẻ xanh */
 .p-qr-code{
   position:absolute;
-  top: -12px; /* Nhô lên trên đường kẻ xanh */
+  top: -12px;
   right: 0;
   width: 55px;
   height: 55px;
   z-index: 10;
-  background: #fff; /* Nền trắng để che đường kẻ */
+  background: #fff;
 }
 .p-qr-code img, .p-qr-code canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
 
@@ -482,7 +480,6 @@ body{
 }
 .p-grid-info b{font-weight:700;color:#0f172a;}
 
-/* Barcode hiển thị bên trong khung chi tiết bưu gửi */
 .p-barcode-inline {
   margin-top: 6px;
   padding-top: 4px;
@@ -962,7 +959,7 @@ function openMap(address, title, coords){
   panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
-/* Hàm tạo ảnh QR và Barcode dạng Base64 để html2canvas đọc được */
+/* Hàm tạo ảnh QR và Barcode dạng Base64 (Xử lý linh hoạt Canvas và Img) */
 function generateQRCodeBase64(text, width, height) {
   const qrEl = document.createElement('div');
   new QRCode(qrEl, {
@@ -973,8 +970,17 @@ function generateQRCodeBase64(text, width, height) {
     colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.H
   });
-  const img = qrEl.querySelector('img') || qrEl.querySelector('canvas');
-  return img.toDataURL('image/png');
+  
+  const canvas = qrEl.querySelector('canvas');
+  const img = qrEl.querySelector('img');
+
+  if (canvas && typeof canvas.toDataURL === 'function') {
+    return canvas.toDataURL('image/png');
+  } else if (img && img.src) {
+    return img.src;
+  }
+  
+  return '';
 }
 
 function generateBarcodeBase64(text) {
@@ -1025,7 +1031,6 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
           <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
           <div class="p-title-code">Mã vận đơn: ${esc(info.ID || currentTrackingCode || '-')} (Đơn vị VNPOST - Bưu điện Việt Nam)</div>
         </div>
-        <!-- QR Code nhô lên trên đường kẻ xanh -->
         <img class="p-qr-code" src="${qrBase64}" alt="QR Code">
       </div>
 
@@ -1040,7 +1045,6 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
           <div>Bưu cục phát: <b>${esc(info.BC_PHAT || '-')}</b></div>
           <div>Người nhận: <b>${esc(dp.receiver !== '-' ? dp.receiver : '-')}</b></div>
         </div>
-        <!-- Barcode ngay trong khung chi tiết bưu gửi -->
         <div class="p-barcode-inline">
           <img class="p-barcode-img" src="${barcodeBase64}" alt="Barcode">
         </div>
@@ -1314,7 +1318,7 @@ async function printA4(){
 }
 
 /* =========================================================
-   HÀM TẢI XUỐNG PDF (HTML2CANVAS - XỬ LÝ QR/BARCODE BẰNG ẢNH)
+   HÀM TẢI XUỐNG PDF (HTML2CANVAS - TỐI ƯU)
 ========================================================= */
 async function downloadPDF(){
   if(!currentData){
@@ -1363,9 +1367,9 @@ async function downloadPDF(){
       pageClone.style.pageBreakAfter = 'auto';
       pageClone.style.breakAfter = 'auto';
 
-      // Chuyển Logo về Base64 để chống mất ảnh do CORS
       const imgs = pageClone.querySelectorAll('img');
       for (const img of imgs) {
+        // Chỉ xử lý các ảnh không phải Base64 (Logo từ URL)
         if (img.src.startsWith('blob:') || img.src.startsWith('http')) {
           try {
             const imgCanvas = document.createElement('canvas');
@@ -1384,7 +1388,6 @@ async function downloadPDF(){
       await document.fonts.ready;
       await new Promise(r => setTimeout(r, 100));
 
-      // Scale 1.5 để nét vừa đủ và file nhẹ
       const canvas = await html2canvas(tempContainer, {
         scale: 1.5,
         useCORS: true,

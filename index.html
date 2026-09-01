@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Thẻ title mặc định ban đầu -->
 <title>InVanDon247 - Tra cứu & In bản A4 VNPost</title>
 
 <!-- Google Fonts chuẩn tiếng Việt nét đẹp -->
@@ -11,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
+<!-- Thư viện tạo Barcode -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.6/JsBarcode.min.js"></script>
 <!-- Thư viện tạo QR Code -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -417,22 +418,41 @@ body{
   page-break-after:auto;
   break-after:auto;
 }
+
+/* HEADER CÓ QR + BARCODE Ở GÓC PHẢI */
 .p-header{
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  align-items:flex-start;
   border-bottom:2px solid #0a4b88;
   padding-bottom:5px;
   margin-bottom:6px;
+  position: relative;
 }
 .p-header-left{display:flex;align-items:center;gap:10px;}
 .p-logo{width:50px;height:32px;object-fit:contain;display:block;}
 .p-brand-info{line-height:1.25;}
 .p-brand-name{font-size:16px;font-weight:800;color:#0a4b88;letter-spacing:-0.3px;}
 .p-brand-sub{font-size:9px;color:#475569;font-weight:500;}
-.p-title-wrap{text-align:right;line-height:1.2;}
+
+.p-title-wrap{text-align:right;line-height:1.2; padding-right: 90px;} /* Chừa chỗ cho QR/Barcode */
 .p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px;}
 .p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap;}
+
+/* QR và Barcode góc phải */
+.p-codes{
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.p-barcode{ width: 100px; height: 25px; }
+.p-qr-code{ width: 55px; height: 55px; }
+.p-qr-code img, .p-qr-code canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
+
 .p-section-box{border:1px solid #334155;margin-bottom:6px;background:#fff;}
 .p-section-head{
   background:#fff;
@@ -484,40 +504,6 @@ body{
   border-top:1px solid #cbd5e1;
   padding-top:3px;
   margin-top:5px;
-}
-
-/* QR CODE STYLE */
-.p-qr-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid #334155;
-  border-radius: 4px;
-  padding: 6px 10px;
-  margin-top: 8px;
-  background: #fff;
-}
-
-.p-qr-info {
-  font-size: 9px;
-  color: #475569;
-  line-height: 1.4;
-}
-
-.p-qr-info b {
-  color: #0f172a;
-  font-size: 9.5px;
-}
-
-.p-qr-code {
-  width: 60px;
-  height: 60px;
-}
-
-.p-qr-code img, .p-qr-code canvas {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 @page {
@@ -979,18 +965,8 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
   const left = chunk.slice(0, splitIndex);
   const right = chunk.slice(splitIndex);
 
-  // Tạo QR Code (Hiển thị ở trang cuối cùng)
-  const isLastPage = (pageIndex === totalPages - 1);
-  const qrSection = isLastPage ? `
-    <div class="p-qr-section">
-      <div class="p-qr-info">
-        <b>Mã QR truy vết:</b><br>
-        Quét mã để xem toàn bộ hành trình vận đơn<br>
-        Mã: ${esc(info.ID || currentTrackingCode || '-')}
-      </div>
-      <div id="qr-code-${pageIndex}" class="p-qr-code"></div>
-    </div>
-  ` : '';
+  const qrContent = `https://invandon247.vercel.app/?code=${info.ID || currentTrackingCode || '-'}`;
+  const barcodeContent = info.ID || currentTrackingCode || '-';
 
   return `
     <div class="print-page">
@@ -1005,6 +981,12 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
         <div class="p-title-wrap">
           <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
           <div class="p-title-code">Mã vận đơn: ${esc(info.ID || currentTrackingCode || '-')} (Đơn vị VNPOST - Bưu điện Việt Nam)</div>
+        </div>
+        
+        <!-- QR và Barcode góc phải -->
+        <div class="p-codes">
+          <svg class="p-barcode" id="barcode-${pageIndex}"></svg>
+          <div class="p-qr-code" id="qr-code-${pageIndex}"></div>
         </div>
       </div>
 
@@ -1066,8 +1048,6 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
         </div>
       </div>
       ` : ''}
-
-      ${qrSection}
 
       <div class="p-footer">
         Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 — Trang ${pageIndex + 1}/${totalPages}
@@ -1259,22 +1239,35 @@ function renderPrint(data){
     );
   }).join('');
 
-  // === TẠO QR CODE SAU KHI RENDER XONG ===
+  // === TẠO BARCODE VÀ QR CODE NGAY SAU KHI RENDER ===
   setTimeout(() => {
     const qrElements = printArea.querySelectorAll('.p-qr-code');
-    qrElements.forEach((el, index) => {
-      // Nội dung mã QR: Link tra cứu (có thể đổi thành mã vận đơn thuần nếu muốn)
-      const qrContent = `https://invandon247.vercel.app/?code=${currentTrackingCode}`;
-      
-      // Tạo QR Code
+    const barcodeElements = printArea.querySelectorAll('.p-barcode');
+
+    const fullLink = `https://invandon247.vercel.app/?code=${currentTrackingCode}`;
+
+    qrElements.forEach((el) => {
       new QRCode(el, {
-        text: qrContent,
-        width: 60,
-        height: 60,
+        text: fullLink,
+        width: 55,
+        height: 55,
         colorDark: "#000000",
         colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H // Mức độ sửa lỗi cao để in ấn không bị lỗi
+        correctLevel: QRCode.CorrectLevel.H
       });
+    });
+
+    barcodeElements.forEach((el) => {
+      try {
+        JsBarcode(el, currentTrackingCode, {
+          format: "CODE128",
+          width: 1,
+          height: 25,
+          displayValue: false // Không hiện chữ dưới barcode để gọn
+        });
+      } catch (e) {
+        console.error("Lỗi tạo Barcode:", e);
+      }
     });
   }, 100);
 }
@@ -1307,7 +1300,8 @@ async function printA4(){
   };
   window.addEventListener('afterprint', restoreTitle);
 
-  setTimeout(() => window.print(), 100); // Tăng nhẹ thời gian chờ để QR render xong
+  // Tăng thời gian chờ để Barcode và QR vẽ xong trước khi in
+  setTimeout(() => window.print(), 300); 
 }
 
 /* =========================================================
@@ -1359,9 +1353,27 @@ async function downloadPDF(){
   }
 }
 
+/* =========================================================
+   TỰ ĐỘNG ĐIỀN MÃ KHI QUÉT QR (TỪ URL ?code=...)
+========================================================= */
+function autoFillCodeFromURL(){
+  const urlParams = new URLSearchParams(window.location.search);
+  const codeFromURL = urlParams.get('code');
+  
+  if (codeFromURL) {
+    const trackingInput = document.getElementById('trackingCode');
+    trackingInput.value = codeFromURL;
+    // Tự động focus vào ô CAPTCHA để người dùng chỉ cần nhập captcha
+    document.getElementById('captchaText').focus();
+  }
+}
+
 document.getElementById('trackingCode').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('captchaText').focus(); });
 document.getElementById('captchaText').addEventListener('keydown', e => { if(e.key === 'Enter') submitTracking(); });
-window.addEventListener('load', () => { loadCaptcha(); });
+window.addEventListener('load', () => { 
+  loadCaptcha(); 
+  autoFillCodeFromURL(); // Gọi hàm điền mã khi mở link từ QR
+});
 </script>
 </body>
 </html>

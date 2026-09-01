@@ -11,8 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <!-- THƯ VIỆN BẮT BUỘC -->
-<!-- 1. JsBarcode (Tạo mã vạch chuẩn) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.6/JsBarcode.min.js"></script>
+<!-- 1. JsBarcode (ĐÃ ĐỔI SANG ĐƯỜNG DẪN LOCAL - BẮT BUỘC UP FILE JsBarcode.all.min.js VÀO THƯ MỤC public/) -->
+<script src="/JsBarcode.all.min.js"></script>
 <!-- 2. QRCode -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- 3. html2canvas -->
@@ -303,8 +303,7 @@ body{
 
 .detail-grid{
   display:grid;
-  /* ĐỔI TỪ 3 CỘT THÀNH 4 CỘT */
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns:1fr 1fr 1fr;
   gap:12px 20px;
   font-size:13px;
 }
@@ -965,7 +964,7 @@ function openMap(address, title, coords){
   panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
-/* Hàm tạo ảnh QR dạng Base64 */
+/* Hàm tạo ảnh QR và Barcode dạng Base64 */
 function generateQRCodeBase64(text, width, height) {
   const qrEl = document.createElement('div');
   new QRCode(qrEl, {

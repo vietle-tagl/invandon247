@@ -10,13 +10,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-<!-- Thư viện tạo Barcode -->
+<!-- QUAN TRỌNG: 4 Thư viện bắt buộc phải có -->
+<!-- 1. JsBarcode -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.6/JsBarcode.min.js"></script>
-<!-- Thư viện tạo QR Code -->
+<!-- 2. QRCode -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!-- html2canvas để tải PDF -->
+<!-- 3. html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<!-- jspdf để tạo file PDF -->
+<!-- 4. jspdf -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -51,7 +52,7 @@ body{
 /* HEADER WEB */
 .topbar{
   height:68px;
-  background:rgba(255,  255, 255, 0.95);
+  background:rgba(255, 255, 255, 0.95);
   backdrop-filter:blur(12px);
   border-bottom:1px solid var(--border-color);
   position:sticky;
@@ -1317,9 +1318,7 @@ async function printA4(){
   setTimeout(() => window.print(), 300);
 }
 
-/* =========================================================
-   HÀM TẢI XUỐNG PDF (HTML2CANVAS - TỐI ƯU)
-========================================================= */
+/* HÀM TẢI XUỐNG PDF (HTML2CANVAS - TỐI ƯU) */
 async function downloadPDF(){
   if(!currentData){
     alert('Vui lòng tra cứu vận đơn trước.');
@@ -1369,7 +1368,6 @@ async function downloadPDF(){
 
       const imgs = pageClone.querySelectorAll('img');
       for (const img of imgs) {
-        // Chỉ xử lý các ảnh không phải Base64 (Logo từ URL)
         if (img.src.startsWith('blob:') || img.src.startsWith('http')) {
           try {
             const imgCanvas = document.createElement('canvas');

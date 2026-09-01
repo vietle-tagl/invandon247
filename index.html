@@ -11,13 +11,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <!-- THƯ VIỆN BẮT BUỘC -->
-<!-- 1. JsBarcode (File local - Bắt buộc up vào thư mục public/) -->
 <script src="/JsBarcode.all.min.js"></script>
-<!-- 2. QRCode -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!-- 3. html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<!-- 4. jspdf -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -426,16 +422,18 @@ body{
   break-after:auto;
 }
 
+/* ĐƯỜNG KẺ XANH DỪNG LẠI TRƯỚC QR */
 .p-header{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
-  border-bottom:2px solid #0a4b88;
+  border-bottom:none;
+  background: linear-gradient(to right, #0a4b88 0%, #0a4b88 calc(100% - 65px), transparent calc(100% - 65px), transparent 100%);
   padding-bottom:5px;
   margin-bottom:6px;
   position: relative;
 }
-.p-header-left{display:flex;align-items:center;gap:10px; padding-bottom: 4px;}
+.p-header-left{display:flex;align-items:center;gap:10px; padding-bottom: 4px; background: #fff; padding-right: 10px; z-index: 2;}
 .p-logo{width:50px;height:32px;object-fit:contain;display:block;}
 .p-brand-info{line-height:1.25;}
 .p-brand-name{font-size:16px;font-weight:800;color:#0a4b88;letter-spacing:-0.3px;}
@@ -446,6 +444,8 @@ body{
   line-height:1.2;
   padding-right: 65px;
   padding-bottom: 4px;
+  background: #fff;
+  z-index: 1;
 }
 .p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px;}
 .p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap;}
@@ -472,11 +472,11 @@ body{
   text-transform:uppercase;
 }
 
-/* CHI TIẾT BƯU GỬI: 4 CỘT KÍN, CỘT 1 LÀ BARCODE */
+/* CHI TIẾT BƯU GỬI: 4 CỘT */
 .p-grid-info{
   display:grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap:4px 10px;
+  grid-template-columns: 1fr 1.5fr 1.5fr 2fr;
+  gap:0;
   padding:5px 8px;
   font-size:9.5px;
   line-height:1.35;
@@ -488,19 +488,18 @@ body{
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  border-right: 1px dashed #cbd5e1;
-  padding-right: 10px;
+  padding-right: 8px;
 }
-.p-barcode-img { max-width: 90px; height: auto; }
+.p-barcode-img { width: 100%; max-width: 90px; height: auto; }
 
-/* Nhóm các cột thông tin: Mã vận đơn / Bưu cục gửi (Cột 2), Khối lượng / Bưu cục phát (Cột 3), Trạng thái / Người nhận (Cột 4) */
 .p-info-item {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  padding: 0 8px;
+  border-left: 1px dashed #cbd5e1;
 }
-.p-info-top {
-  margin-bottom: 4px;
-}
+.p-info-top { margin-bottom: 4px; }
 
 .p-timeline-table{width:100%;border-collapse:collapse;table-layout:fixed;}
 .p-timeline-table td{width:50%;vertical-align:top;padding:0 3px;border:none;}
@@ -972,34 +971,7 @@ function openMap(address, title, coords){
   panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
-/* CHUYỂN LOGO VỀ BASE64 (XỬ LÝ MẤT LOGO KHI TẢI PDF) */
-const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAAyCAYAAAAZUZThAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAuUlEQVR4nO3cMQ0AIBDAsAP/nuOOBLQrZFXwzM7MnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycv+1A04CAAAYlUlEQVQ7mQcAAAAASUVORK5CYII="; // Thay bằng Base64 logo thật nếu cần
-
-/* Hàm tạo ảnh QR dạng Base64 */
-function generateQRCodeBase64(text, width, height) {
-  const qrEl = document.createElement('div');
-  new QRCode(qrEl, {
-    text: text,
-    width: width,
-    height: height,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.H
-  });
-  
-  const canvas = qrEl.querySelector('canvas');
-  const img = qrEl.querySelector('img');
-
-  if (canvas && typeof canvas.toDataURL === 'function') {
-    return canvas.toDataURL('image/png');
-  } else if (img && img.src) {
-    return img.src;
-  }
-  
-  return '';
-}
-
-/* Tạo Barcode bằng JsBarcode (Chuẩn CODE128) */
+/* Tạo Barcode bằng JsBarcode (Chuẩn CODE128 - Quét được) */
 function generateBarcodeBase64(text) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   JsBarcode(svg, text, {
@@ -1031,14 +1003,28 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
   const right = chunk.slice(splitIndex);
 
   const qrLink = `https://invandon247.vercel.app/?code=${info.ID || currentTrackingCode || '-'}`;
-  const qrBase64 = generateQRCodeBase64(qrLink, 55, 55);
+  
+  // Tạo QR dạng SVG (Đảm bảo hiển thị cả trong html2canvas)
+  const qrEl = document.createElement('div');
+  new QRCode(qrEl, {
+    text: qrLink,
+    width: 55,
+    height: 55,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  const qrCanvas = qrEl.querySelector('canvas');
+  const qrImg = qrEl.querySelector('img');
+  const qrSrc = qrCanvas ? qrCanvas.toDataURL('image/png') : qrImg.src;
+
   const barcodeBase64 = generateBarcodeBase64(info.ID || currentTrackingCode || '-');
 
   return `
     <div class="print-page">
       <div class="p-header">
         <div class="p-header-left">
-          <img class="p-logo" src="${logoBase64}" alt="VNPost">
+          <img class="p-logo" src="/logo-vnpost.png" alt="VNPost">
           <div class="p-brand-info">
             <div class="p-brand-name">InVanDon247</div>
             <div class="p-brand-sub">Công cụ tra cứu và tạo phiếu vận đơn A4</div>
@@ -1048,13 +1034,12 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
           <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
           <div class="p-title-code">Mã vận đơn: ${esc(info.ID || currentTrackingCode || '-')} (Đơn vị VNPOST - Bưu điện Việt Nam)</div>
         </div>
-        <img class="p-qr-code" src="${qrBase64}" alt="QR Code">
+        <img class="p-qr-code" src="${qrSrc}" alt="QR Code">
       </div>
 
       ${pageIndex === 0 ? `
       <div class="p-section-box">
         <div class="p-section-head">CHI TIẾT BƯU GỬI</div>
-        <!-- 4 CỘT: 1-BARCODE, 2-Mã/Bưu cục gửi, 3-Khối lượng/Bưu cục phát, 4-Trạng thái/Người nhận -->
         <div class="p-grid-info">
           <div class="p-barcode-item">
             <img class="p-barcode-img" src="${barcodeBase64}" alt="Barcode">
@@ -1392,8 +1377,20 @@ async function downloadPDF(){
       pageClone.style.pageBreakAfter = 'auto';
       pageClone.style.breakAfter = 'auto';
 
-      // LOGO ĐÃ ĐƯỢC CHUYỂN VỀ BASE64 NÊN KHÔNG CẦN XỬ LÝ CORS NỮA
-      // (Tất cả ảnh bên trong đều là Base64 rồi)
+      // XỬ LÝ LOGO: Chuyển ảnh /logo-vnpost.png về Base64 ngay tại thời điểm tải PDF
+      const imgs = pageClone.querySelectorAll('img');
+      for (const img of imgs) {
+        if (img.src.startsWith('blob:') || img.src.startsWith('http')) {
+          try {
+            const imgCanvas = document.createElement('canvas');
+            imgCanvas.width = img.naturalWidth;
+            imgCanvas.height = img.naturalHeight;
+            const ctx = imgCanvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            img.src = imgCanvas.toDataURL('image/png');
+          } catch (e) {}
+        }
+      }
 
       tempContainer.appendChild(pageClone);
       document.body.appendChild(tempContainer);

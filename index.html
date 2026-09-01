@@ -286,20 +286,26 @@ body{
   margin-bottom:20px;
 }
 
-/* NỔI BẬT HƠN CHO CHI TIẾT BƯU GỬI TRÊN WEB */
+/* NỔI BẬT CHO CHI TIẾT BƯU GỬI (Web) */
 .detail-title{
-  background: var(--blue-light);
-  border-left: 4px solid var(--blue-primary);
+  background: var(--blue-primary);
+  color: #fff;
   padding: 8px 12px;
   border-radius: 6px;
-  color: var(--blue-primary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
   margin-bottom: 14px;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Icon Location đầy đủ (Có chân đế) */
+.loc-icon {
+  width: 18px;
+  height: 18px;
+  fill: #fff;
 }
 
 .detail-grid{
@@ -369,18 +375,14 @@ body{
 .event.latest .event-status{ color:#047857; font-weight:700; }
 .event-location{ font-size:12px; color:var(--text-muted); line-height:1.4; }
 
-/* ICON BẢN ĐỒ ĐẸP HƠN */
+/* QUAY LẠI MŨI TÊN TAM GIÁC NGHIÊNG */
 .map-btn{
   width:28px; height:28px;
   border:0; border-radius:6px;
   background:var(--blue-light); color:var(--blue-primary);
   cursor:pointer; display:flex; align-items:center; justify-content:center;
-}
-
-.map-btn svg {
-  width: 16px;
-  height: 16px;
-  fill: var(--blue-primary);
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .map-panel{
@@ -434,17 +436,27 @@ body{
   break-after:auto;
 }
 
-/* HEADER: Dùng border-bottom bình thường và cho QR đè lên */
+/* ĐƯỜNG KẺ XANH DỪNG LẠI TRƯỚC QR */
 .p-header{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
-  border-bottom:2px solid #0a4b88;
   padding-bottom:5px;
   margin-bottom:6px;
   position: relative;
 }
-.p-header-left{display:flex;align-items:center;gap:10px; padding-bottom: 4px;}
+.p-header::after{
+  content:"";
+  position:absolute;
+  bottom:0;
+  left:0;
+  width: calc(100% - 65px);
+  height: 2px;
+  background: #0a4b88;
+  z-index: 1;
+}
+
+.p-header-left{display:flex;align-items:center;gap:10px; padding-bottom: 4px; z-index: 2; background: #fff; padding-right: 10px;}
 .p-logo{width:50px;height:32px;object-fit:contain;display:block;}
 .p-brand-info{line-height:1.25;}
 .p-brand-name{font-size:16px;font-weight:800;color:#0a4b88;letter-spacing:-0.3px;}
@@ -455,11 +467,11 @@ body{
   line-height:1.2;
   padding-right: 65px;
   padding-bottom: 4px;
+  z-index: 2;
 }
 .p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px;}
 .p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap;}
 
-/* QR Code đè lên đường kẻ xanh, không bị cắt */
 .p-qr-code{
   position:absolute;
   top: -12px;
@@ -472,13 +484,11 @@ body{
 .p-qr-code img, .p-qr-code canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
 
 .p-section-box{border:1px solid #334155;margin-bottom:6px;background:#fff;}
-/* NỔI BẬT CHO CHI TIẾT BƯU GỬI TRONG BẢN IN */
 .p-section-head{
-  background:#eef5fc;
-  border-bottom: 1px solid #0a4b88;
-  font-size:10.5px;
+  background:#0a4b88;
+  color: #fff;
+  font-size:11px;
   font-weight:800;
-  color:#0a4b88;
   padding:4px 6px;
   text-transform:uppercase;
 }
@@ -879,7 +889,10 @@ function renderScreen(data){
 
   const html = `
   <div class="detail-box">
-    <div class="detail-title">📍 CHI TIẾT BƯU GỬI</div>
+    <div class="detail-title">
+      <svg class="loc-icon" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      CHI TIẾT BƯU GỬI
+    </div>
     <div class="detail-grid">
       <div class="detail-item">✉ Mã vận đơn: <b>${esc(info.ID)}</b></div>
       <div class="detail-item">⚖ Khối lượng: <b>${esc(info.Weight || 0)} gam</b></div>
@@ -906,9 +919,7 @@ function renderScreen(data){
           <b>Bưu cục: ${esc(office.full)}</b>
         </div>
         <div class="event-location">${esc(address)}</div>
-        <button class="map-btn" title="Xem vị trí" onclick='openMap(${JSON.stringify(address)},${JSON.stringify(cleanStatus(item.StatusText))},${JSON.stringify(coords)})'>
-          <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        </button>
+        <button class="map-btn" title="Xem vị trí" onclick='openMap(${JSON.stringify(address)},${JSON.stringify(cleanStatus(item.StatusText))},${JSON.stringify(coords)})'>➤</button>
       </div>`;
     }).join('')}
   </div>
@@ -1017,7 +1028,7 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
 
   const qrLink = `https://invandon247.vercel.app/?code=${info.ID || currentTrackingCode || '-'}`;
   
-  // Tạo QR dạng ảnh (Đảm bảo hiển thị cả trong html2canvas)
+  // Tạo QR dạng ảnh
   const qrEl = document.createElement('div');
   new QRCode(qrEl, {
     text: qrLink,

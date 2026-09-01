@@ -422,18 +422,17 @@ body{
   break-after:auto;
 }
 
-/* ĐƯỜNG KẺ XANH DỪNG LẠI TRƯỚC QR */
+/* HEADER: Dùng border-bottom và cho QR đè lên */
 .p-header{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
-  border-bottom:none;
-  background: linear-gradient(to right, #0a4b88 0%, #0a4b88 calc(100% - 65px), transparent calc(100% - 65px), transparent 100%);
+  border-bottom:2px solid #0a4b88;
   padding-bottom:5px;
   margin-bottom:6px;
   position: relative;
 }
-.p-header-left{display:flex;align-items:center;gap:10px; padding-bottom: 4px; background: #fff; padding-right: 10px; z-index: 2;}
+.p-header-left{display:flex;align-items:center;gap:10px; padding-bottom: 4px;}
 .p-logo{width:50px;height:32px;object-fit:contain;display:block;}
 .p-brand-info{line-height:1.25;}
 .p-brand-name{font-size:16px;font-weight:800;color:#0a4b88;letter-spacing:-0.3px;}
@@ -444,12 +443,11 @@ body{
   line-height:1.2;
   padding-right: 65px;
   padding-bottom: 4px;
-  background: #fff;
-  z-index: 1;
 }
 .p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px;}
 .p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap;}
 
+/* QR Code nằm đè lên đường kẻ, dùng nền trắng để che đi phần đường kẻ đó */
 .p-qr-code{
   position:absolute;
   top: -12px;
@@ -472,7 +470,7 @@ body{
   text-transform:uppercase;
 }
 
-/* CHI TIẾT BƯU GỬI: 4 CỘT */
+/* CHI TIẾT BƯU GỬI: 4 CỘT CÂN ĐỐI */
 .p-grid-info{
   display:grid;
   grid-template-columns: 1fr 1.5fr 1.5fr 2fr;

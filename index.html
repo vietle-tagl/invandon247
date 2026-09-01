@@ -377,17 +377,16 @@ body{
 .event.latest .event-status{ color:#047857; font-weight:700; }
 .event-location{ font-size:12px; color:var(--text-muted); line-height:1.4; }
 
+/* QUAY LẠI DÙNG MŨI TÊN TAM GIÁC */
 .map-btn{
   width:28px; height:28px;
   border:0; border-radius:6px;
-  background:var(--blue-light); color:var(--blue-primary);
-  cursor:pointer; display:flex; align-items:center; justify-content:center;
-}
-
-.map-btn svg {
-  width: 16px;
-  height: 16px;
-  fill: var(--blue-primary);
+  background:var(--blue-light);
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  color: var(--blue-primary);
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .map-panel{
@@ -704,11 +703,10 @@ body{
 
 <script>
 // =============================================
-// BỘ ĐẾM GOOGLE SHEETS (URL Web App của bạn)
+// BỘ ĐẾM GOOGLE SHEETS (URL Web App)
 // =============================================
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
-// Hàm gửi dữ liệu (KHÔNG dùng no-cors nữa, dùng cors để Apps Script chạy hết code)
 async function logToSheet(action) {
   try {
     await fetch(GOOGLE_SHEET_URL, {
@@ -971,9 +969,7 @@ function renderScreen(data){
           <b>Bưu cục: ${esc(office.full)}</b>
         </div>
         <div class="event-location">${esc(address)}</div>
-        <button class="map-btn" title="Xem vị trí" onclick='openMap(${JSON.stringify(address)},${JSON.stringify(cleanStatus(item.StatusText))},${JSON.stringify(coords)})'>
-          <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        </button>
+        <button class="map-btn" title="Xem vị trí" onclick='openMap(${JSON.stringify(address)},${JSON.stringify(cleanStatus(item.StatusText))},${JSON.stringify(coords)})'>➤</button>
       </div>`;
     }).join('')}
   </div>

@@ -1051,8 +1051,8 @@ function generateBarcodeBase64(text) {
   JsBarcode(svg, text, {
     format: "CODE128",
     width: 2,
-    height: 60,           // Tăng chiều cao lên 60px
-    displayValue: false,   // Bỏ hiển thị chữ bên dưới
+    height: 60,
+    displayValue: false,
     margin: 6
   });
   const xml = new XMLSerializer().serializeToString(svg);
@@ -1077,7 +1077,7 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
   const left = chunk.slice(0, splitIndex);
   const right = chunk.slice(splitIndex);
 
-  const qrLink = `https://invandon247.vercel.app/?code=${info.ID || currentTrackingCode || '-'}`;
+  const qrLink = `https://invandon247.com/?code=${info.ID || currentTrackingCode || '-'}`;
   
   // Tạo QR dạng ảnh
   const qrEl = document.createElement('div');

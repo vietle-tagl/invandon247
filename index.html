@@ -377,7 +377,7 @@ body{
 .event.latest .event-status{ color:#047857; font-weight:700; }
 .event-location{ font-size:12px; color:var(--text-muted); line-height:1.4; }
 
-/* QUAY LẠI DÙNG MŨI TÊN TAM GIÁC */
+/* MŨI TÊN TAM GIÁC */
 .map-btn{
   width:28px; height:28px;
   border:0; border-radius:6px;
@@ -514,7 +514,7 @@ body{
   justify-content: center;
   padding-right: 8px;
 }
-.p-barcode-img { width: 100%; max-width: 90px; height: auto; }
+.p-barcode-img { width: 100%; max-width: 130px; height: auto; }
 
 .p-info-item {
   display: flex;
@@ -703,7 +703,7 @@ body{
 
 <script>
 // =============================================
-// BỘ ĐẾM GOOGLE SHEETS (URL Web App của bạn)
+// BỘ ĐẾM GOOGLE SHEETS (URL Web App)
 // =============================================
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
@@ -711,7 +711,7 @@ async function logToSheet(action) {
   try {
     await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
-      mode: 'no-cors', // Bắt buộc dùng no-cors để không bị chặn bởi CORS
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         trackingCode: currentTrackingCode,
@@ -1045,12 +1045,12 @@ function openMap(address, title, coords){
   panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
-/* Tạo Barcode bằng JsBarcode (Chuẩn CODE128 - Quét được) */
+/* Tạo Barcode bằng JsBarcode - ĐÃ SỬA: Dùng CODE39 và tăng độ rộng để dễ quét */
 function generateBarcodeBase64(text) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   JsBarcode(svg, text, {
-    format: "CODE128",
-    width: 1,
+    format: "CODE39",
+    width: 2,
     height: 40,
     displayValue: false
   });

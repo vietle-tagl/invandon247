@@ -514,7 +514,7 @@ body{
   justify-content: center;
   padding-right: 8px;
 }
-.p-barcode-img { width: 100%; max-width: 130px; height: auto; }
+.p-barcode-img { width: 100%; max-width: 120px; height: auto; }
 
 .p-info-item {
   display: flex;
@@ -1045,18 +1045,15 @@ function openMap(address, title, coords){
   panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
-/* Tạo Barcode bằng JsBarcode - Đã sửa để quét được trên điện thoại */
+/* Tạo Barcode bằng JsBarcode - Đã tăng chiều cao và bỏ chữ bên dưới */
 function generateBarcodeBase64(text) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   JsBarcode(svg, text, {
     format: "CODE128",
     width: 2,
-    height: 45,
-    displayValue: true,
-    fontSize: 13,
-    textMargin: 4,
-    margin: 6,
-    background: "#ffffff"
+    height: 60,           // Tăng chiều cao lên 60px
+    displayValue: false,   // Bỏ hiển thị chữ bên dưới
+    margin: 6
   });
   const xml = new XMLSerializer().serializeToString(svg);
   return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));

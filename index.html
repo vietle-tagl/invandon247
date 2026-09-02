@@ -1045,14 +1045,18 @@ function openMap(address, title, coords){
   panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
-/* Tạo Barcode bằng JsBarcode - ĐÃ SỬA: Dùng CODE39 và tăng độ rộng để dễ quét */
+/* Tạo Barcode bằng JsBarcode - Đã sửa để quét được trên điện thoại */
 function generateBarcodeBase64(text) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   JsBarcode(svg, text, {
-    format: "CODE39",
+    format: "CODE128",
     width: 2,
-    height: 40,
-    displayValue: false
+    height: 45,
+    displayValue: true,
+    fontSize: 13,
+    textMargin: 4,
+    margin: 6,
+    background: "#ffffff"
   });
   const xml = new XMLSerializer().serializeToString(svg);
   return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));

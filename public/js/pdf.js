@@ -452,4 +452,27 @@ async function downloadPDF(){
 
       const imgData = canvas.toDataURL('image/png');
       
-      if (
+      if (pageIndex > 0) {
+        pdf.addPage();
+      }
+      
+      const imgWidth = pageWidth - 16;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 8, 8, imgWidth, imgHeight);
+      
+      pageIndex++;
+    }
+
+    pdf.save(`InVanDon247_VNPost_${safeTrackingFilename()}.pdf`);
+
+    logToSheet('Tải PDF');
+
+  }catch(error){
+    console.error('PDF Error:', error);
+    alert('Lỗi tải PDF: ' + error.message);
+  }finally{
+    pdfBtn.disabled = false;
+    pdfBtn.innerHTML = originalText;
+  }
+}

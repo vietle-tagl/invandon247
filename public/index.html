@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InVanDon247 - Tra cứu vận đơn VNPost & In phiếu vận đơn A4</title>
+
+<!-- FAVICON -->
+<link rel="icon" type="image/png" href="/images/favicon.ico">
+
+<!-- CSS: Đã tách ra ngoài -->
+<link rel="stylesheet" href="/css/styles.css">
+
+<!-- THƯ VIỆN: Đã tách vào libs -->
+<script src="/libs/JsBarcode.all.min.js"></script>
+<script src="/libs/qrcode.min.js"></script>
+<script src="/libs/html2canvas.min.js"></script>
+<script src="/libs/jspdf.umd.min.js"></script>
+
+<!-- VERCEL ANALYTICS -->
+<script defer src="/_vercel/insights/script.js"></script>
+</head>
+
+<body>
+
+<!-- HEADER (WEB) -->
+<header class="topbar no-print">
+  <div class="topbar-inner">
+    <div class="brand">
+      <!-- LOGO MỚI -->
+      <div class="brand-logo">
+        <img src="/images/logo.png" alt="InVanDon247">
+      </div>
+      <div>
+        <strong>InVanDon247</strong>
+        <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="#">Trang chủ</a>
+      <a href="#search">Tra cứu</a>
+      <a href="#result">Hướng dẫn</a>
+      <a href="#">Giới thiệu</a>
+    </nav>
+  </div>
+</header>
+
+<!-- MAIN (WEB) -->
+<main class="page">
+  <section class="search-card no-print" id="search">
+    <h1 class="search-title">TRA CỨU VẬN ĐƠN</h1>
+    <div class="search-sub">Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi</div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label>1. Mã vận đơn VNPost</label>
+        <input id="trackingCode" type="text" placeholder="Ví dụ: RF600343015VN" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>2. Mã xác thực (CAPTCHA)</label>
+        <div class="captcha-line">
+          <input id="captchaText" type="text" placeholder="Nhập mã CAPTCHA" autocomplete="off">
+          <div class="captcha-slot">
+            <img id="captchaImg" class="captcha-img" alt="CAPTCHA">
+          </div>
+          <button id="reloadCaptcha" class="reload" type="button" onclick="loadCaptcha()">↻ Đổi mã</button>
+        </div>
+      </div>
+    </div>
+
+    <button id="btnSubmit" class="submit" type="button" onclick="submitTracking()">🔎 TRA CỨU VẬN ĐƠN</button>
+    <div id="message" class="msg"></div>
+  </section>
+
+  <div id="result" class="result-head no-print">
+    <button class="action print-btn" onclick="printA4()">🖨 In A4</button>
+    <button class="action pdf-btn" onclick="downloadPDF()">📥 Tải xuống PDF</button>
+  </div>
+
+  <section id="result-card" class="result-card no-print">
+    <div id="screen-result"></div>
+  </section>
+</main>
+
+<!-- KHU VỰC IN A4 -->
+<div id="print-area"></div>
+
+<!-- JAVASCRIPT TÁCH RA: Gọi api.js và pdf.js -->
+<script src="/js/api.js"></script>
+<script src="/js/pdf.js"></script>
+
+</body>
+</html>

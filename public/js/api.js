@@ -353,3 +353,15 @@ function autoFillCodeFromURL(){
     document.getElementById('captchaText').focus();
   }
 }
+
+/* =============================================
+   KÍCH HOẠT TRANG WEB KHI DOM SẴN SÀNG
+============================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('trackingCode').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('captchaText').focus(); });
+  document.getElementById('captchaText').addEventListener('keydown', e => { if(e.key === 'Enter') submitTracking(); });
+  
+  // GỌI LOAD CAPTCHA NGAY KHI DOM SẴN SÀNG
+  loadCaptcha();
+  autoFillCodeFromURL();
+});

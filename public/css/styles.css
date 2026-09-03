@@ -1,5 +1,5 @@
 /* =========================================================
-   IN VANDON 247 - STYLESHEET (Tách từ index.html)
+   IN VANDON 247 - STYLESHEET (Cập nhật: Header, Logo, Footer)
    ========================================================= */
 
 :root{
@@ -30,16 +30,15 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* HEADER WEB */
+/* HEADER WEB (Đã thêm màu gradient xanh) */
 .topbar{
   height:68px;
-  background:rgba(255, 255, 255, 0.95);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border-color);
+  background:linear-gradient(90deg, #0a4b88 0%, #06325d 100%);
+  border-bottom:none;
   position:sticky;
   top:0;
   z-index:20;
-  box-shadow:0 2px 10px rgba(0,0,0,0.03);
+  box-shadow:0 4px 15px rgba(10, 75, 136, 0.3);
 }
 
 .topbar-inner{
@@ -61,7 +60,7 @@ body{
 
 .brand-logo{
   width:72px;
-  height:44px;
+  height:52px; /* Đã tăng chiều cao logo */
   display:flex;
   align-items:center;
   justify-content:center;
@@ -78,13 +77,13 @@ body{
 .brand strong{
   font-size:18px;
   font-weight:800;
-  color:var(--blue-primary);
+  color:#ffffff; /* Đổi màu chữ thành trắng */
   letter-spacing:-0.3px;
 }
 
 .brand small{
   display:block;
-  color:var(--text-muted);
+  color:rgba(255, 255, 255, 0.8); /* Đổi màu phụ thành trắng mờ */
   font-size:11px;
   font-weight:500;
 }
@@ -97,15 +96,15 @@ body{
 }
 
 .nav a{
-  color:var(--text-muted);
+  color:rgba(255, 255, 255, 0.85); /* Đổi màu link thành trắng */
   text-decoration:none;
   padding:6px 10px;
   border-radius:6px;
 }
 
 .nav a:hover{
-  color:var(--blue-primary);
-  background:var(--blue-light);
+  color:#ffffff;
+  background:rgba(255, 255, 255, 0.15);
 }
 
 /* PAGE */
@@ -398,6 +397,7 @@ body{
 .delivery-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 8px; font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
 .delivery-card-body { display: flex; flex-direction: column; gap: 6px; }
 
+/* FOOTER BẢN QUYỀN TRÊN WEB (Đã thêm) */
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
 /* PRINT A4 */
@@ -442,7 +442,7 @@ body{
 }
 
 .p-header-left{display:flex;align-items:center;gap:10px; padding-bottom: 4px; z-index: 2; background: #fff; padding-right: 10px;}
-.p-logo{width:50px;height:32px;object-fit:contain;display:block;}
+.p-logo{width:60px;height:40px;object-fit:contain;display:block;} /* Đã tăng size logo in */
 .p-brand-info{line-height:1.25;}
 .p-brand-name{font-size:16px;font-weight:800;color:#0a4b88;letter-spacing:-0.3px;}
 .p-brand-sub{font-size:9px;color:#475569;font-weight:500;}
@@ -520,6 +520,7 @@ body{
   page-break-inside:avoid;
   break-inside:avoid;
   overflow-wrap:anywhere;
+  font-family: 'Roboto', Arial, sans-serif !important; /* Đã thêm font Roboto để tránh lỗi font khi in */
 }
 .p-event-time{color:#dc2626;font-weight:700;margin-bottom:1px;font-size:8.8px;}
 .p-event-desc{font-weight:600;color:#0f172a;}

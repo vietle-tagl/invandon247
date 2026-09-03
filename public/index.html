@@ -8,10 +8,10 @@
 <!-- FAVICON -->
 <link rel="icon" type="image/png" href="/images/favicon.ico">
 
-<!-- CSS: Đã tách ra ngoài -->
+<!-- CSS -->
 <link rel="stylesheet" href="/css/styles.css">
 
-<!-- THƯ VIỆN: Đã tách vào libs -->
+<!-- THƯ VIỆN -->
 <script src="/libs/JsBarcode.all.min.js"></script>
 <script src="/libs/qrcode.min.js"></script>
 <script src="/libs/html2canvas.min.js"></script>
@@ -27,7 +27,6 @@
 <header class="topbar no-print">
   <div class="topbar-inner">
     <div class="brand">
-      <!-- LOGO MỚI -->
       <div class="brand-logo">
         <img src="/images/logo.png" alt="InVanDon247">
       </div>
@@ -86,9 +85,22 @@
 <!-- KHU VỰC IN A4 -->
 <div id="print-area"></div>
 
-<!-- JAVASCRIPT TÁCH RA: Gọi api.js và pdf.js -->
 <script src="/js/api.js"></script>
 <script src="/js/pdf.js"></script>
-
+<script>
+  // Thêm bản quyền ở Footer (Cả trang web và bản in)
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentYear = new Date().getFullYear();
+    
+    // Footer trên web
+    const webFooter = document.createElement('div');
+    webFooter.className = 'screen-footer';
+    webFooter.style.position = 'absolute';
+    webFooter.style.bottom = '0';
+    webFooter.style.width = '100%';
+    webFooter.innerHTML = `© ${currentYear} InVanDon247. Bảo lưu mọi quyền. Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247`;
+    document.body.appendChild(webFooter);
+  });
+</script>
 </body>
 </html>

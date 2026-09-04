@@ -1,12 +1,12 @@
 /* =========================================================
-   IN VANDON 247 - STYLESHEET (Cập nhật: Header, Logo, Footer)
+   IN VANDON 247 - STYLESHEET (Cập nhật Header màu vàng cam)
    ========================================================= */
 
 :root{
   --blue-primary:#0a4b88;
   --blue-dark:#06325d;
   --blue-light:#eef5fc;
-  --orange:#f58220;
+  --orange:#f58220; /* Đã đổi biến màu cam rõ ràng hơn */
   --green:#059669;
   --green-bg:#ecfdf5;
   --bg-main:#f8fafc;
@@ -30,15 +30,15 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* HEADER WEB (Đã thêm màu gradient xanh) */
+/* HEADER WEB (Đã chuyển sang Gradient Vàng Cam) */
 .topbar{
   height:68px;
-  background:linear-gradient(90deg, #0a4b88 0%, #06325d 100%);
+  background:linear-gradient(90deg, #f9d423 0%, #f58220 100%);
   border-bottom:none;
   position:sticky;
   top:0;
   z-index:20;
-  box-shadow:0 4px 15px rgba(10, 75, 136, 0.3);
+  box-shadow:0 4px 15px rgba(245, 130, 32, 0.3);
 }
 
 .topbar-inner{
@@ -59,12 +59,12 @@ body{
 }
 
 .brand-logo{
-  width:72px;
-  height:52px; /* Đã tăng chiều cao logo */
+  width:80px;
+  height:52px;
   display:flex;
   align-items:center;
   justify-content:center;
-  flex:0 0 72px;
+  flex:0 0 80px;
 }
 
 .brand-logo img{
@@ -77,13 +77,13 @@ body{
 .brand strong{
   font-size:18px;
   font-weight:800;
-  color:#ffffff; /* Đổi màu chữ thành trắng */
+  color:#06325d; /* Đổi màu chữ thành xanh đậm để tương phản với nền vàng */
   letter-spacing:-0.3px;
 }
 
 .brand small{
   display:block;
-  color:rgba(255, 255, 255, 0.8); /* Đổi màu phụ thành trắng mờ */
+  color:#475569; /* Đổi màu phụ thành xám đậm */
   font-size:11px;
   font-weight:500;
 }
@@ -96,15 +96,15 @@ body{
 }
 
 .nav a{
-  color:rgba(255, 255, 255, 0.85); /* Đổi màu link thành trắng */
+  color:#06325d; /* Đổi màu link thành xanh đậm */
   text-decoration:none;
   padding:6px 10px;
   border-radius:6px;
 }
 
 .nav a:hover{
-  color:#ffffff;
-  background:rgba(255, 255, 255, 0.15);
+  background:rgba(255, 255, 255, 0.4);
+  color:#0a4b88;
 }
 
 /* PAGE */
@@ -129,7 +129,7 @@ body{
   position:absolute;
   top:0; left:0; right:0;
   height:4px;
-  background:linear-gradient(90deg, var(--blue-primary), var(--orange));
+  background:linear-gradient(90deg, var(--orange), var(--blue-primary));
 }
 
 .search-title{
@@ -173,7 +173,7 @@ body{
 }
 
 .field input:focus{
-  border-color:var(--blue-primary);
+  border-color:var(--orange);
   background:#fff;
 }
 
@@ -397,7 +397,7 @@ body{
 .delivery-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 8px; font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
 .delivery-card-body { display: flex; flex-direction: column; gap: 6px; }
 
-/* FOOTER BẢN QUYỀN TRÊN WEB (Đã thêm) */
+/* FOOTER BẢN QUYỀN TRÊN WEB */
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
 /* PRINT A4 */
@@ -412,7 +412,7 @@ body{
   break-after:page;
   font-size:10px;
   color:#0f172a;
-  font-family:'Inter',Arial,Helvetica,sans-serif !important;
+  font-family:'Roboto', 'Inter', Arial, Helvetica, sans-serif !important;
   background:#fff;
   padding-top: 12px;
   position: relative;
@@ -437,14 +437,14 @@ body{
   left:0;
   width: calc(100% - 65px);
   height: 2px;
-  background: #0a4b88;
+  background: var(--blue-primary);
   z-index: 1;
 }
 
 .p-header-left{display:flex;align-items:center;gap:10px; padding-bottom: 4px; z-index: 2; background: #fff; padding-right: 10px;}
-.p-logo{width:60px;height:40px;object-fit:contain;display:block;} /* Đã tăng size logo in */
+.p-logo{width:65px;height:45px;object-fit:contain;display:block;}
 .p-brand-info{line-height:1.25;}
-.p-brand-name{font-size:16px;font-weight:800;color:#0a4b88;letter-spacing:-0.3px;}
+.p-brand-name{font-size:16px;font-weight:800;color:var(--blue-primary);letter-spacing:-0.3px;}
 .p-brand-sub{font-size:9px;color:#475569;font-weight:500;}
 
 .p-title-wrap{
@@ -454,7 +454,7 @@ body{
   padding-bottom: 4px;
   z-index: 2;
 }
-.p-title-main{font-size:15px;font-weight:800;color:#0a4b88;text-transform:uppercase;letter-spacing:0.5px;}
+.p-title-main{font-size:15px;font-weight:800;color:var(--blue-primary);text-transform:uppercase;letter-spacing:0.5px;}
 .p-title-code{font-size:9px;font-weight:600;color:#475569;margin-top:2px;white-space:nowrap;}
 
 .p-qr-code{
@@ -471,10 +471,10 @@ body{
 .p-section-box{border:1px solid #334155;margin-bottom:6px;background:#fff;}
 .p-section-head{
   background:#eef5fc;
-  border-bottom: 1px solid #0a4b88;
+  border-bottom: 1px solid var(--blue-primary);
   font-size:11px;
   font-weight:800;
-  color:#0a4b88;
+  color:var(--blue-primary);
   padding:4px 6px;
   text-transform:uppercase;
 }
@@ -520,7 +520,7 @@ body{
   page-break-inside:avoid;
   break-inside:avoid;
   overflow-wrap:anywhere;
-  font-family: 'Roboto', Arial, sans-serif !important; /* Đã thêm font Roboto để tránh lỗi font khi in */
+  font-family:'Roboto', Arial, sans-serif !important;
 }
 .p-event-time{color:#dc2626;font-weight:700;margin-bottom:1px;font-size:8.8px;}
 .p-event-desc{font-weight:600;color:#0f172a;}
@@ -548,7 +548,7 @@ body{
   background: #fff;
   font-size: 10px;
   font-weight: 700;
-  color: #0a4b88;
+  color: var(--blue-primary);
   text-align: center;
   padding: 8px 12px;
   margin-top: 8px;
@@ -561,7 +561,7 @@ body{
 }
 .p-ad-box .ad-contact {
   font-size: 12px;
-  color: #0a4b88;
+  color: var(--blue-primary);
   margin-top: 2px;
 }
 
@@ -573,7 +573,7 @@ body{
 @media print {
   body { 
     background: #fff !important; 
-    font-family: 'Inter', Arial, Helvetica, sans-serif !important; 
+    font-family: 'Roboto', 'Inter', Arial, Helvetica, sans-serif !important; 
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -589,7 +589,7 @@ body{
     break-after: page;
     font-size: 10px;
     color: #0f172a;
-    font-family: 'Inter', Arial, Helvetica, sans-serif !important;
+    font-family: 'Roboto', 'Inter', Arial, Helvetica, sans-serif !important;
   }
   .print-page:last-child { page-break-after: auto; }
 }

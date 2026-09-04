@@ -1,12 +1,12 @@
 /* =========================================================
-   IN VANDON 247 - STYLESHEET (Cập nhật Header màu vàng cam)
+   IN VANDON 247 - STYLESHEET (Header màu vàng thuần)
    ========================================================= */
 
 :root{
   --blue-primary:#0a4b88;
   --blue-dark:#06325d;
   --blue-light:#eef5fc;
-  --orange:#f58220; /* Đã đổi biến màu cam rõ ràng hơn */
+  --orange:#f58220;
   --green:#059669;
   --green-bg:#ecfdf5;
   --bg-main:#f8fafc;
@@ -14,6 +14,8 @@
   --text-main:#0f172a;
   --text-muted:#64748b;
   --border-color:#e2e8f0;
+  --gold:#ffc107; /* Màu vàng chính */
+  --gold-dark:#e0a800;
   --shadow-sm:0 2px 4px rgba(0,0,0,0.02);
   --shadow-md:0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
 }
@@ -30,15 +32,15 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* HEADER WEB (Đã chuyển sang Gradient Vàng Cam) */
+/* HEADER WEB (Màu vàng thuần) */
 .topbar{
   height:68px;
-  background:linear-gradient(90deg, #f9d423 0%, #f58220 100%);
+  background:#ffc107; /* Đổi thành màu vàng thuần */
   border-bottom:none;
   position:sticky;
   top:0;
   z-index:20;
-  box-shadow:0 4px 15px rgba(245, 130, 32, 0.3);
+  box-shadow:0 4px 15px rgba(255, 193, 7, 0.3);
 }
 
 .topbar-inner{
@@ -77,13 +79,13 @@ body{
 .brand strong{
   font-size:18px;
   font-weight:800;
-  color:#06325d; /* Đổi màu chữ thành xanh đậm để tương phản với nền vàng */
+  color:#06325d; /* Giữ màu chữ xanh đậm để tương phản tốt với nền vàng */
   letter-spacing:-0.3px;
 }
 
 .brand small{
   display:block;
-  color:#475569; /* Đổi màu phụ thành xám đậm */
+  color:#475569;
   font-size:11px;
   font-weight:500;
 }
@@ -96,14 +98,14 @@ body{
 }
 
 .nav a{
-  color:#06325d; /* Đổi màu link thành xanh đậm */
+  color:#06325d;
   text-decoration:none;
   padding:6px 10px;
   border-radius:6px;
 }
 
 .nav a:hover{
-  background:rgba(255, 255, 255, 0.4);
+  background:rgba(255, 255, 255, 0.5);
   color:#0a4b88;
 }
 
@@ -129,7 +131,7 @@ body{
   position:absolute;
   top:0; left:0; right:0;
   height:4px;
-  background:linear-gradient(90deg, var(--orange), var(--blue-primary));
+  background:linear-gradient(90deg, var(--gold), var(--orange));
 }
 
 .search-title{
@@ -173,7 +175,7 @@ body{
 }
 
 .field input:focus{
-  border-color:var(--orange);
+  border-color:var(--gold);
   background:#fff;
 }
 

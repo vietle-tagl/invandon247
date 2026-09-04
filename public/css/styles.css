@@ -1,5 +1,5 @@
 /* =========================================================
-   IN VANDON 247 - STYLESHEET (Header Gradient Trắng -> Vàng nhạt)
+   IN VANDON 247 - STYLESHEET (Smooth 3 màu, Bỏ viền vàng)
    ========================================================= */
 
 :root{
@@ -33,15 +33,14 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* HEADER WEB (Gradient Trắng -> Vàng nhạt từ trái sang phải) */
+/* HEADER WEB (Gradient mượt: Trắng -> Vàng -> Vàng cam, Không viền) */
 .topbar{
   height:68px;
-  background:linear-gradient(90deg, #ffffff 0%, #fff8e1 60%, #ffecb3 100%); /* Từ trắng sang vàng nhạt */
-  border-bottom: 3px solid #f58220; /* Viền cam dưới header */
+  background:linear-gradient(90deg, #ffffff 0%, #ffeebb 50%, #fdd484 100%);
   position:sticky;
   top:0;
   z-index:20;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03); /* Bóng nhẹ */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
 }
 
 .topbar-inner{
@@ -106,9 +105,8 @@ body{
 }
 
 .nav a:hover{
-  background:#ffffff; /* Nền trắng khi hover */
+  background:rgba(255, 255, 255, 0.6);
   color:#0a4b88;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 /* PAGE */
@@ -128,12 +126,13 @@ body{
   overflow:hidden;
 }
 
+/* Đường viền trên ô tìm kiếm (Gradient ngược: Vàng cam -> Xanh dương) */
 .search-card::before{
   content:"";
   position:absolute;
   top:0; left:0; right:0;
   height:4px;
-  background:linear-gradient(90deg, var(--gold), var(--orange));
+  background:linear-gradient(90deg, var(--orange) 0%, var(--gold) 50%, var(--blue-primary) 100%);
 }
 
 .search-title{

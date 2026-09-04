@@ -1,5 +1,5 @@
 /* =========================================================
-   IN VANDON 247 - STYLESHEET (Header trắng + Viền vàng Gradient)
+   IN VANDON 247 - STYLESHEET (Header Gradient Trắng -> Vàng nhạt)
    ========================================================= */
 
 :root{
@@ -16,6 +16,7 @@
   --border-color:#e2e8f0;
   --gold:#ffc107;
   --gold-dark:#e0a800;
+  --gold-light:#fff8e1;
   --shadow-sm:0 2px 4px rgba(0,0,0,0.02);
   --shadow-md:0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
 }
@@ -32,16 +33,15 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* HEADER WEB (Nền trắng + Đổ bóng vàng Gradient) */
+/* HEADER WEB (Gradient Trắng -> Vàng nhạt từ trái sang phải) */
 .topbar{
   height:68px;
-  background:#ffffff; /* Nền trắng để logo nổi bật */
-  border-bottom: 3px solid transparent;
-  border-image: linear-gradient(90deg, #ffc107 0%, #f58220 100%) 1; /* Viền dưới vàng cam gradient */
+  background:linear-gradient(90deg, #ffffff 0%, #fff8e1 60%, #ffecb3 100%); /* Từ trắng sang vàng nhạt */
+  border-bottom: 3px solid #f58220; /* Viền cam dưới header */
   position:sticky;
   top:0;
   z-index:20;
-  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2); /* Đổ bóng vàng nhẹ */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03); /* Bóng nhẹ */
 }
 
 .topbar-inner{
@@ -106,8 +106,9 @@ body{
 }
 
 .nav a:hover{
-  background:#fff8e1; /* Nền vàng nhạt khi hover */
+  background:#ffffff; /* Nền trắng khi hover */
   color:#0a4b88;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 /* PAGE */
@@ -176,7 +177,7 @@ body{
 }
 
 .field input:focus{
-  border-color:var(--gold);
+  border-color:var(--orange);
   background:#fff;
 }
 

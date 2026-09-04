@@ -149,7 +149,7 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
       ${adBanner}
 
       <div class="p-footer">
-        © 2026 InVanDon247. Bảo lưu mọi quyền. Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247 — Trang ${pageIndex + 1}/${totalPages}
+        © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost — Trang ${pageIndex + 1}/${totalPages}
       </div>
     </div>`;
 }

@@ -1,5 +1,5 @@
 /* =========================================================
-   IN VANDON 247 - STYLESHEET (Smooth 3 màu, Bỏ viền vàng)
+   IN VANDON 247 - STYLESHEET (Header Gradient Trắng -> Cam đậm)
    ========================================================= */
 
 :root{
@@ -33,10 +33,10 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* HEADER WEB (Gradient mượt: Trắng -> Vàng -> Vàng cam, Không viền) */
+/* HEADER WEB (Gradient Trắng -> Cam đậm) */
 .topbar{
   height:68px;
-  background:linear-gradient(90deg, #ffffff 0%, #ffeebb 50%, #fdd484 100%);
+  background:linear-gradient(90deg, #ffffff 0%, #ffd180 45%, #ff9800 100%);
   position:sticky;
   top:0;
   z-index:20;

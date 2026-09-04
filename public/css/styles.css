@@ -1,5 +1,5 @@
 /* =========================================================
-   IN VANDON 247 - STYLESHEET (Header màu vàng thuần)
+   IN VANDON 247 - STYLESHEET (Header trắng + Viền vàng Gradient)
    ========================================================= */
 
 :root{
@@ -14,7 +14,7 @@
   --text-main:#0f172a;
   --text-muted:#64748b;
   --border-color:#e2e8f0;
-  --gold:#ffc107; /* Màu vàng chính */
+  --gold:#ffc107;
   --gold-dark:#e0a800;
   --shadow-sm:0 2px 4px rgba(0,0,0,0.02);
   --shadow-md:0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
@@ -32,15 +32,16 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* HEADER WEB (Màu vàng thuần) */
+/* HEADER WEB (Nền trắng + Đổ bóng vàng Gradient) */
 .topbar{
   height:68px;
-  background:#ffc107; /* Đổi thành màu vàng thuần */
-  border-bottom:none;
+  background:#ffffff; /* Nền trắng để logo nổi bật */
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, #ffc107 0%, #f58220 100%) 1; /* Viền dưới vàng cam gradient */
   position:sticky;
   top:0;
   z-index:20;
-  box-shadow:0 4px 15px rgba(255, 193, 7, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2); /* Đổ bóng vàng nhẹ */
 }
 
 .topbar-inner{
@@ -79,7 +80,7 @@ body{
 .brand strong{
   font-size:18px;
   font-weight:800;
-  color:#06325d; /* Giữ màu chữ xanh đậm để tương phản tốt với nền vàng */
+  color:#06325d;
   letter-spacing:-0.3px;
 }
 
@@ -105,7 +106,7 @@ body{
 }
 
 .nav a:hover{
-  background:rgba(255, 255, 255, 0.5);
+  background:#fff8e1; /* Nền vàng nhạt khi hover */
   color:#0a4b88;
 }
 

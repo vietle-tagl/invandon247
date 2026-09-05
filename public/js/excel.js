@@ -14,7 +14,6 @@ function handleFileUpload(event) {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
-    // Danh sách tên cột có thể gặp (Aliases)
     const columnAliases = {
       'Số hiệu bưu gửi': ['Số hiệu bưu gửi', 'Số hiệu BG', 'Số vận đơn', 'Mã vận đơn'],
       'Ngày': ['Ngày chấp nhận', 'Ngày gửi', 'Ngày nhận', 'Ngày'],
@@ -27,15 +26,12 @@ function handleFileUpload(event) {
       'Tên khách hàng': ['Tên khách hàng', 'Tên cơ quan', 'Khách hàng', 'Tên đơn vị']
     };
 
-    // Làm sạch dữ liệu cũ
     importedRecords = [];
 
-    // Lặp qua từng sheet trong file
     workbook.SheetNames.forEach((sheetName) => {
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-      // Tìm dòng bắt đầu dữ liệu (dòng có chữ "STT" hoặc "Số hiệu")
       let dataStartRow = 0;
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
@@ -45,7 +41,7 @@ function handleFileUpload(event) {
         }
       }
 
-      if (dataStartRow === 0) continue; // Bỏ qua sheet không có tiêu đề
+      if (dataStartRow === 0) continue;
 
       const headers = jsonData[dataStartRow];
 
@@ -73,12 +69,11 @@ function handleFileUpload(event) {
       }
     });
 
-    // Thông báo đã đọc thành công
     const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
       msgDiv.className = 'msg ok';
       msgDiv.style.display = 'block';
-      msgDiv.textContent = '✅ Đã đọc thành công ' + importedRecords.length + ' dòng dữ liệu. Hãy bấm "NẠP DỮ LIỆU" để gửi lên!';
+      msgDiv.textContent = '✅ Đã đọc thành công ' + importedRecords.length + ' dòng dữ liệu. Hãy bấm "NẠP DỮ LIỆU"!';
     }
   };
   reader.readAsArrayBuffer(file);
@@ -100,29 +95,38 @@ async function importExcelData() {
   btnImport.disabled = true;
 
   try {
-    await fetch(EXCEL_IMPORT_URL, {
+    // ĐỔI SANG MODE 'CORS' ĐỂ CÓ THỂ ĐỌC PHẢN HỒI
+    const response = await fetch(EXCEL_IMPORT_URL, {
       method: 'POST',
-      mode: 'no-cors',
+      mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ records: importedRecords })
     });
-    
+
+    // Đọc phản hồi từ Google Apps Script
+    const result = await response.json().catch(() => ({})); 
+
     const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
-      msgDiv.className = 'msg ok';
-      msgDiv.style.display = 'block';
-      msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu lên Google Sheet!';
+      if (result.success) {
+        msgDiv.className = 'msg ok';
+        msgDiv.style.display = 'block';
+        msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu lên Google Sheet!';
+        importedRecords = [];
+        document.getElementById('excelFileInput').value = '';
+      } else {
+        msgDiv.className = 'msg error';
+        msgDiv.style.display = 'block';
+        msgDiv.textContent = '❌ Google Apps Script báo lỗi: ' + (result.error || 'Không xác định');
+      }
     }
-    
-    // Làm sạch sau khi gửi
-    importedRecords = [];
-    document.getElementById('excelFileInput').value = '';
   } catch (e) {
+    // Nếu lỗi CORS hoặc lỗi mạng, báo lỗi cụ thể
     const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
       msgDiv.className = 'msg error';
       msgDiv.style.display = 'block';
-      msgDiv.textContent = '❌ Lỗi gửi dữ liệu: ' + e.message;
+      msgDiv.textContent = '❌ Lỗi kết nối: ' + e.message + '. Kiểm tra lại URL Web App!';
     }
   } finally {
     btnImport.disabled = false;

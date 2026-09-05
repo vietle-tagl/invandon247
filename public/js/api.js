@@ -10,35 +10,37 @@ let captchaRequestId = 0;
 // Bộ đếm Google Sheets (URL Web App)
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
-// Hàm lấy IP ẩn danh trực tiếp trên trình duyệt
-async function getAnonymizedIP() {
-  try {
-    const response = await fetch('https://api.ipify.org?format=json');
-    const data = await response.json();
-    
-    // Ẩn danh hóa: Lấy 3 phần đầu, bỏ phần cuối
-    let ipParts = String(data.ip).split('.');
-    let anonymizedIP = ipParts.slice(0, 3).join('.') + '.0';
-    
-    // Alert để kiểm tra xem IP có lấy được không
-    alert('📌 IP lấy được từ trình duyệt: ' + anonymizedIP);
-    
-    return anonymizedIP;
-  } catch (e) {
-    // Alert nếu lỗi
-    alert('❌ Lỗi lấy IP: ' + e.message);
-    return "0.0.0.0";
-  }
-}
-
-// Hàm gửi dữ liệu lên Google Sheets (Kèm IP ẩn danh)
+// Hàm gửi dữ liệu lên Google Sheets (Thông qua Vercel Server)
 async function logToSheet(action) {
-  const anonymizedIP = await getAnonymizedIP(); // Lấy IP trước
-  
   try {
-    // Alert để kiểm tra xem có gửi đi không
-    alert('📤 Đang gửi lên Google Sheet với IP: ' + anonymizedIP);
-    
+    // 1. Gửi dữ liệu lên Vercel server trước
+    const response = await fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trackingCode: currentTrackingCode,
+        action: action
+      })
+    });
+
+    // 2. Nếu server hoạt động bình thường, KHÔNG cần gửi thêm gì nữa.
+    // Nếu server lỗi, gửi trực tiếp (phương án dự phòng, không có IP)
+    if (!response.ok) {
+      await fetch(GOOGLE_SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingCode: currentTrackingCode,
+          action: action,
+          clientIP: "0.0.0.0",
+          location: "Chưa xác định"
+        })
+      });
+    }
+  } catch (e) {
+    // Phương án dự phòng khi fetch lỗi
+    console.log('Không ghi được log:', e);
     await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
       mode: 'no-cors',
@@ -46,17 +48,10 @@ async function logToSheet(action) {
       body: JSON.stringify({
         trackingCode: currentTrackingCode,
         action: action,
-        clientIP: anonymizedIP,
+        clientIP: "0.0.0.0",
         location: "Chưa xác định"
       })
     });
-    
-    alert('✅ Đã gửi thành công (Không có lỗi CORS). Kiểm tra Google Sheet!');
-    
-  } catch (e) {
-    // Alert nếu gửi lỗi
-    alert('❌ Lỗi gửi lên Google Sheet: ' + e.message);
-    console.log('Không ghi được log:', e);
   }
 }
 

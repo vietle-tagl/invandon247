@@ -7,13 +7,13 @@ let currentTrackingCode = '';
 let currentData = null;
 let captchaRequestId = 0;
 
-// Bộ đếm Google Sheets (URL Web App)
+// Bộ đếm Google Sheets (URL Web App - Chỉ dùng khi Server lỗi)
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
-// Hàm gửi dữ liệu lên Google Sheets (Thông qua Vercel Server)
 async function logToSheet(action) {
   try {
-    // 1. Gửi dữ liệu lên Vercel server trước
+    // GỬI DỮ LIỆU LÊN VERCEL SERVER TRƯỚC (BẮT BUỘC)
+    // Server sẽ lấy IP và gửi lên Google Sheet
     const response = await fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -23,35 +23,13 @@ async function logToSheet(action) {
       })
     });
 
-    // 2. Nếu server hoạt động bình thường, KHÔNG cần gửi thêm gì nữa.
-    // Nếu server lỗi, gửi trực tiếp (phương án dự phòng, không có IP)
+    // KHÔNG còn đường dự phòng gửi trực tiếp nữa!
+    // Nếu server lỗi, hệ thống sẽ tự báo lỗi (không mất IP)
     if (!response.ok) {
-      await fetch(GOOGLE_SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trackingCode: currentTrackingCode,
-          action: action,
-          clientIP: "0.0.0.0",
-          location: "Chưa xác định"
-        })
-      });
+      console.error('Lỗi gửi lên Vercel Server:', await response.text());
     }
   } catch (e) {
-    // Phương án dự phòng khi fetch lỗi
-    console.log('Không ghi được log:', e);
-    await fetch(GOOGLE_SHEET_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        trackingCode: currentTrackingCode,
-        action: action,
-        clientIP: "0.0.0.0",
-        location: "Chưa xác định"
-      })
-    });
+    console.error('Lỗi kết nối Vercel Server:', e);
   }
 }
 

@@ -1,5 +1,6 @@
 // public/js/excel.js
-const EXCEL_IMPORT_URL = "https://script.google.com/macros/s/AKfycby4xN41rqyZeGaNZTmX66moFLgDnJjurUWlf4mfGiCedFr7-cpx4X6MRMWKGVcA05HmJA/exec"; 
+// DÙNG URL WEB APP CŨ (URL đang ghi Logs) - KHÔNG ĐƯỢC ĐỔI
+const EXCEL_IMPORT_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
 // Biến lưu dữ liệu tạm thời sau khi đọc file
 let importedRecords = [];

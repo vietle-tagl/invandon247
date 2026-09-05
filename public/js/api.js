@@ -20,9 +20,14 @@ async function getAnonymizedIP() {
     let ipParts = String(data.ip).split('.');
     let anonymizedIP = ipParts.slice(0, 3).join('.') + '.0';
     
+    // Alert để kiểm tra xem IP có lấy được không
+    alert('📌 IP lấy được từ trình duyệt: ' + anonymizedIP);
+    
     return anonymizedIP;
   } catch (e) {
-    return "0.0.0.0"; // Nếu lỗi, trả về "0.0.0.0"
+    // Alert nếu lỗi
+    alert('❌ Lỗi lấy IP: ' + e.message);
+    return "0.0.0.0";
   }
 }
 
@@ -31,9 +36,12 @@ async function logToSheet(action) {
   const anonymizedIP = await getAnonymizedIP(); // Lấy IP trước
   
   try {
+    // Alert để kiểm tra xem có gửi đi không
+    alert('📤 Đang gửi lên Google Sheet với IP: ' + anonymizedIP);
+    
     await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
-      mode: 'no-cors', // Bắt buộc dùng no-cors để không bị chặn bởi trình duyệt
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         trackingCode: currentTrackingCode,
@@ -42,7 +50,12 @@ async function logToSheet(action) {
         location: "Chưa xác định"
       })
     });
+    
+    alert('✅ Đã gửi thành công (Không có lỗi CORS). Kiểm tra Google Sheet!');
+    
   } catch (e) {
+    // Alert nếu gửi lỗi
+    alert('❌ Lỗi gửi lên Google Sheet: ' + e.message);
     console.log('Không ghi được log:', e);
   }
 }

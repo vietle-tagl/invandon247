@@ -10,11 +10,10 @@ let captchaRequestId = 0;
 // Bộ đếm Google Sheets
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
-// Hàm gửi dữ liệu lên Google Sheets
-// (IP sẽ được Vercel server lấy và ẩn danh hóa, sau đó gửi lên Sheet)
+// Hàm gửi dữ liệu lên Google Sheets (Thông qua Vercel Server)
 async function logToSheet(action) {
   try {
-    // 1. Gửi dữ liệu lên Vercel server trước
+    // 1. Gửi dữ liệu lên Vercel server trước (Server sẽ lấy IP và gửi lên Sheet)
     const response = await fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -24,10 +23,9 @@ async function logToSheet(action) {
       })
     });
 
-    // 2. Nếu Vercel server xử lý xong và gửi lên Google Sheet thành công thì thôi
-    // (Server sẽ tự động lấy IP ẩn danh và Tỉnh/Thành gửi lên)
+    // 2. Nếu server hoạt động bình thường, KHÔNG cần gửi thêm gì nữa.
+    // Nếu server lỗi, gửi trực tiếp (không có IP)
     if (!response.ok) {
-      // Phương án dự phòng khi Vercel server lỗi (gửi trực tiếp, không có IP)
       await fetch(GOOGLE_SHEET_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -41,7 +39,7 @@ async function logToSheet(action) {
       });
     }
   } catch (e) {
-    // Nếu Vercel server cũng lỗi, gửi trực tiếp lên Google Sheet
+    // Phương án dự phòng khi fetch lỗi
     console.log('Không ghi được log:', e);
     await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',

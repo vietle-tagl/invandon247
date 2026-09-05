@@ -82,25 +82,16 @@
   </section>
 </main>
 
+<!-- FOOTER WEB (Một dòng duy nhất, không trùng lặp) -->
+<footer class="screen-footer no-print">
+  © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost
+</footer>
+
 <!-- KHU VỰC IN A4 -->
 <div id="print-area"></div>
 
+<!-- JAVASCRIPT TÁCH RA -->
 <script src="/js/api.js"></script>
 <script src="/js/pdf.js"></script>
-<script>
-  // Thêm bản quyền ở Footer (Cả trang web và bản in)
-  document.addEventListener('DOMContentLoaded', () => {
-    const currentYear = new Date().getFullYear();
-    
-    // Footer trên web
-    const webFooter = document.createElement('div');
-    webFooter.className = 'screen-footer';
-    webFooter.style.position = 'absolute';
-    webFooter.style.bottom = '0';
-    webFooter.style.width = '100%';
-    webFooter.innerHTML = `© ${currentYear} InVanDon247. Bảo lưu mọi quyền. Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247`;
-    document.body.appendChild(webFooter);
-  });
-</script>
 </body>
 </html>

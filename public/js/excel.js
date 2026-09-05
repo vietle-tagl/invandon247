@@ -96,7 +96,7 @@ async function importExcelData() {
   btnImport.disabled = true;
 
   try {
-    // ĐỔI SANG MODE 'CORS' ĐỂ CÓ THỂ ĐỌC PHẢN HỒI
+    // ĐỔI SANG MODE CORS ĐỂ ĐỌC ĐƯỢC PHẢN HỒI
     const response = await fetch(EXCEL_IMPORT_URL, {
       method: 'POST',
       mode: 'cors',
@@ -104,7 +104,7 @@ async function importExcelData() {
       body: JSON.stringify({ records: importedRecords })
     });
 
-    // Đọc phản hồi từ Google Apps Script
+    // Đọc phản hồi từ Google
     const result = await response.json().catch(() => ({})); 
 
     const msgDiv = document.getElementById('importMessage');
@@ -112,7 +112,7 @@ async function importExcelData() {
       if (result.success) {
         msgDiv.className = 'msg ok';
         msgDiv.style.display = 'block';
-        msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu lên Google Sheet!';
+        msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu!';
         importedRecords = [];
         document.getElementById('excelFileInput').value = '';
       } else {
@@ -122,7 +122,7 @@ async function importExcelData() {
       }
     }
   } catch (e) {
-    // Nếu lỗi CORS hoặc lỗi mạng, báo lỗi cụ thể
+    // Nếu lỗi CORS, nó sẽ báo cụ thể
     const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
       msgDiv.className = 'msg error';

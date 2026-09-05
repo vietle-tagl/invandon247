@@ -1,5 +1,5 @@
 // public/js/excel.js
-const EXCEL_IMPORT_URL = "https://script.google.com/macros/s/AKfycby4xN41rqyZeGaNZTmX66moFLgDnJjurUWlf4mfGiCedFr7-cpx4X6MRMWKGVcA05HmJA/exec"; // URL Web App của bạn
+const EXCEL_IMPORT_URL = "https://script.google.com/macros/s/AKfycby4xN41rqyZeGaNZTmX66moFLgDnJjurUWlf4mfGiCedFr7-cpx4X6MRMWKGVcA05HmJA/exec"; 
 
 // Biến lưu dữ liệu tạm thời sau khi đọc file
 let importedRecords = [];
@@ -75,9 +75,11 @@ function handleFileUpload(event) {
 
     // Thông báo đã đọc thành công
     const msgDiv = document.getElementById('importMessage');
-    msgDiv.className = 'msg ok';
-    msgDiv.style.display = 'block';
-    msgDiv.textContent = '✅ Đã đọc thành công ' + importedRecords.length + ' dòng dữ liệu từ file Excel. Hãy bấm "NẠP DỮ LIỆU" để gửi lên!';
+    if (msgDiv) {
+      msgDiv.className = 'msg ok';
+      msgDiv.style.display = 'block';
+      msgDiv.textContent = '✅ Đã đọc thành công ' + importedRecords.length + ' dòng dữ liệu. Hãy bấm "NẠP DỮ LIỆU" để gửi lên!';
+    }
   };
   reader.readAsArrayBuffer(file);
 }
@@ -86,9 +88,11 @@ function handleFileUpload(event) {
 async function importExcelData() {
   if (importedRecords.length === 0) {
     const msgDiv = document.getElementById('importMessage');
-    msgDiv.className = 'msg error';
-    msgDiv.style.display = 'block';
-    msgDiv.textContent = '⚠️ Vui lòng chọn file Excel trước!';
+    if (msgDiv) {
+      msgDiv.className = 'msg error';
+      msgDiv.style.display = 'block';
+      msgDiv.textContent = '⚠️ Chưa có dữ liệu. Vui lòng chọn file Excel trước!';
+    }
     return;
   }
 
@@ -104,18 +108,22 @@ async function importExcelData() {
     });
     
     const msgDiv = document.getElementById('importMessage');
-    msgDiv.className = 'msg ok';
-    msgDiv.style.display = 'block';
-    msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu lên Google Sheet!';
+    if (msgDiv) {
+      msgDiv.className = 'msg ok';
+      msgDiv.style.display = 'block';
+      msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu lên Google Sheet!';
+    }
     
     // Làm sạch sau khi gửi
     importedRecords = [];
     document.getElementById('excelFileInput').value = '';
   } catch (e) {
     const msgDiv = document.getElementById('importMessage');
-    msgDiv.className = 'msg error';
-    msgDiv.style.display = 'block';
-    msgDiv.textContent = '❌ Lỗi gửi dữ liệu: ' + e.message;
+    if (msgDiv) {
+      msgDiv.className = 'msg error';
+      msgDiv.style.display = 'block';
+      msgDiv.textContent = '❌ Lỗi gửi dữ liệu: ' + e.message;
+    }
   } finally {
     btnImport.disabled = false;
   }

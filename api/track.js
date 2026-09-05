@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     trackingCode: trackingCode,
     action: action,
     clientIP: anonymizedIP,
-    location: "Chưa xác định" // Tạm thời để "Chưa xác định" trước
+    location: "Chưa xác định" 
   });
 
   const options = {

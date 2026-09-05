@@ -43,11 +43,13 @@
       <a href="#">Trang chủ</a>
       <a href="#search">Tra cứu</a>
       
-      <!-- MỤC IN BẢNG KÊ (DROPDOWN) -->
+      <!-- MỤC BẢNG KÊ (DROPDOWN) -->
       <div class="nav-dropdown">
-        <a href="javascript:void(0);" class="dropdown-toggle">In bảng kê ▾</a>
+        <a href="javascript:void(0);" class="dropdown-toggle">Bảng kê ▾</a>
         <div class="dropdown-menu">
-          <a href="#import-section" onclick="toggleImportSection()">Nạp bảng kê (Tạm ẩn)</a>
+          <!-- Dòng 1: Nạp bảng kê (Tạm thời không click được) -->
+          <a href="javascript:void(0);" class="disabled-item">Nạp bảng kê</a>
+          <!-- Dòng 2: In bảng kê -->
           <a href="#bangke-section" onclick="showBangKeSection()">In bảng kê</a>
         </div>
       </div>
@@ -94,7 +96,7 @@
     <div id="screen-result"></div>
   </section>
 
-  <!-- KHU VỰC NẠP BẢNG KÊ EXCEL (ĐÃ ẨN, CHỈ HIỆN KHI BẤM "NẠP BẢNG KÊ") -->
+  <!-- KHU VỰC NẠP BẢNG KÊ EXCEL (TẠM ẨN) -->
   <section class="search-card no-print" id="import-section" style="margin-top: 30px; display: none;">
     <h1 class="search-title" style="color: #0a4b88;">📥 NẠP BẢNG KÊ EXCEL</h1>
     <div class="search-sub">Chọn file Excel (.xlsx) do Bưu điện gửi, hệ thống sẽ tự động trích xuất và đưa vào bảng tổng hợp.</div>
@@ -115,19 +117,39 @@
   <!-- KHU VỰC IN BẢNG KÊ (DÁN MÃ VẬN ĐƠN) -->
   <section class="search-card no-print" id="bangke-section" style="margin-top: 30px; display: none;">
     <h1 class="search-title" style="color: #0a4b88;">📝 IN BẢNG KÊ</h1>
-    <div class="search-sub">Dán danh sách mã vận đơn (mỗi mã một dòng), hệ thống sẽ tìm kiếm và sắp xếp thành bảng kê để in.</div>
+    <div class="search-sub">Nhập danh sách mã vận đơn (cách nhau bằng dấu phẩy), hệ thống sẽ tra cứu và tổng hợp thành bảng kê.</div>
 
     <div class="form-grid">
       <div class="field" style="grid-column: span 2;">
-        <textarea id="bangkeInput" rows="6" placeholder="Ví dụ:&#10;RB608708026VN&#10;RF600650965VN&#10;CB597376467VN" style="width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px;"></textarea>
+        <textarea id="bangkeInput" rows="6" placeholder="Ví dụ: RB608708026VN, RF600650965VN, CB597376467VN" style="width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px;"></textarea>
       </div>
     </div>
 
-    <button id="btnPrintBangKe" class="submit" type="button" onclick="printBangKeList()" style="background: linear-gradient(135deg, #10b981, #047857); margin-top: 15px;">
-      🖨 IN BẢNG KÊ
+    <button id="btnPrintBangKe" class="submit" type="button" onclick="submitBangKe()" style="background: linear-gradient(135deg, #10b981, #047857); margin-top: 15px;">
+      🔍 TRA CỨU VÀ TỔNG HỢP
     </button>
 
     <div id="bangkeMessage" class="msg"></div>
+
+    <!-- BẢNG KẾT QUẢ HIỂN THỊ -->
+    <div id="bangkeResult" style="margin-top: 20px; display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="margin: 0; color: #0a4b88;">📋 BẢNG KÊ CHI TIẾT</h3>
+        <button class="action print-btn" onclick="window.print()">🖨 IN BẢNG KÊ</button>
+      </div>
+      <table id="bangkeTable" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
+            <th style="padding: 10px; text-align: left;">STT</th>
+            <th style="padding: 10px; text-align: left;">Mã vận đơn</th>
+            <th style="padding: 10px; text-align: left;">Người nhận</th>
+            <th style="padding: 10px; text-align: left;">Trạng thái</th>
+            <th style="padding: 10px; text-align: left;">Ngày cập nhật</th>
+          </tr>
+        </thead>
+        <tbody id="bangkeTableBody"></tbody>
+      </table>
+    </div>
   </section>
 </main>
 
@@ -144,20 +166,6 @@
 <script src="/js/pdf.js"></script>
 <script src="/js/excel.js"></script>
 <script>
-  // Hàm hiện/ẩn form Nạp bảng kê
-  function toggleImportSection() {
-    const importSection = document.getElementById('import-section');
-    const isHidden = importSection.style.display === 'none';
-    
-    // Ẩn form In bảng kê nếu đang mở
-    document.getElementById('bangke-section').style.display = 'none';
-    
-    importSection.style.display = isHidden ? 'block' : 'none';
-    if (isHidden) {
-      importSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
   // Hàm hiện form In bảng kê
   function showBangKeSection() {
     const bangKeSection = document.getElementById('bangke-section');
@@ -171,24 +179,84 @@
       bangKeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
-  
-  // Hàm in bảng kê từ danh sách mã vận đơn
-  async function printBangKeList() {
-    const codes = document.getElementById('bangkeInput').value.trim().split(/\r?\n/).filter(code => code.trim());
+
+  // Hàm xử lý khi bấm "Tra cứu và tổng hợp"
+  async function submitBangKe() {
+    const input = document.getElementById('bangkeInput').value.trim();
+    
+    // Tách mã bằng dấu phẩy (có thể người dùng nhập bằng dấu phẩy hoặc xuống dòng)
+    const codes = input.split(/[,\n\r]+/).map(code => code.trim()).filter(code => code);
+    
     if (codes.length === 0) {
       const msgDiv = document.getElementById('bangkeMessage');
       msgDiv.className = 'msg error';
       msgDiv.style.display = 'block';
-      msgDiv.textContent = '⚠️ Vui lòng dán danh sách mã vận đơn trước!';
+      msgDiv.textContent = '⚠️ Vui lòng nhập danh sách mã vận đơn trước!';
       return;
     }
 
-    // TODO: Gọi API để tra cứu từng mã và sắp xếp thành bảng
-    // Ở đây chỉ hiển thị thông báo demo
     const msgDiv = document.getElementById('bangkeMessage');
-    msgDiv.className = 'msg ok';
+    msgDiv.className = 'msg wait';
     msgDiv.style.display = 'block';
-    msgDiv.textContent = '✅ Đã nhận ' + codes.length + ' mã vận đơn. Đang chuẩn bị in... (Tính năng đang phát triển)';
+    msgDiv.textContent = '⏳ Đang tra cứu ' + codes.length + ' mã vận đơn...';
+
+    // Gọi API tra cứu từng mã (giả lập bằng cách gọi qua API proxy)
+    const allResults = [];
+    for (let i = 0; i < codes.length; i++) {
+      try {
+        const code = codes[i];
+        const res = await fetch('/api/proxy?action=track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            trackingCode: code,
+            captchaText: 'auto',
+            cookie: ''
+          })
+        });
+        const data = await res.json();
+        
+        if (data && data.info) {
+          allResults.push({
+            code: code,
+            receiver: data.info.Receiver || data.info.NguoiNhan || 'Không xác định',
+            status: data.info.StatusText || 'Không xác định',
+            date: data.info.LastDate || data.info.NgayNhap || 'Không xác định'
+          });
+        } else {
+          allResults.push({
+            code: code,
+            receiver: 'Không xác định',
+            status: 'Không tìm thấy',
+            date: 'Không xác định'
+          });
+        }
+      } catch (e) {
+        allResults.push({
+          code: codes[i],
+          receiver: 'Lỗi tra cứu',
+          status: 'Lỗi hệ thống',
+          date: 'Không xác định'
+        });
+      }
+    }
+
+    // Hiển thị kết quả thành bảng
+    const resultDiv = document.getElementById('bangkeResult');
+    const tableBody = document.getElementById('bangkeTableBody');
+    
+    tableBody.innerHTML = allResults.map((item, index) => `
+      <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 8px;">${index + 1}</td>
+        <td style="padding: 8px; font-weight: 600; color: #0a4b88;">${item.code}</td>
+        <td style="padding: 8px;">${item.receiver}</td>
+        <td style="padding: 8px; color: #059669;">${item.status}</td>
+        <td style="padding: 8px;">${item.date}</td>
+      </tr>
+    `).join('');
+
+    resultDiv.style.display = 'block';
+    msgDiv.style.display = 'none';
   }
 </script>
 </body>

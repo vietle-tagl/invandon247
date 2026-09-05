@@ -7,10 +7,10 @@ let currentTrackingCode = '';
 let currentData = null;
 let captchaRequestId = 0;
 
-// Bộ đếm Google Sheets
+// Bộ đếm Google Sheets (URL Web App)
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
-// Hàm lấy IP ẩn danh trực tiếp trên trình duyệt (Không cần server)
+// Hàm lấy IP ẩn danh trực tiếp trên trình duyệt
 async function getAnonymizedIP() {
   try {
     const response = await fetch('https://api.ipify.org?format=json');

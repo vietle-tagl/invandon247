@@ -16,7 +16,7 @@
 <script src="/libs/qrcode.min.js"></script>
 <script src="/libs/html2canvas.min.js"></script>
 <script src="/libs/jspdf.umd.min.js"></script>
-<script src="/libs/xlsx.full.min.js"></script> <!-- Thư viện đọc Excel -->
+<script src="/libs/xlsx.full.min.js"></script>
 
 <!-- VERCEL ANALYTICS -->
 <script defer src="/_vercel/insights/script.js"></script>
@@ -89,11 +89,12 @@
     
     <div class="form-grid">
       <div class="field" style="grid-column: span 2;">
-        <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="padding: 10px; border: 2px dashed #0a4b88; background: #eef5fc; width: 100%;">
+        <!-- ĐÚNG: onchange="handleFileUpload(event)" -->
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="handleFileUpload(event)" style="padding: 10px; border: 2px dashed #0a4b88; background: #eef5fc; width: 100%;">
       </div>
     </div>
 
-    <!-- NÚT NẠP DỮ LIỆU (Mới thêm) -->
+    <!-- NÚT NẠP DỮ LIỆU -->
     <button id="btnImport" class="submit" type="button" onclick="importExcelData()" style="background: linear-gradient(135deg, #0284c7, #0369a1); margin-top: 15px;">
       📤 NẠP DỮ LIỆU
     </button>
@@ -102,7 +103,7 @@
   </section>
 </main>
 
-<!-- FOOTER WEB (Một dòng duy nhất, không trùng lặp) -->
+<!-- FOOTER WEB -->
 <footer class="screen-footer no-print">
   © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost
 </footer>
@@ -113,6 +114,6 @@
 <!-- JAVASCRIPT TÁCH RA -->
 <script src="/js/api.js"></script>
 <script src="/js/pdf.js"></script>
-<script src="/js/excel.js"></script> <!-- File xử lý Import Excel -->
+<script src="/js/excel.js"></script>
 </body>
 </html>

@@ -16,6 +16,7 @@
 <script src="/libs/qrcode.min.js"></script>
 <script src="/libs/html2canvas.min.js"></script>
 <script src="/libs/jspdf.umd.min.js"></script>
+<!-- Thư viện đọc Excel (Giữ lại để sau này dùng) -->
 <script src="/libs/xlsx.full.min.js"></script>
 
 <!-- VERCEL ANALYTICS -->
@@ -36,10 +37,21 @@
         <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
       </div>
     </div>
+    
+    <!-- MENU ĐIỀU HƯỚNG MỚI -->
     <nav class="nav">
       <a href="#">Trang chủ</a>
       <a href="#search">Tra cứu</a>
-      <a href="#result">Hướng dẫn</a>
+      
+      <!-- MỤC IN BẢNG KÊ (DROPDOWN) -->
+      <div class="nav-dropdown">
+        <a href="javascript:void(0);" class="dropdown-toggle">In bảng kê ▾</a>
+        <div class="dropdown-menu">
+          <a href="#import-section" onclick="toggleImportSection()">Nạp bảng kê (Tạm ẩn)</a>
+          <a href="#bangke-section" onclick="showBangKeSection()">In bảng kê</a>
+        </div>
+      </div>
+      
       <a href="#">Giới thiệu</a>
     </nav>
   </div>
@@ -82,24 +94,40 @@
     <div id="screen-result"></div>
   </section>
 
-  <!-- KHU VỰC NẠP BẢNG KÊ EXCEL (DÀNH CHO THƯ KÝ) -->
-  <section class="search-card no-print" id="import-section" style="margin-top: 30px;">
+  <!-- KHU VỰC NẠP BẢNG KÊ EXCEL (ĐÃ ẨN, CHỈ HIỆN KHI BẤM "NẠP BẢNG KÊ") -->
+  <section class="search-card no-print" id="import-section" style="margin-top: 30px; display: none;">
     <h1 class="search-title" style="color: #0a4b88;">📥 NẠP BẢNG KÊ EXCEL</h1>
     <div class="search-sub">Chọn file Excel (.xlsx) do Bưu điện gửi, hệ thống sẽ tự động trích xuất và đưa vào bảng tổng hợp.</div>
     
     <div class="form-grid">
       <div class="field" style="grid-column: span 2;">
-        <!-- ĐÚNG: onchange="handleFileUpload(event)" -->
         <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="handleFileUpload(event)" style="padding: 10px; border: 2px dashed #0a4b88; background: #eef5fc; width: 100%;">
       </div>
     </div>
 
-    <!-- NÚT NẠP DỮ LIỆU -->
     <button id="btnImport" class="submit" type="button" onclick="importExcelData()" style="background: linear-gradient(135deg, #0284c7, #0369a1); margin-top: 15px;">
       📤 NẠP DỮ LIỆU
     </button>
 
     <div id="importMessage" class="msg"></div>
+  </section>
+
+  <!-- KHU VỰC IN BẢNG KÊ (DÁN MÃ VẬN ĐƠN) -->
+  <section class="search-card no-print" id="bangke-section" style="margin-top: 30px; display: none;">
+    <h1 class="search-title" style="color: #0a4b88;">📝 IN BẢNG KÊ</h1>
+    <div class="search-sub">Dán danh sách mã vận đơn (mỗi mã một dòng), hệ thống sẽ tìm kiếm và sắp xếp thành bảng kê để in.</div>
+
+    <div class="form-grid">
+      <div class="field" style="grid-column: span 2;">
+        <textarea id="bangkeInput" rows="6" placeholder="Ví dụ:&#10;RB608708026VN&#10;RF600650965VN&#10;CB597376467VN" style="width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px;"></textarea>
+      </div>
+    </div>
+
+    <button id="btnPrintBangKe" class="submit" type="button" onclick="printBangKeList()" style="background: linear-gradient(135deg, #10b981, #047857); margin-top: 15px;">
+      🖨 IN BẢNG KÊ
+    </button>
+
+    <div id="bangkeMessage" class="msg"></div>
   </section>
 </main>
 
@@ -115,5 +143,53 @@
 <script src="/js/api.js"></script>
 <script src="/js/pdf.js"></script>
 <script src="/js/excel.js"></script>
+<script>
+  // Hàm hiện/ẩn form Nạp bảng kê
+  function toggleImportSection() {
+    const importSection = document.getElementById('import-section');
+    const isHidden = importSection.style.display === 'none';
+    
+    // Ẩn form In bảng kê nếu đang mở
+    document.getElementById('bangke-section').style.display = 'none';
+    
+    importSection.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) {
+      importSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // Hàm hiện form In bảng kê
+  function showBangKeSection() {
+    const bangKeSection = document.getElementById('bangke-section');
+    const isHidden = bangKeSection.style.display === 'none';
+    
+    // Ẩn form Nạp bảng kê nếu đang mở
+    document.getElementById('import-section').style.display = 'none';
+    
+    bangKeSection.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) {
+      bangKeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  
+  // Hàm in bảng kê từ danh sách mã vận đơn
+  async function printBangKeList() {
+    const codes = document.getElementById('bangkeInput').value.trim().split(/\r?\n/).filter(code => code.trim());
+    if (codes.length === 0) {
+      const msgDiv = document.getElementById('bangkeMessage');
+      msgDiv.className = 'msg error';
+      msgDiv.style.display = 'block';
+      msgDiv.textContent = '⚠️ Vui lòng dán danh sách mã vận đơn trước!';
+      return;
+    }
+
+    // TODO: Gọi API để tra cứu từng mã và sắp xếp thành bảng
+    // Ở đây chỉ hiển thị thông báo demo
+    const msgDiv = document.getElementById('bangkeMessage');
+    msgDiv.className = 'msg ok';
+    msgDiv.style.display = 'block';
+    msgDiv.textContent = '✅ Đã nhận ' + codes.length + ' mã vận đơn. Đang chuẩn bị in... (Tính năng đang phát triển)';
+  }
+</script>
 </body>
 </html>

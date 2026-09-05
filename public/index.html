@@ -1,122 +1,118 @@
-// public/js/excel.js
-const EXCEL_IMPORT_URL = "https://script.google.com/macros/s/AKfycby4xN41rqyZeGaNZTmX66moFLgDnJjurUWlf4mfGiCedFr7-cpx4X6MRMWKGVcA05HmJA/exec"; // URL Web App của bạn
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InVanDon247 - Tra cứu vận đơn VNPost & In phiếu vận đơn A4</title>
 
-// Biến lưu dữ liệu tạm thời sau khi đọc file
-let importedRecords = [];
+<!-- FAVICON -->
+<link rel="icon" type="image/png" href="/images/favicon.ico">
 
-// Hàm xử lý khi người dùng chọn file (Chỉ đọc, chưa gửi)
-function handleFileUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+<!-- CSS -->
+<link rel="stylesheet" href="/css/styles.css">
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: 'array' });
+<!-- THƯ VIỆN -->
+<script src="/libs/JsBarcode.all.min.js"></script>
+<script src="/libs/qrcode.min.js"></script>
+<script src="/libs/html2canvas.min.js"></script>
+<script src="/libs/jspdf.umd.min.js"></script>
+<script src="/libs/xlsx.full.min.js"></script> <!-- Thư viện đọc Excel -->
 
-    // Danh sách tên cột có thể gặp (Aliases)
-    const columnAliases = {
-      'Số hiệu bưu gửi': ['Số hiệu bưu gửi', 'Số hiệu BG', 'Số vận đơn', 'Mã vận đơn'],
-      'Ngày': ['Ngày chấp nhận', 'Ngày gửi', 'Ngày nhận', 'Ngày'],
-      'Tên người nhận': ['Tên người nhận', 'Người nhận', 'Họ tên người nhận'],
-      'Địa chỉ': ['Địa chỉ', 'Địa chỉ nhận hàng'],
-      'Tỉnh/Thành': ['Tỉnh', 'Tỉnh/Thành phố', 'Tỉnh/Thành'],
-      'Khối lượng': ['Khối lượng (gr)', 'Khối lượng', 'Khối lượng tịnh (gr)'],
-      'Cước phí': ['Tổng cước bao gồm VAT', 'Tổng cước', 'Tổng cước phí'],
-      'Mã khách hàng': ['Mã khách hàng', 'Mã KH', 'Mã CMS', 'Mã khách hàng (CMS)'],
-      'Tên khách hàng': ['Tên khách hàng', 'Tên cơ quan', 'Khách hàng', 'Tên đơn vị']
-    };
+<!-- VERCEL ANALYTICS -->
+<script defer src="/_vercel/insights/script.js"></script>
+</head>
 
-    // Làm sạch dữ liệu cũ
-    importedRecords = [];
+<body>
 
-    // Lặp qua từng sheet trong file
-    workbook.SheetNames.forEach((sheetName) => {
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+<!-- HEADER (WEB) -->
+<header class="topbar no-print">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="/images/logo.png" alt="InVanDon247">
+      </div>
+      <div>
+        <strong>InVanDon247</strong>
+        <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="#">Trang chủ</a>
+      <a href="#search">Tra cứu</a>
+      <a href="#result">Hướng dẫn</a>
+      <a href="#">Giới thiệu</a>
+    </nav>
+  </div>
+</header>
 
-      // Tìm dòng bắt đầu dữ liệu (dòng có chữ "STT" hoặc "Số hiệu")
-      let dataStartRow = 0;
-      for (let i = 0; i < jsonData.length; i++) {
-        const row = jsonData[i];
-        if (row && row.some(cell => String(cell).toLowerCase().includes('stt') || String(cell).includes('Số hiệu'))) {
-          dataStartRow = i;
-          break;
-        }
-      }
+<!-- MAIN (WEB) -->
+<main class="page">
+  <section class="search-card no-print" id="search">
+    <h1 class="search-title">TRA CỨU VẬN ĐƠN</h1>
+    <div class="search-sub">Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi</div>
 
-      if (dataStartRow === 0) continue; // Bỏ qua sheet không có tiêu đề
+    <div class="form-grid">
+      <div class="field">
+        <label>1. Mã vận đơn VNPost</label>
+        <input id="trackingCode" type="text" placeholder="Ví dụ: RF600343015VN" autocomplete="off">
+      </div>
 
-      const headers = jsonData[dataStartRow];
+      <div class="field">
+        <label>2. Mã xác thực (CAPTCHA)</label>
+        <div class="captcha-line">
+          <input id="captchaText" type="text" placeholder="Nhập mã CAPTCHA" autocomplete="off">
+          <div class="captcha-slot">
+            <img id="captchaImg" class="captcha-img" alt="CAPTCHA">
+          </div>
+          <button id="reloadCaptcha" class="reload" type="button" onclick="loadCaptcha()">↻ Đổi mã</button>
+        </div>
+      </div>
+    </div>
 
-      for (let i = dataStartRow + 1; i < jsonData.length; i++) {
-        const row = jsonData[i];
-        if (!row || !row.some(cell => cell)) continue;
+    <button id="btnSubmit" class="submit" type="button" onclick="submitTracking()">🔎 TRA CỨU VẬN ĐƠN</button>
+    <div id="message" class="msg"></div>
+  </section>
 
-        const record = {};
-        headers.forEach((header, colIndex) => {
-          const value = row[colIndex];
-          if (!header) return;
-          const normalizedHeader = String(header).trim().toLowerCase();
-          
-          Object.keys(columnAliases).forEach((standardCol) => {
-            const aliases = columnAliases[standardCol].map(a => a.toLowerCase());
-            if (aliases.includes(normalizedHeader)) {
-              record[standardCol] = value || '';
-            }
-          });
-        });
+  <div id="result" class="result-head no-print">
+    <button class="action print-btn" onclick="printA4()">🖨 In A4</button>
+    <button class="action pdf-btn" onclick="downloadPDF()">📥 Tải xuống PDF</button>
+  </div>
 
-        if (record['Số hiệu bưu gửi']) {
-          importedRecords.push(record);
-        }
-      }
-    });
+  <section id="result-card" class="result-card no-print">
+    <div id="screen-result"></div>
+  </section>
 
-    // Thông báo đã đọc thành công
-    const msgDiv = document.getElementById('importMessage');
-    msgDiv.className = 'msg ok';
-    msgDiv.style.display = 'block';
-    msgDiv.textContent = '✅ Đã đọc thành công ' + importedRecords.length + ' dòng dữ liệu từ file Excel. Hãy bấm "NẠP DỮ LIỆU" để gửi lên!';
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-// Hàm gửi dữ liệu lên Google Apps Script (Gọi khi bấm nút "NẠP DỮ LIỆU")
-async function importExcelData() {
-  if (importedRecords.length === 0) {
-    const msgDiv = document.getElementById('importMessage');
-    msgDiv.className = 'msg error';
-    msgDiv.style.display = 'block';
-    msgDiv.textContent = '⚠️ Vui lòng chọn file Excel trước!';
-    return;
-  }
-
-  const btnImport = document.getElementById('btnImport');
-  btnImport.disabled = true;
-
-  try {
-    await fetch(EXCEL_IMPORT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ records: importedRecords })
-    });
+  <!-- KHU VỰC NẠP BẢNG KÊ EXCEL (DÀNH CHO THƯ KÝ) -->
+  <section class="search-card no-print" id="import-section" style="margin-top: 30px;">
+    <h1 class="search-title" style="color: #0a4b88;">📥 NẠP BẢNG KÊ EXCEL</h1>
+    <div class="search-sub">Chọn file Excel (.xlsx) do Bưu điện gửi, hệ thống sẽ tự động trích xuất và đưa vào bảng tổng hợp.</div>
     
-    const msgDiv = document.getElementById('importMessage');
-    msgDiv.className = 'msg ok';
-    msgDiv.style.display = 'block';
-    msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu lên Google Sheet!';
-    
-    // Làm sạch sau khi gửi
-    importedRecords = [];
-    document.getElementById('excelFileInput').value = '';
-  } catch (e) {
-    const msgDiv = document.getElementById('importMessage');
-    msgDiv.className = 'msg error';
-    msgDiv.style.display = 'block';
-    msgDiv.textContent = '❌ Lỗi gửi dữ liệu: ' + e.message;
-  } finally {
-    btnImport.disabled = false;
-  }
-}
+    <div class="form-grid">
+      <div class="field" style="grid-column: span 2;">
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="padding: 10px; border: 2px dashed #0a4b88; background: #eef5fc; width: 100%;">
+      </div>
+    </div>
+
+    <!-- NÚT NẠP DỮ LIỆU (Mới thêm) -->
+    <button id="btnImport" class="submit" type="button" onclick="importExcelData()" style="background: linear-gradient(135deg, #0284c7, #0369a1); margin-top: 15px;">
+      📤 NẠP DỮ LIỆU
+    </button>
+
+    <div id="importMessage" class="msg"></div>
+  </section>
+</main>
+
+<!-- FOOTER WEB (Một dòng duy nhất, không trùng lặp) -->
+<footer class="screen-footer no-print">
+  © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost
+</footer>
+
+<!-- KHU VỰC IN A4 -->
+<div id="print-area"></div>
+
+<!-- JAVASCRIPT TÁCH RA -->
+<script src="/js/api.js"></script>
+<script src="/js/pdf.js"></script>
+<script src="/js/excel.js"></script> <!-- File xử lý Import Excel -->
+</body>
+</html>

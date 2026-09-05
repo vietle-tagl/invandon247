@@ -32,7 +32,7 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* HEADER WEB (Gradient Xanh nhạt -> Cam) */
+/* HEADER */
 .topbar{
   height:68px;
   background:linear-gradient(90deg, #e8f4fd 0%, #ffd9b3 55%, #ff9800 100%);
@@ -97,7 +97,7 @@ body{
 }
 
 .nav a{
-  color:#1e3a8a;
+  color:#06325d;
   text-decoration:none;
   padding:6px 10px;
   border-radius:6px;
@@ -106,6 +106,63 @@ body{
 .nav a:hover{
   background:rgba(255, 255, 255, 0.5);
   color:#0a4b88;
+}
+
+/* DROPDOWN MENU (Thêm mới) */
+.nav-dropdown{
+  position: relative;
+}
+
+.dropdown-toggle{
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.dropdown-toggle:hover{
+  background:rgba(255, 255, 255, 0.5);
+  color:#0a4b88;
+}
+
+.dropdown-menu{
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  min-width: 150px;
+  z-index: 100;
+}
+
+.nav-dropdown:hover .dropdown-menu,
+.nav-dropdown:focus-within .dropdown-menu{
+  display: block;
+}
+
+.dropdown-menu a{
+  display: block;
+  padding: 8px 15px;
+  color: #1e3a8a;
+  font-size: 13px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.dropdown-menu a:hover{
+  background: #f8fafc;
+  color: #0a4b88;
+}
+
+/* Mục bị khóa (không click được) */
+.disabled-item{
+  color: #94a3b8 !important;
+  cursor: not-allowed;
 }
 
 /* PAGE */
@@ -398,7 +455,7 @@ body{
 .delivery-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 8px; font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
 .delivery-card-body { display: flex; flex-direction: column; gap: 6px; }
 
-/* FOOTER BẢN QUYỀN TRÊN WEB - CỐ ĐỊNH MỘT DÒNG DUY NHẤT */
+/* FOOTER BẢN QUYỀN TRÊN WEB */
 .screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
 /* PRINT A4 */

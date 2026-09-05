@@ -1,7 +1,10 @@
 // public/js/excel.js
 const EXCEL_IMPORT_URL = "https://script.google.com/macros/s/AKfycby4xN41rqyZeGaNZTmX66moFLgDnJjurUWlf4mfGiCedFr7-cpx4X6MRMWKGVcA05HmJA/exec"; // URL Web App của bạn
 
-// Hàm xử lý khi người dùng chọn file
+// Biến lưu dữ liệu tạm thời sau khi đọc file
+let importedRecords = [];
+
+// Hàm xử lý khi người dùng chọn file (Chỉ đọc, chưa gửi)
 function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -11,7 +14,7 @@ function handleFileUpload(event) {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
-    // 1. Danh sách tên cột có thể gặp (Aliases)
+    // Danh sách tên cột có thể gặp (Aliases)
     const columnAliases = {
       'Số hiệu bưu gửi': ['Số hiệu bưu gửi', 'Số hiệu BG', 'Số vận đơn', 'Mã vận đơn'],
       'Ngày': ['Ngày chấp nhận', 'Ngày gửi', 'Ngày nhận', 'Ngày'],
@@ -24,12 +27,15 @@ function handleFileUpload(event) {
       'Tên khách hàng': ['Tên khách hàng', 'Tên cơ quan', 'Khách hàng', 'Tên đơn vị']
     };
 
-    // 2. Lặp qua từng sheet trong file
+    // Làm sạch dữ liệu cũ
+    importedRecords = [];
+
+    // Lặp qua từng sheet trong file
     workbook.SheetNames.forEach((sheetName) => {
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-      // 3. Tìm dòng bắt đầu dữ liệu (dòng có chữ "STT" hoặc "Số hiệu")
+      // Tìm dòng bắt đầu dữ liệu (dòng có chữ "STT" hoặc "Số hiệu")
       let dataStartRow = 0;
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
@@ -41,11 +47,8 @@ function handleFileUpload(event) {
 
       if (dataStartRow === 0) continue; // Bỏ qua sheet không có tiêu đề
 
-      // 4. Lấy tiêu đề
       const headers = jsonData[dataStartRow];
 
-      // 5. Duyệt qua dữ liệu và chuẩn hóa
-      const recordsToSend = [];
       for (let i = dataStartRow + 1; i < jsonData.length; i++) {
         const row = jsonData[i];
         if (!row || !row.some(cell => cell)) continue;
@@ -65,30 +68,55 @@ function handleFileUpload(event) {
         });
 
         if (record['Số hiệu bưu gửi']) {
-          recordsToSend.push(record);
+          importedRecords.push(record);
         }
       }
-
-      // 6. Gửi dữ liệu lên Google Sheets
-      if (recordsToSend.length > 0) {
-        sendToGoogleSheet(recordsToSend);
-      }
     });
+
+    // Thông báo đã đọc thành công
+    const msgDiv = document.getElementById('importMessage');
+    msgDiv.className = 'msg ok';
+    msgDiv.style.display = 'block';
+    msgDiv.textContent = '✅ Đã đọc thành công ' + importedRecords.length + ' dòng dữ liệu từ file Excel. Hãy bấm "NẠP DỮ LIỆU" để gửi lên!';
   };
   reader.readAsArrayBuffer(file);
 }
 
-// Hàm gửi dữ liệu lên Google Apps Script
-async function sendToGoogleSheet(records) {
+// Hàm gửi dữ liệu lên Google Apps Script (Gọi khi bấm nút "NẠP DỮ LIỆU")
+async function importExcelData() {
+  if (importedRecords.length === 0) {
+    const msgDiv = document.getElementById('importMessage');
+    msgDiv.className = 'msg error';
+    msgDiv.style.display = 'block';
+    msgDiv.textContent = '⚠️ Vui lòng chọn file Excel trước!';
+    return;
+  }
+
+  const btnImport = document.getElementById('btnImport');
+  btnImport.disabled = true;
+
   try {
     await fetch(EXCEL_IMPORT_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ records: records })
+      body: JSON.stringify({ records: importedRecords })
     });
-    alert('✅ Đã gửi ' + records.length + ' dòng dữ liệu lên Google Sheet!');
+    
+    const msgDiv = document.getElementById('importMessage');
+    msgDiv.className = 'msg ok';
+    msgDiv.style.display = 'block';
+    msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu lên Google Sheet!';
+    
+    // Làm sạch sau khi gửi
+    importedRecords = [];
+    document.getElementById('excelFileInput').value = '';
   } catch (e) {
-    alert('❌ Lỗi gửi dữ liệu: ' + e.message);
+    const msgDiv = document.getElementById('importMessage');
+    msgDiv.className = 'msg error';
+    msgDiv.style.display = 'block';
+    msgDiv.textContent = '❌ Lỗi gửi dữ liệu: ' + e.message;
+  } finally {
+    btnImport.disabled = false;
   }
 }

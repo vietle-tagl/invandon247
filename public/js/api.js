@@ -10,48 +10,40 @@ let captchaRequestId = 0;
 // Bộ đếm Google Sheets
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
-// Hàm gửi dữ liệu lên Google Sheets (Thông qua Vercel Server)
-async function logToSheet(action) {
+// Hàm lấy IP ẩn danh trực tiếp trên trình duyệt (Không cần server)
+async function getAnonymizedIP() {
   try {
-    // 1. Gửi dữ liệu lên Vercel server trước (Server sẽ lấy IP và gửi lên Sheet)
-    const response = await fetch('/api/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        trackingCode: currentTrackingCode,
-        action: action
-      })
-    });
-
-    // 2. Nếu server hoạt động bình thường, KHÔNG cần gửi thêm gì nữa.
-    // Nếu server lỗi, gửi trực tiếp (không có IP)
-    if (!response.ok) {
-      await fetch(GOOGLE_SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trackingCode: currentTrackingCode,
-          action: action,
-          clientIP: "0.0.0.0",
-          location: "Không xác định"
-        })
-      });
-    }
+    const response = await fetch('https://api.ipify.org?format=json');
+    const data = await response.json();
+    
+    // Ẩn danh hóa: Lấy 3 phần đầu, bỏ phần cuối
+    let ipParts = String(data.ip).split('.');
+    let anonymizedIP = ipParts.slice(0, 3).join('.') + '.0';
+    
+    return anonymizedIP;
   } catch (e) {
-    // Phương án dự phòng khi fetch lỗi
-    console.log('Không ghi được log:', e);
+    return "0.0.0.0"; // Nếu lỗi, trả về "0.0.0.0"
+  }
+}
+
+// Hàm gửi dữ liệu lên Google Sheets (Kèm IP ẩn danh)
+async function logToSheet(action) {
+  const anonymizedIP = await getAnonymizedIP(); // Lấy IP trước
+  
+  try {
     await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
-      mode: 'no-cors',
+      mode: 'no-cors', // Bắt buộc dùng no-cors để không bị chặn bởi trình duyệt
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         trackingCode: currentTrackingCode,
         action: action,
-        clientIP: "0.0.0.0",
-        location: "Không xác định"
+        clientIP: anonymizedIP,
+        location: "Chưa xác định"
       })
     });
+  } catch (e) {
+    console.log('Không ghi được log:', e);
   }
 }
 

@@ -10,28 +10,39 @@ let captchaRequestId = 0;
 // Bộ đếm Google Sheets
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
-// Hàm lấy IP ẩn danh (Chỉ lấy 3 phần đầu, ẩn danh hóa)
-async function getAnonymizedIP() {
-  try {
-    // Gọi API miễn phí để lấy IP
-    const response = await fetch('https://api.ipify.org?format=json');
-    const data = await response.json();
-    
-    // Ẩn danh hóa: Lấy 3 phần đầu, bỏ phần cuối
-    let ipParts = String(data.ip).split('.');
-    let anonymizedIP = ipParts.slice(0, 3).join('.') + '.0';
-    
-    return anonymizedIP;
-  } catch (e) {
-    return "0.0.0.0"; // Nếu lỗi, trả về "0.0.0.0" (không xác định)
-  }
-}
-
-// Hàm gửi dữ liệu lên Google Sheets (Kèm IP ẩn danh)
+// Hàm gửi dữ liệu lên Google Sheets
+// (IP sẽ được Vercel server lấy và ẩn danh hóa, sau đó gửi lên Sheet)
 async function logToSheet(action) {
-  const anonymizedIP = await getAnonymizedIP(); // Lấy IP ẩn danh trước
-  
   try {
+    // 1. Gửi dữ liệu lên Vercel server trước
+    const response = await fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trackingCode: currentTrackingCode,
+        action: action
+      })
+    });
+
+    // 2. Nếu Vercel server xử lý xong và gửi lên Google Sheet thành công thì thôi
+    // (Server sẽ tự động lấy IP ẩn danh và Tỉnh/Thành gửi lên)
+    if (!response.ok) {
+      // Phương án dự phòng khi Vercel server lỗi (gửi trực tiếp, không có IP)
+      await fetch(GOOGLE_SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingCode: currentTrackingCode,
+          action: action,
+          clientIP: "0.0.0.0",
+          location: "Không xác định"
+        })
+      });
+    }
+  } catch (e) {
+    // Nếu Vercel server cũng lỗi, gửi trực tiếp lên Google Sheet
+    console.log('Không ghi được log:', e);
     await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
       mode: 'no-cors',
@@ -39,11 +50,10 @@ async function logToSheet(action) {
       body: JSON.stringify({
         trackingCode: currentTrackingCode,
         action: action,
-        clientIP: anonymizedIP // Gửi IP ẩn danh lên
+        clientIP: "0.0.0.0",
+        location: "Không xác định"
       })
     });
-  } catch (e) {
-    console.log('Không ghi được log:', e);
   }
 }
 

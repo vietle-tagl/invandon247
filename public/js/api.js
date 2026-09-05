@@ -10,7 +10,27 @@ let captchaRequestId = 0;
 // Bộ đếm Google Sheets
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
+// Hàm lấy IP ẩn danh (Chỉ lấy 3 phần đầu, ẩn danh hóa)
+async function getAnonymizedIP() {
+  try {
+    // Gọi API miễn phí để lấy IP
+    const response = await fetch('https://api.ipify.org?format=json');
+    const data = await response.json();
+    
+    // Ẩn danh hóa: Lấy 3 phần đầu, bỏ phần cuối
+    let ipParts = String(data.ip).split('.');
+    let anonymizedIP = ipParts.slice(0, 3).join('.') + '.0';
+    
+    return anonymizedIP;
+  } catch (e) {
+    return "0.0.0.0"; // Nếu lỗi, trả về "0.0.0.0" (không xác định)
+  }
+}
+
+// Hàm gửi dữ liệu lên Google Sheets (Kèm IP ẩn danh)
 async function logToSheet(action) {
+  const anonymizedIP = await getAnonymizedIP(); // Lấy IP ẩn danh trước
+  
   try {
     await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
@@ -18,7 +38,8 @@ async function logToSheet(action) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         trackingCode: currentTrackingCode,
-        action: action
+        action: action,
+        clientIP: anonymizedIP // Gửi IP ẩn danh lên
       })
     });
   } catch (e) {

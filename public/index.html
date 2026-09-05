@@ -16,6 +16,7 @@
 <script src="/libs/qrcode.min.js"></script>
 <script src="/libs/html2canvas.min.js"></script>
 <script src="/libs/jspdf.umd.min.js"></script>
+<script src="/libs/xlsx.full.min.js"></script> <!-- Thư viện đọc Excel -->
 
 <!-- VERCEL ANALYTICS -->
 <script defer src="/_vercel/insights/script.js"></script>
@@ -80,6 +81,18 @@
   <section id="result-card" class="result-card no-print">
     <div id="screen-result"></div>
   </section>
+
+  <!-- KHU VỰC NẠP BẢNG KÊ EXCEL (DÀNH CHO THƯ KÝ) -->
+  <section class="search-card no-print" id="import-section" style="margin-top: 30px;">
+    <h1 class="search-title" style="color: #0a4b88;">📥 NẠP BẢNG KÊ EXCEL</h1>
+    <div class="search-sub">Chọn file Excel (.xlsx) do Bưu điện gửi, hệ thống sẽ tự động trích xuất và đưa vào bảng tổng hợp.</div>
+    
+    <div class="form-grid">
+      <div class="field" style="grid-column: span 2;">
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="handleFileUpload(event)" style="padding: 10px; border: 2px dashed #0a4b88; background: #eef5fc; width: 100%;">
+      </div>
+    </div>
+  </section>
 </main>
 
 <!-- FOOTER WEB (Một dòng duy nhất, không trùng lặp) -->
@@ -93,5 +106,6 @@
 <!-- JAVASCRIPT TÁCH RA -->
 <script src="/js/api.js"></script>
 <script src="/js/pdf.js"></script>
+<script src="/js/excel.js"></script> <!-- File xử lý Import Excel -->
 </body>
 </html>

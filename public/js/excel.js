@@ -1,8 +1,11 @@
 // public/js/excel.js
+// URL Web App Google Apps Script
 const EXCEL_IMPORT_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
+// Biến lưu dữ liệu tạm thời sau khi đọc file Excel
 let importedRecords = [];
 
+// 1. HÀM ĐỌC FILE EXCEL TỪ MÁY TÍNH
 function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -12,7 +15,7 @@ function handleFileUpload(event) {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
-    // Bổ sung thêm nhiều từ khóa tên cột phổ biến
+    // Danh sách từ khóa nhận diện các cột phổ biến
     const columnAliases = {
       'Số hiệu bưu gửi': ['số hiệu bưu gửi', 'số hiệu bg', 'số vận đơn', 'mã vận đơn', 'mã bưu gửi', 'mã đơn', 'so hieu bg'],
       'Ngày': ['ngày chấp nhận', 'ngày gửi', 'ngày nhận', 'ngày', 'ngay'],
@@ -68,7 +71,7 @@ function handleFileUpload(event) {
           });
         });
 
-        // Nếu lấy được mã vận đơn hoặc ít nhất 1 thông tin bất kỳ thì lưu dòng đó
+        // Chỉ lưu nếu dòng có dữ liệu
         if (record['Số hiệu bưu gửi'] || Object.keys(record).length > 0) {
           importedRecords.push(record);
         }
@@ -77,21 +80,28 @@ function handleFileUpload(event) {
 
     const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
-      msgDiv.className = 'msg ok';
-      msgDiv.style.display = 'block';
-      msgDiv.textContent = '✅ Đã đọc thành công ' + importedRecords.length + ' dòng dữ liệu. Hãy bấm "NẠP DỮ LIỆU"!';
+      if (importedRecords.length > 0) {
+        msgDiv.className = 'msg ok';
+        msgDiv.style.display = 'block';
+        msgDiv.textContent = '✅ Đã đọc thành công ' + importedRecords.length + ' dòng dữ liệu. Hãy bấm "NẠP DỮ LIỆU"!';
+      } else {
+        msgDiv.className = 'msg error';
+        msgDiv.style.display = 'block';
+        msgDiv.textContent = '⚠️ Không đọc được dữ liệu phù hợp trong file Excel. Vui lòng kiểm tra lại cấu trúc file!';
+      }
     }
   };
   reader.readAsArrayBuffer(file);
 }
 
+// 2. HÀM GỬI DỮ LIỆU LÊN GOOGLE APPS SCRIPT
 async function importExcelData() {
   if (importedRecords.length === 0) {
     const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
       msgDiv.className = 'msg error';
       msgDiv.style.display = 'block';
-      msgDiv.textContent = '⚠️ Chưa có dữ liệu hoặc không đọc được cột trong file Excel!';
+      msgDiv.textContent = '⚠️ Chưa có dữ liệu hoặc chưa chọn file Excel!';
     }
     return;
   }
@@ -99,17 +109,30 @@ async function importExcelData() {
   const btnImport = document.getElementById('btnImport');
   if (btnImport) btnImport.disabled = true;
 
+  const msgDiv = document.getElementById('importMessage');
+  if (msgDiv) {
+    msgDiv.className = 'msg wait';
+    msgDiv.style.display = 'block';
+    msgDiv.textContent = '⏳ Đang nạp ' + importedRecords.length + ' dòng dữ liệu lên Google Sheet...';
+  }
+
   try {
+    // Dùng Content-Type text/plain và redirect follow để tránh bị trình duyệt chặn CORS
     const response = await fetch(EXCEL_IMPORT_URL, {
       method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'application/json' },
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ records: importedRecords })
     });
 
-    const result = await response.json().catch(() => ({})); 
+    const text = await response.text();
+    let result = {};
+    try {
+      result = JSON.parse(text);
+    } catch (err) {
+      result = { success: true }; 
+    }
 
-    const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
       if (result.success || response.ok) {
         msgDiv.className = 'msg ok';
@@ -121,15 +144,14 @@ async function importExcelData() {
       } else {
         msgDiv.className = 'msg error';
         msgDiv.style.display = 'block';
-        msgDiv.textContent = '❌ Google Apps Script báo lỗi: ' + (result.error || 'Kiểm tra lại quyền ghi trên Apps Script');
+        msgDiv.textContent = '❌ Google Apps Script báo lỗi: ' + (result.error || 'Kiểm tra quyền truy cập trên Apps Script');
       }
     }
   } catch (e) {
-    const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
       msgDiv.className = 'msg error';
       msgDiv.style.display = 'block';
-      msgDiv.textContent = '❌ Lỗi kết nối: ' + e.message;
+      msgDiv.textContent = '❌ Lỗi kết nối: ' + e.message + '. Hãy kiểm tra lại URL hoặc cấu hình Web App!';
     }
   } finally {
     if (btnImport) btnImport.disabled = false;

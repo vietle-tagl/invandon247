@@ -1,9 +1,14 @@
 // public/js/excel.js
+
+// URL Web App Google Apps Script
 const EXCEL_IMPORT_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
+// Biến lưu trữ dữ liệu sau khi đọc từ file Excel
 let importedRecords = [];
 
-// 1. HÀM TỰ ĐỘNG BỐC TÁCH VÀ CHUẨN HÓA DỮ LIỆU EXCEL
+/**
+ * 1. HÀM TỰ ĐỘNG ĐỌC VÀ CHUẨN HÓA DỮ LIỆU EXCEL
+ */
 function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -23,7 +28,7 @@ function handleFileUpload(event) {
         return;
       }
 
-      // A. TRÍCH XUẤT THÔNG TIN CHUNG (Mã KH & Tên KH từ header nếu có)
+      // A. Trích xuất thông tin chung (Mã KH & Tên KH từ Header nếu có)
       let globalMaKH = "";
       let globalTenKH = "";
 
@@ -37,7 +42,7 @@ function handleFileUpload(event) {
         }
       }
 
-      // B. TÌM DÒNG TIÊU ĐỀ BẢNG (Header Index)
+      // B. Tìm dòng tiêu đề của bảng (Header Index)
       let headerIdx = -1;
       for (let i = 0; i < Math.min(15, rows.length); i++) {
         const rowStr = rows[i].join(" ").toLowerCase();
@@ -52,7 +57,7 @@ function handleFileUpload(event) {
         return;
       }
 
-      // C. XÁC ĐỊNH VỊ TRÍ CÁC CỘT DỰA TRÊN TIÊU ĐỀ
+      // C. Áp cột tự động theo vị trí tiêu đề
       const headers = rows[headerIdx].map(h => String(h).trim().toLowerCase());
       const colMap = {};
 
@@ -72,22 +77,22 @@ function handleFileUpload(event) {
 
       importedRecords = [];
 
-      // D. QUÉT TỪNG DÒNG DỮ LIỆU BÊN DƯỚI DÒNG TIÊU ĐỀ
+      // D. Quét từng dòng dữ liệu phía dưới tiêu đề
       for (let i = headerIdx + 1; i < rows.length; i++) {
         const row = rows[i];
         const rowStr = row.join(" ").toLowerCase();
 
-        // Bỏ qua dòng rỗng hoặc dòng tổng cộng/chú thích
+        // Lọc bỏ dòng rỗng, dòng tổng cộng hoặc tiêu đề phụ
         if (!row.some(c => String(c).trim() !== "") || rowStr.includes("tổng") || rowStr.includes("cộng") || rowStr.includes("stt")) {
           continue;
         }
 
         const soHieu = colMap.so_hieu !== undefined ? String(row[colMap.so_hieu] || "").trim() : "";
         
-        // Điều kiện: Phải có mã bưu gửi / số vận đơn hợp lệ
+        // Kiểm tra độ dài mã bưu gửi hợp lệ
         if (soHieu && soHieu.length >= 8 && soHieu !== "undefined") {
           
-          // Xử lý Địa chỉ (Nối Xã + Huyện + Tỉnh nếu địa chỉ bị tách làm 3 cột)
+          // Xử lý Địa chỉ (Nối Xã + Huyện + Tỉnh nếu bị tách riêng 3 cột)
           let diaChi = colMap.dia_chi !== undefined ? String(row[colMap.dia_chi] || "").trim() : "";
           const tinh = colMap.tinh !== undefined ? String(row[colMap.tinh] || "").trim() : "";
           const huyen = colMap.huyen !== undefined ? String(row[colMap.huyen] || "").trim() : "";
@@ -97,22 +102,22 @@ function handleFileUpload(event) {
             diaChi = [xa, huyen, tinh].filter(Boolean).join(", ");
           }
 
-          // Xử lý Ngày gửi
+          // Format định dạng ngày gửi
           let ngayVal = colMap.ngay !== undefined ? row[colMap.ngay] : "";
           if (ngayVal instanceof Date) {
             ngayVal = ngayVal.toLocaleDateString("vi-VN");
           }
 
           importedRecords.push({
-            'Mã khách hàng': (colMap.ma_kh !== undefined && row[colMap.ma_kh]) ? String(row[colMap.ma_kh]).trim() : globalMaKH,
-            'Tên khách hàng': (colMap.ten_kh !== undefined && row[colMap.ten_kh]) ? String(row[colMap.ten_kh]).trim() : globalTenKH,
-            'Ngày': ngayVal ? String(ngayVal).trim() : "",
-            'Số hiệu bưu gửi': soHieu,
-            'Tên người nhận': colMap.ten_nn !== undefined ? String(row[colMap.ten_nn] || "").trim() : "",
-            'Địa chỉ': diaChi,
-            'Tỉnh/Thành': tinh,
-            'Khối lượng': colMap.khoi_luong !== undefined ? String(row[colMap.khoi_luong] || "").trim() : "",
-            'Cước phí': colMap.cuoc_phi !== undefined ? String(row[colMap.cuoc_phi] || "").trim() : ""
+            ma_kh: (colMap.ma_kh !== undefined && row[colMap.ma_kh]) ? String(row[colMap.ma_kh]).trim() : globalMaKH,
+            ten_kh: (colMap.ten_kh !== undefined && row[colMap.ten_kh]) ? String(row[colMap.ten_kh]).trim() : globalTenKH,
+            ngay: ngayVal ? String(ngayVal).trim() : "",
+            so_hieu: soHieu,
+            ten_nn: colMap.ten_nn !== undefined ? String(row[colMap.ten_nn] || "").trim() : "",
+            dia_chi: diaChi,
+            tinh: tinh,
+            khoi_luong: colMap.khoi_luong !== undefined ? String(row[colMap.khoi_luong] || "").trim() : "",
+            cuoc_phi: colMap.cuoc_phi !== undefined ? String(row[colMap.cuoc_phi] || "").trim() : ""
           });
         }
       }
@@ -137,7 +142,9 @@ function handleFileUpload(event) {
   reader.readAsArrayBuffer(file);
 }
 
-// 2. HÀM ĐẨY DỮ LIỆU LÊN GOOGLE APPS SCRIPT
+/**
+ * 2. HÀM ĐẨY DỮ LIỆU LÊN TAB BANGKEVANDON CỦA GOOGLE SHEETS
+ */
 async function importExcelData() {
   const msgDiv = document.getElementById('importMessage');
   const btnImport = document.getElementById('btnImport');
@@ -161,7 +168,6 @@ async function importExcelData() {
   try {
     const response = await fetch(EXCEL_IMPORT_URL, {
       method: 'POST',
-      redirect: 'follow',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ records: importedRecords })
     });
@@ -170,7 +176,7 @@ async function importExcelData() {
     let result = {};
     try { result = JSON.parse(text); } catch(e) { result = { success: true }; }
 
-    if (result.success || response.ok) {
+    if (result.result === 'success' || result.success || response.ok) {
       if (msgDiv) {
         msgDiv.className = 'msg ok';
         msgDiv.style.display = 'block';
@@ -180,7 +186,7 @@ async function importExcelData() {
       const fileInput = document.getElementById('excelFileInput');
       if (fileInput) fileInput.value = '';
     } else {
-      throw new Error(result.error || "Không thể ghi dữ liệu");
+      throw new Error(result.message || "Không thể ghi dữ liệu");
     }
   } catch (e) {
     if (msgDiv) {

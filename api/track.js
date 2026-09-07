@@ -1,62 +1,56 @@
-import http from 'http';
-import https from 'https';
+// api/track.js
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  const { trackingCode, action } = req.body;
-  const forwarded = req.headers['x-forwarded-for'];
-  const realIP = forwarded ? forwarded.split(',')[0].trim() : (req.socket.remoteAddress || '');
-
-  // 1. Định vị Tỉnh/Thành (Dùng HTTP gốc để không bị lỗi Fetch của Vercel)
-  let location = "Chưa xác định";
-  if (realIP && realIP !== '::1' && realIP !== '127.0.0.1') {
-    try {
-      location = await new Promise((resolve) => {
-        http.get(`http://ip-api.com/json/${realIP}?lang=vi`, (resp) => {
-          let data = '';
-          resp.on('data', chunk => data += chunk);
-          resp.on('end', () => {
-            try {
-              const geo = JSON.parse(data);
-              resolve(geo.regionName || geo.city || "Chưa xác định");
-            } catch (e) { resolve("Chưa xác định"); }
-          });
-        }).on("error", () => resolve("Chưa xác định"));
-      });
-    } catch (e) {}
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // 2. Chuẩn bị dữ liệu gửi lên Sheet
-  const postData = JSON.stringify({
-    trackingCode: trackingCode || '',
-    action: action || 'Tra cứu',
-    ip: realIP,
-    city: location
-  });
-
-  const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec";
-  
-  // 3. Đẩy lên Sheet bằng HTTPS gốc
   try {
-    await new Promise((resolve) => {
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(postData)
-        }
-      };
-      // Vì Google script url sẽ redirect, Vercel xử lý an toàn hơn với node-fetch nếu redirect, nhưng ta gọi qua Web App URL
-      const reqSheet = https.request(GOOGLE_SHEET_URL, options, (resSheet) => {
-        resSheet.on('data', () => {});
-        resSheet.on('end', resolve);
-      });
-      reqSheet.on('error', resolve);
-      reqSheet.write(postData);
-      reqSheet.end();
-    });
-  } catch (e) {}
+    const { trackingCode, action } = req.body || {};
 
-  res.status(200).json({ success: true, ip: realIP, city: location });
+    // 1. Lấy IP thực của client từ header Vercel
+    const forwarded = req.headers['x-forwarded-for'];
+    let realIP = forwarded ? forwarded.split(',')[0].trim() : (req.socket.remoteAddress || '');
+
+    // Nếu test trên môi trường Localhost
+    if (realIP === '::1' || realIP === '127.0.0.1' || !realIP) {
+      realIP = '113.161.73.1'; 
+    }
+
+    // 2. Định vị Tỉnh/Thành
+    let location = "Chưa xác định";
+    try {
+      const geoRes = await fetch(`https://ipwho.is/${realIP}`);
+      if (geoRes.ok) {
+        const geoData = await geoRes.json();
+        if (geoData.success) {
+          location = geoData.region || geoData.city || "Chưa xác định";
+        }
+      }
+    } catch (e) {
+      console.error("Geo error:", e.message);
+    }
+
+    // 3. Chuẩn bị dữ liệu gửi sang Google Apps Script
+    const payload = JSON.stringify({
+      trackingCode: trackingCode || '',
+      action: action || 'Tra cứu',
+      ip: realIP,
+      city: location
+    });
+
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec";
+
+    // Gửi POST kèm Body chuẩn
+    await fetch(GOOGLE_SHEET_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: payload
+    });
+
+    return res.status(200).json({ success: true, ip: realIP, location: location });
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 }

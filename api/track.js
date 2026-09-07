@@ -10,56 +10,54 @@ export default async function handler(req, res) {
 
     // 1. Lấy IP thực của người dùng từ Vercel Header
     const forwarded = req.headers['x-forwarded-for'];
-    const realIP = forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress;
+    let realIP = forwarded ? forwarded.split(',')[0].trim() : (req.socket.remoteAddress || '');
 
-    // 2. Tra cứu Tỉnh/Thành phố dựa trên IP (Dùng ip-api.com)
+    // Nếu chạy localhost / test nội bộ
+    if (realIP === '::1' || realIP === '127.0.0.1') {
+      realIP = '113.161.73.1'; // IP test tạm thời (Bình Định/Hồ Chí Minh)
+    }
+
+    // 2. Tra cứu Tỉnh/Thành qua HTTPS API
     let location = "Chưa xác định";
-    if (realIP && realIP !== '::1' && realIP !== '127.0.0.1' && !realIP.startsWith('192.168.')) {
+    if (realIP) {
       try {
-        const geoRes = await fetch(`http://ip-api.com/json/${realIP}?lang=vi`);
+        const geoRes = await fetch(`https://ipapi.co/${realIP}/json/`);
         if (geoRes.ok) {
           const geoData = await geoRes.json();
-          if (geoData.status === 'success') {
-            // Lấy Tỉnh/Thành phố (regionName hoặc city)
-            location = geoData.regionName || geoData.city || "Chưa xác định";
-          }
+          location = geoData.region || geoData.city || "Chưa xác định";
         }
-      } catch (geoError) {
-        console.error('Lỗi tra cứu Geo IP:', geoError.message);
+      } catch (e) {
+        console.error("Lỗi Geo-IP:", e.message);
       }
     }
 
-    // 3. Gửi dữ liệu đầy đủ lên Google Apps Script
+    // 3. Gửi thẳng sang Google Apps Script
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec";
 
-    const postData = {
+    const payload = {
       trackingCode: trackingCode || '',
       action: action || 'Tra cứu',
-      ip: realIP || '',
+      ip: realIP,
       city: location
     };
 
-    const sheetResponse = await fetch(GOOGLE_SHEET_URL, {
+    const sheetRes = await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(postData),
-      redirect: 'follow'
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Dùng text/plain để tránh CORS preflight
+      body: JSON.stringify(payload)
     });
 
-    const responseText = await sheetResponse.text();
-    console.log('Gửi lên Google Sheet thành công:', responseText);
+    const sheetText = await sheetRes.text();
 
-    // 4. Phản hồi về cho Client
-    return res.status(200).json({ 
-      success: true, 
-      ip: realIP, 
-      location: location 
+    return res.status(200).json({
+      success: true,
+      ip: realIP,
+      location: location,
+      sheetResponse: sheetText
     });
 
   } catch (error) {
-    console.error('Lỗi xử lý api/track:', error.message);
+    console.error('Lỗi track:', error.message);
     return res.status(500).json({ error: error.message });
   }
 }

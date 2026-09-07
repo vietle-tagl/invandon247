@@ -3,7 +3,6 @@
 // =============================================
 
 export default async function handler(req, res) {
-  // Chỉ chấp nhận phương thức POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -11,16 +10,15 @@ export default async function handler(req, res) {
   try {
     const { trackingCode, action } = req.body || {};
 
-    // 1. Lấy IP thực của Client từ Header do Vercel chuyển tiếp
+    // 1. Trích xuất IP thực của người dùng
     const forwarded = req.headers['x-forwarded-for'];
     let realIP = forwarded ? forwarded.split(',')[0].trim() : (req.socket.remoteAddress || '');
 
-    // Nếu chạy môi trường Localhost test
     if (realIP === '::1' || realIP === '127.0.0.1' || !realIP) {
-      realIP = '113.161.73.1'; // IP test tạm thời (Việt Nam)
+      realIP = '113.161.73.1';
     }
 
-    // 2. Tra cứu Tỉnh/Thành từ IP qua dịch vụ HTTPS ipwho.is
+    // 2. Tra cứu Tỉnh/Thành theo IP
     let location = "Chưa xác định";
     try {
       const geoRes = await fetch(`https://ipwho.is/${realIP}`);
@@ -31,10 +29,10 @@ export default async function handler(req, res) {
         }
       }
     } catch (e) {
-      console.error("Lỗi tra cứu Geo-IP:", e.message);
+      console.error("Lỗi Geo-IP:", e.message);
     }
 
-    // 3. Chuẩn bị payload gửi sang Google Apps Script
+    // 3. Đóng gói dữ liệu gửi lên Google Apps Script
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec";
 
     const payload = JSON.stringify({
@@ -44,7 +42,6 @@ export default async function handler(req, res) {
       city: location
     });
 
-    // 4. Gửi dữ liệu tới Google Sheets
     await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -58,7 +55,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Lỗi xử lý /api/track:', error);
+    console.error('Lỗi track:', error);
     return res.status(500).json({ error: error.message });
   }
 }

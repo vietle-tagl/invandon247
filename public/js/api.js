@@ -30,29 +30,46 @@ async function logToSheet(action) {
 }
 
 /**
- * Tải ảnh CAPTCHA mới từ VNPost
+ * Tải ảnh CAPTCHA mới
  */
 async function refreshCaptcha() {
-  const imgEl = document.getElementById('captchaImage') || document.getElementById('imgCaptcha');
+  const imgEl = document.getElementById('captchaImage') || 
+                document.getElementById('imgCaptcha') || 
+                document.querySelector('img[alt*="CAPTCHA"]') ||
+                document.querySelector('.captcha-box img') ||
+                document.querySelector('img');
+
   if (!imgEl) return;
 
   captchaRequestId++;
   const reqId = captchaRequestId;
 
   try {
-    // Gọi API lấy CAPTCHA qua serverless proxy hoặc trực tiếp
     const res = await fetch('/api/captcha?t=' + Date.now());
     if (!res.ok) throw new Error('Không thể tải CAPTCHA');
     
-    const data = await res.json();
-    if (reqId !== captchaRequestId) return; // Bỏ qua nếu có request mới hơn
+    const contentType = res.headers.get('content-type') || '';
 
-    if (data && data.image) {
-      imgEl.src = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
-      currentCookie = data.cookie || '';
-    } else if (data && data.captchaUrl) {
-      imgEl.src = data.captchaUrl;
-      currentCookie = data.cookie || '';
+    if (contentType.includes('application/json')) {
+      const data = await res.json();
+      if (reqId !== captchaRequestId) return;
+
+      if (data && data.image) {
+        imgEl.src = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+        currentCookie = data.cookie || '';
+      } else if (data && data.captchaUrl) {
+        imgEl.src = data.captchaUrl;
+        currentCookie = data.cookie || '';
+      } else if (data && data.base64) {
+        imgEl.src = data.base64.startsWith('data:') ? data.base64 : `data:image/png;base64,${data.base64}`;
+        currentCookie = data.cookie || '';
+      }
+    } else {
+      // Trường hợp Server trả về dữ liệu ảnh trực tiếp (Image/Blob)
+      const blob = await res.blob();
+      if (reqId !== captchaRequestId) return;
+      const objectUrl = URL.createObjectURL(blob);
+      imgEl.src = objectUrl;
     }
   } catch (err) {
     console.error('Lỗi refreshCaptcha:', err);
@@ -89,12 +106,10 @@ async function trackShipment(trackingCode, captchaCode) {
 
     if (response.ok && result.success) {
       currentData = result.data;
-      // Ghi nhật ký tra cứu thành công lên Google Sheet
       logToSheet('Tra cứu');
       return result.data;
     } else {
       alert(result.message || 'Tra cứu thất bại. Vui lòng kiểm tra lại CAPTCHA!');
-      // Tải lại CAPTCHA mới sau khi nhập sai
       refreshCaptcha();
       return null;
     }
@@ -110,12 +125,10 @@ async function trackShipment(trackingCode, captchaCode) {
 // CÁC HÀM TIỆN ÍCH LÀM SẠCH DỮ LIỆU & GIAO DIỆN
 // =============================================
 
-// Escape ký tự HTML phòng chống XSS
 const esc = s => String(s ?? '-').replace(/[&<>"']/g, m => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
 }[m]));
 
-// Làm sạch trạng thái
 function cleanStatus(s) {
   return String(s || '-')
     .replace(/\s*\(\d{4,7}\s*:[^)]+\)/g, '')
@@ -125,19 +138,16 @@ function cleanStatus(s) {
     .trim();
 }
 
-// Lấy địa chỉ vị trí
 function getAddress(item) {
   return typeof item?.VI_TRI === 'string' && item.VI_TRI.trim() ? item.VI_TRI.trim() : '';
 }
 
-// Lấy tọa độ GPS
 function getCoords(item) {
   let lat = item?.LAT ?? item?.Lat ?? item?.latitude ?? item?.Latitude;
   let lng = item?.LNG ?? item?.Lon ?? item?.LONG ?? item?.longitude ?? item?.Longitude;
   return (lat && lng) ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null;
 }
 
-// Lấy thông tin bưu cục/đơn vị xử lý
 function getOffice(item) {
   const text = String(item?.StatusText || item?.TRANG_THAI || '');
   const match = text.match(/\(([^)]+)\)/);
@@ -145,7 +155,9 @@ function getOffice(item) {
   return item?.MA_BUU_CUC || item?.TEN_BUU_CUC || '-';
 }
 
-// Tự động kích hoạt lấy CAPTCHA ngay khi nạp trang xong
-document.addEventListener("DOMContentLoaded", function () {
+// Kích hoạt ngay khi trang tải xong
+if (document.readyState === 'loading') {
+  document.addEventListener("DOMContentLoaded", refreshCaptcha);
+} else {
   refreshCaptcha();
-});
+}

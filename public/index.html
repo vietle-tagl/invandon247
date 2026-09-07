@@ -42,11 +42,11 @@
       <a href="#">Trang chủ</a>
       <a href="#search">Tra cứu</a>
       
-      <!-- MỤC BẢNG KÊ (CHỈ 1 NÚT DUY NHẤT) -->
+      <!-- MỤC BẢNG KÊ -->
       <div class="nav-dropdown">
         <a href="javascript:void(0);" class="dropdown-toggle">Bảng kê ▾</a>
         <div class="dropdown-menu">
-          <a href="javascript:void(0);" class="disabled-item">Nạp bảng kê</a>
+          <a href="#nap-bangke-section" onclick="showNapBangKeSection()">Nạp bảng kê</a>
           <a href="#bangke-section" onclick="showBangKeSection()">In bảng kê</a>
         </div>
       </div>
@@ -93,10 +93,29 @@
     <div id="screen-result"></div>
   </section>
 
+  <!-- FORM NẠP BẢNG KÊ EXCEL LÊN GOOGLE SHEET -->
+  <section class="search-card no-print" id="nap-bangke-section" style="margin-top: 30px; display: none;">
+    <h1 class="search-title" style="color: #0a4b88;">📤 NẠP BẢNG KÊ EXCEL</h1>
+    <div class="search-sub">Chọn file Excel (.xlsx, .xls) chứa danh sách bưu gửi để đọc dữ liệu và nạp lên Google Sheet.</div>
+
+    <div class="form-grid">
+      <div class="field" style="grid-column: span 2;">
+        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Chọn file Excel từ máy tính:</label>
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="handleFileUpload(event)" style="width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #fff;">
+      </div>
+    </div>
+
+    <button id="btnImport" class="submit" type="button" onclick="importExcelData()" style="background: linear-gradient(135deg, #0284c7, #0369a1); margin-top: 15px;">
+      🚀 NẠP DỮ LIỆU LÊN GOOGLE SHEET
+    </button>
+
+    <div id="importMessage" class="msg" style="display: none; margin-top: 15px;"></div>
+  </section>
+
   <!-- FORM IN BẢNG KÊ -->
   <section class="search-card no-print" id="bangke-section" style="margin-top: 30px; display: none;">
     <h1 class="search-title" style="color: #0a4b88;">📝 IN BẢNG KÊ</h1>
-    <div class="search-sub">Nhập danh sách mã vận đơn (cách nhau bằng dấu phẩy), hệ thống sẽ tra cứu và tổng hợp thành bảng kê.</div>
+    <div class="search-sub">Nhập danh sách mã vận đơn (cách nhau bằng dấu phẩy hoặc xuống dòng), hệ thống sẽ tra cứu và tổng hợp thành bảng kê.</div>
 
     <div class="form-grid">
       <div class="field" style="grid-column: span 2;">
@@ -145,6 +164,16 @@
 <script src="/js/pdf.js"></script>
 <script src="/js/excel.js"></script>
 <script>
+  // Hàm hiển thị / ẩn form Nạp bảng kê Excel
+  function showNapBangKeSection() {
+    const section = document.getElementById('nap-bangke-section');
+    const isHidden = section.style.display === 'none';
+    section.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   // Hàm hiện form In bảng kê
   function showBangKeSection() {
     const bangKeSection = document.getElementById('bangke-section');

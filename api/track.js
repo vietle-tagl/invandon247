@@ -1,66 +1,65 @@
 // api/track.js
-import https from 'https';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { trackingCode, action } = req.body;
+  try {
+    const { trackingCode, action } = req.body;
 
-  // Lấy IP thật từ header của Vercel
-  const forwarded = req.headers['x-forwarded-for'];
-  const realIP = forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress;
+    // 1. Lấy IP thực của người dùng từ Vercel Header
+    const forwarded = req.headers['x-forwarded-for'];
+    const realIP = forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress;
 
-  // Ẩn danh hóa IP (Cắt bớt phần cuối)
-  let anonymizedIP = "0.0.0.0";
-  if (realIP && realIP !== '::1' && realIP !== '::ffff:127.0.0.1') {
-    let parts = realIP.split('.');
-    if (parts.length === 4) {
-      anonymizedIP = parts.slice(0, 3).join('.') + '.0';
-    } else {
-      anonymizedIP = realIP.split(':').slice(0, 3).join(':') + '::';
+    // 2. Tra cứu Tỉnh/Thành phố dựa trên IP (Dùng ip-api.com)
+    let location = "Chưa xác định";
+    if (realIP && realIP !== '::1' && realIP !== '127.0.0.1' && !realIP.startsWith('192.168.')) {
+      try {
+        const geoRes = await fetch(`http://ip-api.com/json/${realIP}?lang=vi`);
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData.status === 'success') {
+            // Lấy Tỉnh/Thành phố (regionName hoặc city)
+            location = geoData.regionName || geoData.city || "Chưa xác định";
+          }
+        }
+      } catch (geoError) {
+        console.error('Lỗi tra cứu Geo IP:', geoError.message);
+      }
     }
+
+    // 3. Gửi dữ liệu đầy đủ lên Google Apps Script
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec";
+
+    const postData = {
+      trackingCode: trackingCode || '',
+      action: action || 'Tra cứu',
+      ip: realIP || '',
+      city: location
+    };
+
+    const sheetResponse = await fetch(GOOGLE_SHEET_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(postData),
+      redirect: 'follow'
+    });
+
+    const responseText = await sheetResponse.text();
+    console.log('Gửi lên Google Sheet thành công:', responseText);
+
+    // 4. Phản hồi về cho Client
+    return res.status(200).json({ 
+      success: true, 
+      ip: realIP, 
+      location: location 
+    });
+
+  } catch (error) {
+    console.error('Lỗi xử lý api/track:', error.message);
+    return res.status(500).json({ error: error.message });
   }
-
-  // Gửi dữ liệu lên Google Apps Script (Server gửi, không bị chặn CORS)
-  const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec";
-
-  const postData = JSON.stringify({
-    trackingCode: trackingCode,
-    action: action,
-    clientIP: anonymizedIP,
-    location: "Chưa xác định" 
-  });
-
-  const options = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(postData)
-    }
-  };
-
-  // Gửi request lên Google Apps Script
-  await new Promise((resolve) => {
-    const req = https.request(GOOGLE_SHEET_URL, options, (res) => {
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
-        console.log('Gửi lên Google Sheet thành công:', data);
-        resolve();
-      });
-    });
-
-    req.on('error', (e) => {
-      console.error('Lỗi gửi lên Google Sheet:', e.message);
-      resolve();
-    });
-
-    req.write(postData);
-    req.end();
-  });
-
-  // Trả về kết quả cho frontend
-  res.status(200).json({ success: true });
 }

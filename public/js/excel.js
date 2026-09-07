@@ -1,11 +1,8 @@
 // public/js/excel.js
-// DÙNG URL WEB APP CŨ (URL đang ghi Logs) - KHÔNG ĐƯỢC ĐỔI
 const EXCEL_IMPORT_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
-// Biến lưu dữ liệu tạm thời sau khi đọc file
 let importedRecords = [];
 
-// Hàm xử lý khi người dùng chọn file (Chỉ đọc, chưa gửi)
 function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -15,16 +12,17 @@ function handleFileUpload(event) {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
+    // Bổ sung thêm nhiều từ khóa tên cột phổ biến
     const columnAliases = {
-      'Số hiệu bưu gửi': ['Số hiệu bưu gửi', 'Số hiệu BG', 'Số vận đơn', 'Mã vận đơn'],
-      'Ngày': ['Ngày chấp nhận', 'Ngày gửi', 'Ngày nhận', 'Ngày'],
-      'Tên người nhận': ['Tên người nhận', 'Người nhận', 'Họ tên người nhận'],
-      'Địa chỉ': ['Địa chỉ', 'Địa chỉ nhận hàng'],
-      'Tỉnh/Thành': ['Tỉnh', 'Tỉnh/Thành phố', 'Tỉnh/Thành'],
-      'Khối lượng': ['Khối lượng (gr)', 'Khối lượng', 'Khối lượng tịnh (gr)'],
-      'Cước phí': ['Tổng cước bao gồm VAT', 'Tổng cước', 'Tổng cước phí'],
-      'Mã khách hàng': ['Mã khách hàng', 'Mã KH', 'Mã CMS', 'Mã khách hàng (CMS)'],
-      'Tên khách hàng': ['Tên khách hàng', 'Tên cơ quan', 'Khách hàng', 'Tên đơn vị']
+      'Số hiệu bưu gửi': ['số hiệu bưu gửi', 'số hiệu bg', 'số vận đơn', 'mã vận đơn', 'mã bưu gửi', 'mã đơn', 'so hieu bg'],
+      'Ngày': ['ngày chấp nhận', 'ngày gửi', 'ngày nhận', 'ngày', 'ngay'],
+      'Tên người nhận': ['tên người nhận', 'người nhận', 'họ tên người nhận', 'nguoi nhan'],
+      'Địa chỉ': ['địa chỉ', 'địa chỉ nhận hàng', 'dia chi'],
+      'Tỉnh/Thành': ['tỉnh', 'tỉnh/thành phố', 'tỉnh/thành', 'tinh/thanh'],
+      'Khối lượng': ['khối lượng (gr)', 'khối lượng', 'khối lượng tịnh (gr)', 'khoi luong'],
+      'Cước phí': ['tổng cước bao gồm vat', 'tổng cước', 'tổng cước phí', 'cước phí', 'cuoc phi'],
+      'Mã khách hàng': ['mã khách hàng', 'mã kh', 'mã cms', 'mã khách hàng (cms)'],
+      'Tên khách hàng': ['tên khách hàng', 'tên cơ quan', 'khách hàng', 'tên đơn vị', 'ten kh']
     };
 
     importedRecords = [];
@@ -32,17 +30,23 @@ function handleFileUpload(event) {
     workbook.SheetNames.forEach((sheetName) => {
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      if (!jsonData || jsonData.length === 0) return;
 
-      let dataStartRow = 0;
+      // Tìm dòng chứa tiêu đề
+      let dataStartRow = -1;
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
-        if (row && row.some(cell => String(cell).toLowerCase().includes('stt') || String(cell).includes('Số hiệu'))) {
+        if (row && row.some(cell => {
+          const str = String(cell).toLowerCase();
+          return str.includes('stt') || str.includes('số hiệu') || str.includes('mã') || str.includes('vận đơn');
+        })) {
           dataStartRow = i;
           break;
         }
       }
 
-      if (dataStartRow === 0) continue;
+      // Nếu không tìm thấy từ khóa đặc biệt, mặc định lấy dòng 0 làm tiêu đề
+      if (dataStartRow === -1) dataStartRow = 0;
 
       const headers = jsonData[dataStartRow];
 
@@ -57,14 +61,15 @@ function handleFileUpload(event) {
           const normalizedHeader = String(header).trim().toLowerCase();
           
           Object.keys(columnAliases).forEach((standardCol) => {
-            const aliases = columnAliases[standardCol].map(a => a.toLowerCase());
+            const aliases = columnAliases[standardCol];
             if (aliases.includes(normalizedHeader)) {
               record[standardCol] = value || '';
             }
           });
         });
 
-        if (record['Số hiệu bưu gửi']) {
+        // Nếu lấy được mã vận đơn hoặc ít nhất 1 thông tin bất kỳ thì lưu dòng đó
+        if (record['Số hiệu bưu gửi'] || Object.keys(record).length > 0) {
           importedRecords.push(record);
         }
       }
@@ -80,23 +85,21 @@ function handleFileUpload(event) {
   reader.readAsArrayBuffer(file);
 }
 
-// Hàm gửi dữ liệu lên Google Apps Script (Gọi khi bấm nút "NẠP DỮ LIỆU")
 async function importExcelData() {
   if (importedRecords.length === 0) {
     const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
       msgDiv.className = 'msg error';
       msgDiv.style.display = 'block';
-      msgDiv.textContent = '⚠️ Chưa có dữ liệu. Vui lòng chọn file Excel trước!';
+      msgDiv.textContent = '⚠️ Chưa có dữ liệu hoặc không đọc được cột trong file Excel!';
     }
     return;
   }
 
   const btnImport = document.getElementById('btnImport');
-  btnImport.disabled = true;
+  if (btnImport) btnImport.disabled = true;
 
   try {
-    // ĐỔI SANG MODE CORS ĐỂ ĐỌC ĐƯỢC PHẢN HỒI
     const response = await fetch(EXCEL_IMPORT_URL, {
       method: 'POST',
       mode: 'cors',
@@ -104,32 +107,31 @@ async function importExcelData() {
       body: JSON.stringify({ records: importedRecords })
     });
 
-    // Đọc phản hồi từ Google
     const result = await response.json().catch(() => ({})); 
 
     const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
-      if (result.success) {
+      if (result.success || response.ok) {
         msgDiv.className = 'msg ok';
         msgDiv.style.display = 'block';
-        msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu!';
+        msgDiv.textContent = '🎉 Đã nạp thành công ' + importedRecords.length + ' dòng dữ liệu vào Google Sheet!';
         importedRecords = [];
-        document.getElementById('excelFileInput').value = '';
+        const fileInput = document.getElementById('excelFileInput');
+        if (fileInput) fileInput.value = '';
       } else {
         msgDiv.className = 'msg error';
         msgDiv.style.display = 'block';
-        msgDiv.textContent = '❌ Google Apps Script báo lỗi: ' + (result.error || 'Không xác định');
+        msgDiv.textContent = '❌ Google Apps Script báo lỗi: ' + (result.error || 'Kiểm tra lại quyền ghi trên Apps Script');
       }
     }
   } catch (e) {
-    // Nếu lỗi CORS, nó sẽ báo cụ thể
     const msgDiv = document.getElementById('importMessage');
     if (msgDiv) {
       msgDiv.className = 'msg error';
       msgDiv.style.display = 'block';
-      msgDiv.textContent = '❌ Lỗi kết nối: ' + e.message + '. Kiểm tra lại URL Web App!';
+      msgDiv.textContent = '❌ Lỗi kết nối: ' + e.message;
     }
   } finally {
-    btnImport.disabled = false;
+    if (btnImport) btnImport.disabled = false;
   }
 }

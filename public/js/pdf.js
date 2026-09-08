@@ -2,6 +2,79 @@
 // PDF.JS - Xử lý tạo Barcode, QR Code và In/Tải PDF
 // =============================================
 
+// Hàm thoát ký tự HTML
+const esc = s => String(s ?? '-').replace(/[&<>"']/g, m => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+}[m]));
+
+// Hàm xử lý trạng thái
+function cleanStatus(s){
+  return String(s || '-')
+    .replace(/\s*\(\d{4,7}\s*:[^)]+\)/g, '')
+    .replace(/\s*[\.\,]\s*Người nhận\s*:.*$/gi, '')
+    .replace(/\s*[\.\,]\s*Ghi chú\s*:.*$/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function getAddress(item){
+  return typeof item?.VI_TRI === 'string' && item.VI_TRI.trim() ? item.VI_TRI.trim() : '';
+}
+
+function getOffice(item){
+  const text = String(item?.StatusText || item?.STATUSTEXT || '');
+  const m = text.match(/\((\d{4,7})\s*:\s*([^)]*)\)/);
+  if(m) return { code:m[1], name:m[2].trim(), full:m[1]+' - '+m[2].trim() };
+  const code = item?.POSCode ?? item?.POSCODE ?? item?.ToPOSCode ?? '';
+  return { code:String(code || '-'), name:'', full:String(code || '-') };
+}
+
+function getDeliveryRecord(data){
+  const list = Array.isArray(data?.delivery) ? data.delivery : [];
+  if(!list.length) return null;
+  return list.find(d => /phát thành công|delivered/i.test(String(d?.STATUSTEXT || d?.StatusText || ''))) || list[list.length - 1];
+}
+
+function getDeliveryTime(d){
+  return String(d?.NGAY_PHAT || d?.DATE || d?.Date || d?.TimeDetail || d?.NGAY_NHAP || '-').trim() || '-';
+}
+
+function getDeliveryPerson(data){
+  const d = getDeliveryRecord(data);
+  if(!d) return { route:'-', name:'-', phone:'-', receiver:'-', time:'-' };
+
+  const cn = String(d.NGAY_CN || '').trim();
+  let route='-', name='-', phone='-';
+
+  if(cn){
+    const slashIndex = cn.indexOf('/');
+    if(slashIndex >= 0){
+      route = cn.slice(0, slashIndex).trim() || '-';
+      let right = cn.slice(slashIndex + 1).trim();
+      const pm = right.match(/(?:ĐT|ÐT)\s*B\s*[.·]?\s*T(?:á|a)?\s*[:：]?\s*(\d[\d .-]{7,}\d)\s*$/iu) || right.match(/(\d[\d .-]{8,}\d)\s*$/);
+      if(pm){
+        phone = pm[1].replace(/\D/g, '');
+        right = right.slice(0, pm.index).trim();
+      }
+      name = right.replace(/[.\s]*(?:ĐT|ÐT)\s*B\s*[.·]?\s*T(?:á|a)?\s*[:：]?\s*$/iu, '').replace(/[.\s]+$/,'').trim() || '-';
+    }
+  }
+
+  const st = String(d.STATUSTEXT || d.StatusText || '');
+  let receiver='-';
+  const rm = st.match(/Người nhận\s*:\s*(.*)$/i);
+  if(rm) receiver = rm[1].replace(/^\(\s*\)\s*/, '').trim();
+
+  return { route, name, phone, receiver, time:getDeliveryTime(d) };
+}
+
+function latestStatus(data){
+  const d = getDeliveryRecord(data);
+  if(d?.STATUSTEXT) return String(d.STATUSTEXT).trim();
+  const loc = data.locate || [];
+  return loc.length ? String(loc[loc.length - 1].StatusText || '-').trim() : 'ĐANG VẬN CHUYỂN';
+}
+
 /* Tạo Barcode bằng JsBarcode */
 function generateBarcodeBase64(text) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -36,7 +109,6 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
 
   const qrLink = `https://invandon247.com/?code=${info.ID || currentTrackingCode || '-'}`;
   
-  // Tạo QR dạng ảnh
   const qrEl = document.createElement('div');
   new QRCode(qrEl, {
     text: qrLink,
@@ -149,6 +221,7 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
       ${adBanner}
 
       <div class="p-footer">
+        <!-- ĐÃ SỬA CÂU FOOTER -->
         © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost — Trang ${pageIndex + 1}/${totalPages}
       </div>
     </div>`;

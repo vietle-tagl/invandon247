@@ -30,134 +30,128 @@ async function logToSheet(action) {
 }
 
 /**
- * Tải ảnh CAPTCHA mới
+ * Tải ảnh CAPTCHA mới (Đồng bộ với ID captchaImg trong index.html)
  */
-async function refreshCaptcha() {
-  const imgEl = document.getElementById('captchaImage') || 
-                document.getElementById('imgCaptcha') || 
-                document.querySelector('img[alt*="CAPTCHA"]') ||
-                document.querySelector('.captcha-box img') ||
-                document.querySelector('img');
-
+async function loadCaptcha() {
+  const imgEl = document.getElementById('captchaImg');
+  const reloadBtn = document.getElementById('reloadCaptcha');
   if (!imgEl) return;
 
   captchaRequestId++;
   const reqId = captchaRequestId;
+  if (reloadBtn) reloadBtn.disabled = true;
 
   try {
-    const res = await fetch('/api/captcha?t=' + Date.now());
+    // Gọi đúng endpoint proxy của bạn
+    const res = await fetch('/api/proxy?action=get-captcha&_=' + Date.now());
     if (!res.ok) throw new Error('Không thể tải CAPTCHA');
     
-    const contentType = res.headers.get('content-type') || '';
+    const data = await res.json();
+    if (reqId !== captchaRequestId) return;
 
-    if (contentType.includes('application/json')) {
-      const data = await res.json();
-      if (reqId !== captchaRequestId) return;
-
-      if (data && data.image) {
-        imgEl.src = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
-        currentCookie = data.cookie || '';
-      } else if (data && data.captchaUrl) {
-        imgEl.src = data.captchaUrl;
-        currentCookie = data.cookie || '';
-      } else if (data && data.base64) {
-        imgEl.src = data.base64.startsWith('data:') ? data.base64 : `data:image/png;base64,${data.base64}`;
-        currentCookie = data.cookie || '';
-      }
+    if (data && data.captchaUrl) {
+      imgEl.src = data.captchaUrl;
+      currentCookie = data.cookie || '';
+      imgEl.classList.add('loaded');
+    } else if (data && data.image) {
+      imgEl.src = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+      currentCookie = data.cookie || '';
+      imgEl.classList.add('loaded');
     } else {
-      // Trường hợp Server trả về dữ liệu ảnh trực tiếp (Image/Blob)
-      const blob = await res.blob();
-      if (reqId !== captchaRequestId) return;
-      const objectUrl = URL.createObjectURL(blob);
-      imgEl.src = objectUrl;
+      throw new Error('Dữ liệu CAPTCHA không hợp lệ');
     }
   } catch (err) {
-    console.error('Lỗi refreshCaptcha:', err);
+    console.error('Lỗi loadCaptcha:', err);
+  } finally {
+    if (reloadBtn) reloadBtn.disabled = false;
   }
 }
 
 /**
- * Xử lý tra cứu vận đơn
+ * Xử lý tra cứu vận đơn (Đồng bộ với ID btnSubmit, trackingCode, captchaText)
  */
-async function trackShipment(trackingCode, captchaCode) {
-  if (!trackingCode) {
-    alert('Vui lòng nhập mã vận đơn!');
-    return null;
-  }
-  if (!captchaCode) {
-    alert('Vui lòng nhập mã CAPTCHA!');
-    return null;
+async function submitTracking(){
+  const code = document.getElementById('trackingCode').value.trim();
+  const captcha = document.getElementById('captchaText').value.trim();
+  const btn = document.getElementById('btnSubmit');
+
+  if(!code || !captcha){
+    showMsg('Vui lòng nhập đầy đủ mã vận đơn và CAPTCHA.');
+    return;
   }
 
-  currentTrackingCode = trackingCode.trim().toUpperCase();
+  if(!currentCookie){
+    showMsg('CAPTCHA chưa sẵn sàng. Vui lòng chờ CAPTCHA hiện ra rồi thử lại.', 'wait');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang tra cứu...';
+  showMsg('Đang kết nối hệ thống VNPost, vui lòng chờ...', 'wait');
 
   try {
-    const response = await fetch('/api/tracking', {
+    const res = await fetch('/api/proxy?action=track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        trackingCode: currentTrackingCode,
-        captcha: captchaCode,
-        cookie: currentCookie
+      body: JSON.stringify({ 
+        trackingCode: code, 
+        captchaText: captcha, 
+        cookie: currentCookie 
       })
-    });
+    }, 30000);
 
-    const result = await response.json();
+    let data = null;
+    try { data = await res.json(); } catch(_) { throw new Error('Máy chủ trả về dữ liệu không hợp lệ.'); }
 
-    if (response.ok && result.success) {
-      currentData = result.data;
+    if(data?.info?.ID){
+      currentTrackingCode = data.info.ID;
+      currentData = data;
       logToSheet('Tra cứu');
-      return result.data;
+
+      // Gọi hàm render từ file pdf.js (nếu có)
+      if(typeof renderScreen === 'function') renderScreen(data);
+      if(typeof renderPrint === 'function') renderPrint(data);
+
+      document.getElementById('result-card').style.display = 'block';
+      document.getElementById('result').style.display = 'flex';
+
+      showMsg('Tra cứu thành công. Bạn có thể xem, in A4 hoặc tải PDF.', 'ok');
+      document.getElementById('result-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      alert(result.message || 'Tra cứu thất bại. Vui lòng kiểm tra lại CAPTCHA!');
-      refreshCaptcha();
-      return null;
+      showMsg(data?.message || 'Mã CAPTCHA không đúng hoặc không tìm thấy thông tin vận đơn.');
+      document.getElementById('captchaText').value = '';
+      await loadCaptcha();
     }
-  } catch (error) {
-    console.error('Lỗi tra cứu:', error);
-    alert('Đã xảy ra lỗi kết nối. Vui lòng thử lại!');
-    refreshCaptcha();
-    return null;
+  } catch(e) {
+    if(e?.name === 'AbortError'){
+      showMsg('Tra cứu mất quá nhiều thời gian. Vui lòng thử lại sau vài giây.');
+    } else {
+      showMsg('Lỗi tra cứu: ' + (e?.message || 'Không xác định'));
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔎 TRA CỨU VẬN ĐƠN';
   }
 }
 
-// =============================================
-// CÁC HÀM TIỆN ÍCH LÀM SẠCH DỮ LIỆU & GIAO DIỆN
-// =============================================
-
-const esc = s => String(s ?? '-').replace(/[&<>"']/g, m => ({
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
-}[m]));
-
-function cleanStatus(s) {
-  return String(s || '-')
-    .replace(/\s*\(\d{4,7}\s*:[^)]+\)/g, '')
-    .replace(/\s*[\.\,]\s*Người nhận\s*:.*$/gi, '')
-    .replace(/\s*[\.\,]\s*Ghi chú\s*:.*$/gi, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
+/**
+ * Hiển thị thông báo
+ */
+function showMsg(text, type='error'){
+  const m = document.getElementById('message');
+  m.className = 'msg ' + type;
+  m.textContent = text;
 }
 
-function getAddress(item) {
-  return typeof item?.VI_TRI === 'string' && item.VI_TRI.trim() ? item.VI_TRI.trim() : '';
-}
-
-function getCoords(item) {
-  let lat = item?.LAT ?? item?.Lat ?? item?.latitude ?? item?.Latitude;
-  let lng = item?.LNG ?? item?.Lon ?? item?.LONG ?? item?.longitude ?? item?.Longitude;
-  return (lat && lng) ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null;
-}
-
-function getOffice(item) {
-  const text = String(item?.StatusText || item?.TRANG_THAI || '');
-  const match = text.match(/\(([^)]+)\)/);
-  if (match) return match[1].trim();
-  return item?.MA_BUU_CUC || item?.TEN_BUU_CUC || '-';
-}
-
-// Kích hoạt ngay khi trang tải xong
-if (document.readyState === 'loading') {
-  document.addEventListener("DOMContentLoaded", refreshCaptcha);
-} else {
-  refreshCaptcha();
-}
+// Khởi động CAPTCHA ngay khi trang load xong
+document.addEventListener('DOMContentLoaded', () => {
+  loadCaptcha();
+  
+  // Gắn sự kiện Enter cho các ô input
+  document.getElementById('trackingCode').addEventListener('keydown', e => { 
+    if(e.key === 'Enter') document.getElementById('captchaText').focus(); 
+  });
+  document.getElementById('captchaText').addEventListener('keydown', e => { 
+    if(e.key === 'Enter') submitTracking(); 
+  });
+});

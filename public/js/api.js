@@ -39,9 +39,128 @@ const esc = s => String(s ?? '-').replace(/[&<>"']/g, m => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
 }[m]));
 
-/**
- * Hàm xử lý trạng thái
- */
+// =============================================
+// HÀM HIỂN THỊ KẾT QUẢ (RENDER SCREEN)
+// =============================================
+function renderScreen(data){
+  const info = data.info || {};
+  const locate = data.locate || [];
+  const delivery = data.delivery || [];
+  const status = latestStatus(data);
+  const dp = getDeliveryPerson(data);
+
+  const html = `
+  <div class="detail-box">
+    <div class="detail-title">
+      <svg class="loc-icon" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      CHI TIẾT BƯU GỬI
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item">✉ Mã vận đơn: <b>${esc(info.ID)}</b></div>
+      <div class="detail-item">⚖ Khối lượng: <b>${esc(info.Weight || 0)} gam</b></div>
+      <div class="detail-item">📍 Trạng thái: <span class="status-badge">${esc(cleanStatus(status))}</span></div>
+      <div class="detail-item">📤 Bưu cục gửi: <b>${esc(info.BC_GUI || '-')}</b></div>
+      <div class="detail-item">📥 Bưu cục phát: <b>${esc(info.BC_PHAT || '-')}</b></div>
+      <div class="detail-item">👤 Người nhận: <span class="receiver-text">${esc(dp.receiver !== '-' ? dp.receiver : '-')}</span></div>
+    </div>
+  </div>
+
+  <div class="section-title">THÔNG TIN TRẠNG THÁI (${locate.length} SỰ KIỆN)</div>
+
+  <div class="timeline">
+    ${locate.map((item,i) => {
+      const address = getAddress(item);
+      const coords = getCoords(item);
+      const office = getOffice(item);
+      return `
+      <div class="event ${i === locate.length - 1 ? 'latest' : ''}" id="event-${i}">
+        <span class="event-dot"></span>
+        <div class="event-time">${esc((item.Date || '') + ' ' + (item.TimeDetail || ''))}</div>
+        <div class="event-status">
+          ${esc(cleanStatus(item.StatusText))}
+          <b>Bưu cục: ${esc(office.full)}</b>
+        </div>
+        <div class="event-location">${esc(address)}</div>
+        <button class="map-btn" title="Xem vị trí" onclick='openMap(${JSON.stringify(address)},${JSON.stringify(cleanStatus(item.StatusText))},${JSON.stringify(coords)})'>➤</button>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div class="delivery">
+    <div class="section-title" style="margin-left:0">THÔNG TIN PHÁT</div>
+    <table class="delivery-table">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Bưu cục / Bưu tá</th>
+          <th>Chi tiết</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${delivery.length ? delivery.map(d => {
+          const o = getOfficeForDelivery(data, d);
+          const pi = getDeliveryPerson({ delivery:[d] });
+          const postmanText = pi.name !== '-' ? pi.name + (pi.phone !== '-' ? ' - ' + pi.phone : '') : '';
+          return `
+          <tr>
+            <td>${esc(getDeliveryTime(d))}</td>
+            <td>
+              <b>${esc(o.full)}</b>
+              ${postmanText ? `<div class="postman-info">Bưu tá: ${esc(postmanText)}</div>` : ''}
+            </td>
+            <td>${esc(d.STATUSTEXT || d.StatusText || '-')}</td>
+          </tr>`;
+        }).join('') : `<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có dữ liệu phát</td></tr>`}
+      </tbody>
+    </table>
+
+    <div class="delivery-cards-mobile">
+      ${delivery.length ? delivery.map(d => {
+        const o = getOfficeForDelivery(data, d);
+        const pi = getDeliveryPerson({ delivery:[d] });
+        const postmanText = pi.name !== '-' ? pi.name + (pi.phone !== '-' ? ' - ' + pi.phone : '') : '';
+        return `
+        <div class="delivery-card-item">
+          <div class="delivery-card-header">
+            <span>📅 ${esc(getDeliveryTime(d))}</span>
+          </div>
+          <div class="delivery-card-body">
+            <div><b>Bưu cục:</b> ${esc(o.full)}</div>
+            ${postmanText ? `<div style="color:var(--text-muted); font-size:12px;"><b>Bưu tá:</b> ${esc(postmanText)}</div>` : ''}
+            <div style="margin-top:2px;"><b>Trạng thái:</b> <span style="color:var(--green); font-weight:600;">${esc(d.STATUSTEXT || d.StatusText || '-')}</span></div>
+          </div>
+        </div>`;
+      }).join('') : `<div class="delivery-card-item" style="text-align:center; color:#94a3b8;">Chưa có dữ liệu phát</div>`}
+    </div>
+  </div>
+
+  <div id="map-panel" class="map-panel">
+    <div class="map-toolbar">
+      <b id="map-title">Vị trí bưu cục</b>
+      <a id="map-link" target="_blank" rel="noopener">Mở Google Maps ↗</a>
+    </div>
+    <iframe id="map-frame" class="map-frame" loading="lazy"></iframe>
+  </div>
+
+  <div class="screen-footer">Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247</div>`;
+
+  document.getElementById('screen-result').innerHTML = html;
+}
+
+function openMap(address, title, coords){
+  const panel = document.getElementById('map-panel');
+  panel.classList.add('show');
+  document.getElementById('map-title').textContent = title + ' — ' + address;
+  const q = coords ? `${coords.lat},${coords.lng}` : address;
+  document.getElementById('map-link').href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+  document.getElementById('map-frame').src = 'https://www.google.com/maps?q=' + encodeURIComponent(q) + '&output=embed';
+  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// =============================================
+// CÁC HÀM TIỆN ÍCH LÀM SẠCH DỮ LIỆU
+// =============================================
+
 function cleanStatus(s){
   return String(s || '-')
     .replace(/\s*\(\d{4,7}\s*:[^)]+\)/g, '')
@@ -142,7 +261,7 @@ function fetchWithTimeout(url, options={}, timeout=12000){
 }
 
 /**
- * Tải ảnh CAPTCHA mới (Đồng bộ với ID captchaImg trong index.html)
+ * Tải ảnh CAPTCHA mới
  */
 async function loadCaptcha() {
   const imgEl = document.getElementById('captchaImg');
@@ -154,7 +273,6 @@ async function loadCaptcha() {
   if (reloadBtn) reloadBtn.disabled = true;
 
   try {
-    // Gọi đúng endpoint proxy của bạn
     const res = await fetch('/api/proxy?action=get-captcha&_=' + Date.now());
     if (!res.ok) throw new Error('Không thể tải CAPTCHA');
     
@@ -180,7 +298,7 @@ async function loadCaptcha() {
 }
 
 /**
- * Xử lý tra cứu vận đơn (Đồng bộ với ID btnSubmit, trackingCode, captchaText)
+ * Xử lý tra cứu vận đơn
  */
 async function submitTracking(){
   const code = document.getElementById('trackingCode').value.trim();
@@ -220,8 +338,8 @@ async function submitTracking(){
       currentData = data;
       logToSheet('Tra cứu');
 
-      // Gọi hàm render từ file pdf.js (nếu có)
-      if(typeof renderScreen === 'function') renderScreen(data);
+      // Gọi hàm render để hiển thị kết quả lên màn hình
+      renderScreen(data);
       if(typeof renderPrint === 'function') renderPrint(data);
 
       document.getElementById('result-card').style.display = 'block';
@@ -250,7 +368,6 @@ async function submitTracking(){
 document.addEventListener('DOMContentLoaded', () => {
   loadCaptcha();
   
-  // Gắn sự kiện Enter cho các ô input
   document.getElementById('trackingCode').addEventListener('keydown', e => { 
     if(e.key === 'Enter') document.getElementById('captchaText').focus(); 
   });

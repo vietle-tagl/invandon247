@@ -143,7 +143,7 @@ function handleFileUpload(event) {
 }
 
 /**
- * 2. HÀM ĐẨY DỮ LIỆU LÊN TAB BANGKEVANDON CỦA GOOGLE SHEETS
+ * 2. HÀM ĐẨY DỮ LIỆU LÊN SERVER VERCEL (THAY VÌ GỬI TRỰC TIẾP)
  */
 async function importExcelData() {
   const msgDiv = document.getElementById('importMessage');
@@ -166,17 +166,19 @@ async function importExcelData() {
   }
 
   try {
-    const response = await fetch(EXCEL_IMPORT_URL, {
+    // GỬI LÊN SERVER VERCEL (THAY VÌ GỬI TRỰC TIẾP GOOGLE)
+    const response = await fetch('/api/track', {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ records: importedRecords })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        isImport: true, // Đánh dấu đây là dữ liệu import
+        records: importedRecords
+      })
     });
 
-    const text = await response.text();
-    let result = {};
-    try { result = JSON.parse(text); } catch(e) { result = { success: true }; }
-
-    if (result.result === 'success' || result.success || response.ok) {
+    const result = await response.json();
+    
+    if (result.success) {
       if (msgDiv) {
         msgDiv.className = 'msg ok';
         msgDiv.style.display = 'block';
@@ -186,7 +188,7 @@ async function importExcelData() {
       const fileInput = document.getElementById('excelFileInput');
       if (fileInput) fileInput.value = '';
     } else {
-      throw new Error(result.message || "Không thể ghi dữ liệu");
+      throw new Error(result.error || "Không thể ghi dữ liệu");
     }
   } catch (e) {
     if (msgDiv) {

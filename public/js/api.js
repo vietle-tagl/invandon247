@@ -7,6 +7,9 @@ let currentTrackingCode = '';
 let currentData = null;
 let captchaRequestId = 0;
 
+// BỘ ĐẾM GOOGLE SHEETS - URL CŨ (ĐANG GHI LOGS)
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
+
 /**
  * Gửi nhật ký hành động về Backend Vercel (/api/track)
  */
@@ -27,6 +30,115 @@ async function logToSheet(action) {
   } catch (e) {
     console.error('Lỗi kết nối /api/track:', e);
   }
+}
+
+/**
+ * Hàm thoát ký tự HTML (BẮT BUỘC PHẢI CÓ)
+ */
+const esc = s => String(s ?? '-').replace(/[&<>"']/g, m => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+}[m]));
+
+/**
+ * Hàm xử lý trạng thái
+ */
+function cleanStatus(s){
+  return String(s || '-')
+    .replace(/\s*\(\d{4,7}\s*:[^)]+\)/g, '')
+    .replace(/\s*[\.\,]\s*Người nhận\s*:.*$/gi, '')
+    .replace(/\s*[\.\,]\s*Ghi chú\s*:.*$/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function getAddress(item){
+  return typeof item?.VI_TRI === 'string' && item.VI_TRI.trim() ? item.VI_TRI.trim() : '';
+}
+
+function getCoords(item){
+  let lat = item?.LAT ?? item?.Lat ?? item?.latitude ?? item?.Latitude;
+  let lng = item?.LNG ?? item?.Lon ?? item?.LONG ?? item?.longitude ?? item?.Longitude;
+  return lat && lng ? {lat,lng} : null;
+}
+
+function getOffice(item){
+  const text = String(item?.StatusText || item?.STATUSTEXT || '');
+  const m = text.match(/\((\d{4,7})\s*:\s*([^)]*)\)/);
+  if(m) return { code:m[1], name:m[2].trim(), full:m[1]+' - '+m[2].trim() };
+  const code = item?.POSCode ?? item?.POSCODE ?? item?.ToPOSCode ?? '';
+  return { code:String(code || '-'), name:'', full:String(code || '-') };
+}
+
+function getOfficeForDelivery(data,d){
+  const direct = getOffice({
+    StatusText: d?.STATUSTEXT || d?.StatusText,
+    POSCode: d?.POSCODE || d?.POSCode || d?.ToPOSCode
+  });
+  if(direct.name) return direct;
+  const code = String(d?.ToPOSCode || d?.POSCode || d?.POSCODE || direct.code || '').trim();
+  if(code){
+    const found = (data?.locate || []).slice().reverse().find(x => String(x?.POSCode || x?.POSCODE || '').trim() === code);
+    if(found) return getOffice(found);
+  }
+  return direct;
+}
+
+function getDeliveryRecord(data){
+  const list = Array.isArray(data?.delivery) ? data.delivery : [];
+  if(!list.length) return null;
+  return list.find(d => /phát thành công|delivered/i.test(String(d?.STATUSTEXT || d?.StatusText || ''))) || list[list.length - 1];
+}
+
+function getDeliveryTime(d){
+  return String(d?.NGAY_PHAT || d?.DATE || d?.Date || d?.TimeDetail || d?.NGAY_NHAP || '-').trim() || '-';
+}
+
+function getDeliveryPerson(data){
+  const d = getDeliveryRecord(data);
+  if(!d) return { route:'-', name:'-', phone:'-', receiver:'-', time:'-' };
+
+  const cn = String(d.NGAY_CN || '').trim();
+  let route='-', name='-', phone='-';
+
+  if(cn){
+    const slashIndex = cn.indexOf('/');
+    if(slashIndex >= 0){
+      route = cn.slice(0, slashIndex).trim() || '-';
+      let right = cn.slice(slashIndex + 1).trim();
+      const pm = right.match(/(?:ĐT|ÐT)\s*B\s*[.·]?\s*T(?:á|a)?\s*[:：]?\s*(\d[\d .-]{7,}\d)\s*$/iu) || right.match(/(\d[\d .-]{8,}\d)\s*$/);
+      if(pm){
+        phone = pm[1].replace(/\D/g, '');
+        right = right.slice(0, pm.index).trim();
+      }
+      name = right.replace(/[.\s]*(?:ĐT|ÐT)\s*B\s*[.·]?\s*T(?:á|a)?\s*[:：]?\s*$/iu, '').replace(/[.\s]+$/,'').trim() || '-';
+    }
+  }
+
+  const st = String(d.STATUSTEXT || d.StatusText || '');
+  let receiver='-';
+  const rm = st.match(/Người nhận\s*:\s*(.*)$/i);
+  if(rm) receiver = rm[1].replace(/^\(\s*\)\s*/, '').trim();
+
+  return { route, name, phone, receiver, time:getDeliveryTime(d) };
+}
+
+function latestStatus(data){
+  const d = getDeliveryRecord(data);
+  if(d?.STATUSTEXT) return String(d.STATUSTEXT).trim();
+  const loc = data.locate || [];
+  return loc.length ? String(loc[loc.length - 1].StatusText || '-').trim() : 'ĐANG VẬN CHUYỂN';
+}
+
+function showMsg(text, type='error'){
+  const m = document.getElementById('message');
+  m.className = 'msg ' + type;
+  m.textContent = text;
+}
+
+function fetchWithTimeout(url, options={}, timeout=12000){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  return fetch(url, { ...options, signal:controller.signal, cache:'no-store' }).finally(() => clearTimeout(timer));
 }
 
 /**
@@ -132,15 +244,6 @@ async function submitTracking(){
     btn.disabled = false;
     btn.textContent = '🔎 TRA CỨU VẬN ĐƠN';
   }
-}
-
-/**
- * Hiển thị thông báo
- */
-function showMsg(text, type='error'){
-  const m = document.getElementById('message');
-  m.className = 'msg ' + type;
-  m.textContent = text;
 }
 
 // Khởi động CAPTCHA ngay khi trang load xong

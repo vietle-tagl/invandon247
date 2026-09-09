@@ -142,7 +142,7 @@ function renderScreen(data){
     <iframe id="map-frame" class="map-frame" loading="lazy"></iframe>
   </div>
 
-  <div class="screen-footer">Dữ liệu được truy xuất trực tiếp từ hệ thống VNPost qua cổng kết nối InVanDon247</div>`;
+  <div class="screen-footer">© 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost</div>`;
 
   document.getElementById('screen-result').innerHTML = html;
 }

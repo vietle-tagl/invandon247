@@ -2,6 +2,10 @@
 // PDF.JS - Xử lý tạo Barcode, QR Code và In/Tải PDF
 // =============================================
 
+// KHAI BÁO BIẾN TOÀN CỤC (lấy từ api.js)
+let currentTrackingCode = '';
+let currentData = null;
+
 // Hàm thoát ký tự HTML
 const esc = s => String(s ?? '-').replace(/[&<>"']/g, m => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
@@ -27,6 +31,20 @@ function getOffice(item){
   if(m) return { code:m[1], name:m[2].trim(), full:m[1]+' - '+m[2].trim() };
   const code = item?.POSCode ?? item?.POSCODE ?? item?.ToPOSCode ?? '';
   return { code:String(code || '-'), name:'', full:String(code || '-') };
+}
+
+function getOfficeForDelivery(data, d) {
+  const direct = getOffice({
+    StatusText: d?.STATUSTEXT || d?.StatusText,
+    POSCode: d?.POSCODE || d?.POSCode || d?.ToPOSCode
+  });
+  if(direct.name) return direct;
+  const code = String(d?.ToPOSCode || d?.POSCode || d?.POSCODE || direct.code || '').trim();
+  if(code){
+    const found = (data?.locate || []).slice().reverse().find(x => String(x?.POSCode || x?.POSCODE || '').trim() === code);
+    if(found) return getOffice(found);
+  }
+  return direct;
 }
 
 function getDeliveryRecord(data){
@@ -221,7 +239,6 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
       ${adBanner}
 
       <div class="p-footer">
-        <!-- ĐÃ SỬA CÂU FOOTER -->
         © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost — Trang ${pageIndex + 1}/${totalPages}
       </div>
     </div>`;

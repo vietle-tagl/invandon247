@@ -240,7 +240,7 @@ function showMsg(text, type='error'){
 }
 
 // =============================================
-// TẢI CAPTCHA (GỌI TRỰC TIẾP API/CAPTCHA)
+// TẢI CAPTCHA (HỖ TRỢ CẢ DIRECT URL & BASE64)
 // =============================================
 
 async function loadCaptcha() {
@@ -253,22 +253,24 @@ async function loadCaptcha() {
   if (reloadBtn) reloadBtn.disabled = true;
 
   try {
-    // Gọi thẳng file /api/captcha.js
     const res = await fetch('/api/captcha?_=' + Date.now());
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
     if (reqId !== captchaRequestId) return;
 
-    if (data && data.image) {
+    if (data && data.directUrl) {
+      imgEl.src = data.directUrl;
+      currentCookie = data.cookie || '';
+    } else if (data && data.image) {
       imgEl.src = data.image;
       currentCookie = data.cookie || '';
     } else {
-      throw new Error('Dữ liệu CAPTCHA bị rỗng');
+      throw new Error('Không nhận được thông tin CAPTCHA');
     }
   } catch (err) {
     console.error('Lỗi loadCaptcha:', err);
-    showMsg('Không thể tải CAPTCHA. Hãy bấm "Đổi mã" để thử lại.');
+    showMsg('Không thể tải CAPTCHA. Bấm "Đổi mã" để tải lại.');
   } finally {
     if (reloadBtn) reloadBtn.disabled = false;
   }

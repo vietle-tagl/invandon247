@@ -14,7 +14,6 @@ export default async function handler(req, res) {
 
         if (!response.ok) throw new Error('VNPost Error');
 
-        // Bóc tách đúng cookie session từ header
         const rawCookies = response.headers.getSetCookie ? response.headers.getSetCookie() : [response.headers.get('set-cookie')];
         const cookieHeader = rawCookies.filter(Boolean).map(c => c.split(';')[0]).join('; ');
 

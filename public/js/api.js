@@ -7,7 +7,7 @@ let currentTrackingCode = '';
 let currentData = null;
 let captchaRequestId = 0;
 
-// BỘ ĐẾM GOOGLE SHEETS - URL CŨ (ĐANG GHI LOGS)
+// BỘ ĐẾM GOOGLE SHEETS - URL CŨ
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
 /**
@@ -33,11 +33,13 @@ async function logToSheet(action) {
 }
 
 /**
- * Hàm thoát ký tự HTML (BẮT BUỘC PHẢI CÓ)
+ * Hàm thoát ký tự HTML (Gán trực tiếp vào window để tránh lỗi redeclare)
  */
-const esc = s => String(s ?? '-').replace(/[&<>"']/g, m => ({
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
-}[m]));
+window.esc = function(s) {
+  return String(s ?? '-').replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  }[m]));
+};
 
 // =============================================
 // HÀM HIỂN THỊ KẾT QUẢ

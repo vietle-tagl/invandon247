@@ -7,7 +7,7 @@ let currentTrackingCode = '';
 let currentData = null;
 let captchaRequestId = 0;
 
-// BỘ ĐẾM GOOGLE SHEETS - URL CŨ
+// URL Google Sheets (cho mục đích ghi log nếu cần)
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzsVn0Af2xMybpijpIDgbyoOXt588s393Udm-D_MgPBPkbLYS0xAtCxvg819VYlU0DRfQ/exec"; 
 
 /**
@@ -33,7 +33,7 @@ async function logToSheet(action) {
 }
 
 /**
- * Hàm thoát ký tự HTML (Gán trực tiếp vào window để tránh lỗi redeclare)
+ * Hàm thoát ký tự HTML (Gán trực tiếp vào window để tránh lỗi trùng khai báo)
  */
 window.esc = function(s) {
   return String(s ?? '-').replace(/[&<>"']/g, m => ({
@@ -42,7 +42,7 @@ window.esc = function(s) {
 };
 
 // =============================================
-// HÀM HIỂN THỊ KẾT QUẢ
+// HÀM HIỂN THỊ KẾT QUẢ TRA CỨU
 // =============================================
 function renderScreen(data){
   const info = data.info || {};
@@ -78,12 +78,12 @@ function renderScreen(data){
       return `
       <div class="event ${i === locate.length - 1 ? 'latest' : ''}" id="event-${i}">
         <span class="event-dot"></span>
-        <div class="event-time">${esc((item.Date || '') + ' ' + (item.TimeDetail || ''))}</div>
+        <div class="event-time">${window.esc((item.Date || '') + ' ' + (item.TimeDetail || ''))}</div>
         <div class="event-status">
-          ${esc(cleanStatus(item.StatusText))}
-          <br><b>Bưu cục: ${esc(office.full)}</b>
+          ${window.esc(cleanStatus(item.StatusText))}
+          <br><b>Bưu cục: ${window.esc(office.full)}</b>
         </div>
-        <div class="event-location">${esc(address)}</div>
+        <div class="event-location">${window.esc(address)}</div>
         ${coords || address ? `<button type="button" class="map-btn" title="Xem vị trí" onclick='openMap(${JSON.stringify(address)},${JSON.stringify(cleanStatus(item.StatusText))},${JSON.stringify(coords)})'>➤ Xem bản đồ</button>` : ''}
       </div>`;
     }).join('');
@@ -98,12 +98,12 @@ function renderScreen(data){
       const postmanText = pi.name !== '-' ? pi.name + (pi.phone !== '-' ? ' - ' + pi.phone : '') : '';
       return `
       <tr>
-        <td>${esc(getDeliveryTime(d))}</td>
+        <td>${window.esc(getDeliveryTime(d))}</td>
         <td>
-          <b>${esc(o.full)}</b>
-          ${postmanText ? `<div class="postman-info">Bưu tá: ${esc(postmanText)}</div>` : ''}
+          <b>${window.esc(o.full)}</b>
+          ${postmanText ? `<div class="postman-info">Bưu tá: ${window.esc(postmanText)}</div>` : ''}
         </td>
-        <td>${esc(d.STATUSTEXT || d.StatusText || '-')}</td>
+        <td>${window.esc(d.STATUSTEXT || d.StatusText || '-')}</td>
       </tr>`;
     }).join('') : `<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có dữ liệu phát</td></tr>`;
   }
@@ -118,12 +118,12 @@ function renderScreen(data){
       return `
       <div class="delivery-card-item">
         <div class="delivery-card-header">
-          <span>📅 ${esc(getDeliveryTime(d))}</span>
+          <span>📅 ${window.esc(getDeliveryTime(d))}</span>
         </div>
         <div class="delivery-card-body">
-          <div><b>Bưu cục:</b> ${esc(o.full)}</div>
-          ${postmanText ? `<div style="color:var(--text-muted); font-size:12px;"><b>Bưu tá:</b> ${esc(postmanText)}</div>` : ''}
-          <div style="margin-top:2px;"><b>Trạng thái:</b> <span style="color:var(--green); font-weight:600;">${esc(d.STATUSTEXT || d.StatusText || '-')}</span></div>
+          <div><b>Bưu cục:</b> ${window.esc(o.full)}</div>
+          ${postmanText ? `<div style="color:var(--text-muted); font-size:12px;"><b>Bưu tá:</b> ${window.esc(postmanText)}</div>` : ''}
+          <div style="margin-top:2px;"><b>Trạng thái:</b> <span style="color:var(--green); font-weight:600;">${window.esc(d.STATUSTEXT || d.StatusText || '-')}</span></div>
         </div>
       </div>`;
     }).join('') : `<div class="delivery-card-item" style="text-align:center; color:#94a3b8;">Chưa có dữ liệu phát</div>`;
@@ -240,7 +240,7 @@ function showMsg(text, type='error'){
 }
 
 // =============================================
-// TẢI CAPTCHA & SUBMIT TRA CỨU
+// TẢI CAPTCHA (GỌI TRỰC TIẾP API/CAPTCHA)
 // =============================================
 
 async function loadCaptcha() {
@@ -253,28 +253,30 @@ async function loadCaptcha() {
   if (reloadBtn) reloadBtn.disabled = true;
 
   try {
-    const res = await fetch('/api/proxy?action=get-captcha&_=' + Date.now());
-    if (!res.ok) throw new Error('Không thể tải CAPTCHA');
-    
+    // Gọi thẳng file /api/captcha.js
+    const res = await fetch('/api/captcha?_=' + Date.now());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
     const data = await res.json();
     if (reqId !== captchaRequestId) return;
 
-    if (data && data.captchaUrl) {
-      imgEl.src = data.captchaUrl;
-      currentCookie = data.cookie || '';
-    } else if (data && data.image) {
-      imgEl.src = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+    if (data && data.image) {
+      imgEl.src = data.image;
       currentCookie = data.cookie || '';
     } else {
-      throw new Error('Dữ liệu CAPTCHA không hợp lệ');
+      throw new Error('Dữ liệu CAPTCHA bị rỗng');
     }
   } catch (err) {
     console.error('Lỗi loadCaptcha:', err);
-    showMsg('Lỗi tải CAPTCHA. Vui lòng nhấn nút "Đổi mã" để thử lại.');
+    showMsg('Không thể tải CAPTCHA. Hãy bấm "Đổi mã" để thử lại.');
   } finally {
     if (reloadBtn) reloadBtn.disabled = false;
   }
 }
+
+// =============================================
+// XỬ LÝ NÚT TRA CỨU
+// =============================================
 
 async function submitTracking(){
   const codeEl = document.getElementById('tracking-code');
@@ -325,7 +327,7 @@ async function submitTracking(){
 
       logToSheet('Tra cứu');
 
-      // Hiển thị khung kết quả
+      // Hiển thị kết quả tra cứu
       renderScreen(data);
       if(typeof renderPrint === 'function') renderPrint(data);
 
@@ -337,7 +339,7 @@ async function submitTracking(){
       showMsg('Tra cứu thành công. Bạn có thể xem, in A4 hoặc tải PDF.', 'ok');
       resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      showMsg(data?.message || 'Mã CAPTCHA không đúng hoặc không tìm thấy thông tin vận đơn.');
+      showMsg(data?.message || data?.error || 'Mã CAPTCHA không đúng hoặc không tìm thấy thông tin vận đơn.');
       if(captchaEl) captchaEl.value = '';
       await loadCaptcha();
     }
@@ -355,16 +357,16 @@ async function submitTracking(){
 
 // BẮT SỰ KIỆN KHI TRANG TẢI XONG
 document.addEventListener('DOMContentLoaded', () => {
-  // Tải CAPTCHA ngay khi mở web
+  // Tải CAPTCHA ngay lập tức khi mở web
   loadCaptcha();
   
-  // Sự kiện nút đổi mã CAPTCHA
+  // Sự kiện nút Đổi mã
   const reloadBtn = document.getElementById('reload-captcha');
   if (reloadBtn) {
     reloadBtn.addEventListener('click', loadCaptcha);
   }
 
-  // Sự kiện Form Submit
+  // Sự kiện Submit Form
   const searchForm = document.getElementById('search-form');
   if (searchForm) {
     searchForm.addEventListener('submit', (e) => {
@@ -373,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Đóng bảng đồ
+  // Đóng cửa sổ Bản đồ
   const closeMapBtn = document.getElementById('close-map');
   if (closeMapBtn) {
     closeMapBtn.addEventListener('click', () => {

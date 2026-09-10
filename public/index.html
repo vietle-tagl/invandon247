@@ -1,265 +1,157 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InVanDon247 - Tra cứu vận đơn VNPost & In phiếu vận đơn A4</title>
-
-<!-- FAVICON -->
-<link rel="icon" type="image/png" href="/images/favicon.ico">
-
-<!-- CSS -->
-<link rel="stylesheet" href="/css/styles.css">
-
-<!-- THƯ VIỆN -->
-<script src="/libs/JsBarcode.all.min.js"></script>
-<script src="/libs/qrcode.min.js"></script>
-<script src="/libs/html2canvas.min.js"></script>
-<script src="/libs/jspdf.umd.min.js"></script>
-<script src="/libs/xlsx.full.min.js"></script>
-
-<!-- VERCEL ANALYTICS -->
-<script defer src="/_vercel/insights/script.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InVanDon247 - Tra cứu & Tạo phiếu vận đơn A4</title>
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Các thư viện bổ trợ cục bộ từ thư mục public/libs/ -->
+  <script src="/libs/JsBarcode.all.min.js"></script>
+  <script src="/libs/qrcode.min.js"></script>
+  <script src="/libs/html2canvas.min.js"></script>
+  <script src="/libs/jspdf.umd.min.js"></script>
+  <script src="/libs/xlsx.full.min.js"></script>
 </head>
-
 <body>
 
-<!-- HEADER (WEB) -->
-<header class="topbar no-print">
-  <div class="topbar-inner">
-    <div class="brand">
-      <div class="brand-logo">
-        <img src="/images/logo.png" alt="InVanDon247">
-      </div>
-      <div>
-        <strong>InVanDon247</strong>
-        <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
-      </div>
-    </div>
-    
-    <!-- MENU ĐIỀU HƯỚNG -->
-    <nav class="nav">
-      <a href="#">Trang chủ</a>
-      <a href="#search">Tra cứu</a>
-      
-      <!-- MỤC BẢNG KÊ -->
-      <div class="nav-dropdown">
-        <a href="javascript:void(0);" class="dropdown-toggle">Bảng kê ▾</a>
-        <div class="dropdown-menu">
-          <a href="#nap-bangke-section" onclick="showNapBangKeSection()">Nạp bảng kê</a>
-          <a href="#bangke-section" onclick="showBangKeSection()">In bảng kê</a>
+  <!-- TOPBAR HEADER -->
+  <header class="topbar no-print">
+    <div class="topbar-inner">
+      <a href="/" class="brand">
+        <div class="brand-logo">
+          <img src="/images/logo.png" alt="InVanDon247 Logo">
         </div>
-      </div>
-      
-      <a href="#">Giới thiệu</a>
-    </nav>
-  </div>
-</header>
-
-<!-- MAIN (WEB) -->
-<main class="page">
-  <section class="search-card no-print" id="search">
-    <h1 class="search-title">TRA CỨU VẬN ĐƠN</h1>
-    <div class="search-sub">Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi</div>
-
-    <div class="form-grid">
-      <div class="field">
-        <label>1. Mã vận đơn VNPost</label>
-        <input id="trackingCode" type="text" placeholder="Ví dụ: RF600343015VN" autocomplete="off">
-      </div>
-
-      <div class="field">
-        <label>2. Mã xác thực (CAPTCHA)</label>
-        <div class="captcha-line">
-          <input id="captchaText" type="text" placeholder="Nhập mã CAPTCHA" autocomplete="off">
-          <div class="captcha-slot">
-            <img id="captchaImg" class="captcha-img" alt="CAPTCHA">
-          </div>
-          <button id="reloadCaptcha" class="reload" type="button" onclick="loadCaptcha()">↻ Đổi mã</button>
+        <div>
+          <strong>InVanDon247</strong>
+          <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
         </div>
-      </div>
-    </div>
-
-    <button id="btnSubmit" class="submit" type="button" onclick="submitTracking()">🔎 TRA CỨU VẬN ĐƠN</button>
-    <div id="message" class="msg"></div>
-  </section>
-
-  <div id="result" class="result-head no-print">
-    <button class="action print-btn" onclick="printA4()">🖨 In A4</button>
-    <button class="action pdf-btn" onclick="downloadPDF()">📥 Tải xuống PDF</button>
-  </div>
-
-  <section id="result-card" class="result-card no-print">
-    <div id="screen-result"></div>
-  </section>
-
-  <!-- FORM NẠP BẢNG KÊ EXCEL LÊN GOOGLE SHEET -->
-  <section class="search-card no-print" id="nap-bangke-section" style="margin-top: 30px; display: none;">
-    <h1 class="search-title" style="color: #0a4b88;">📤 NẠP BẢNG KÊ EXCEL</h1>
-    <div class="search-sub">Chọn file Excel (.xlsx, .xls) chứa danh sách bưu gửi để đọc dữ liệu và nạp lên Google Sheet.</div>
-
-    <div class="form-grid">
-      <div class="field" style="grid-column: span 2;">
-        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Chọn file Excel từ máy tính:</label>
-        <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="handleFileUpload(event)" style="width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #fff;">
-      </div>
-    </div>
-
-    <button id="btnImport" class="submit" type="button" onclick="importExcelData()" style="background: linear-gradient(135deg, #0284c7, #0369a1); margin-top: 15px;">
-      🚀 NẠP DỮ LIỆU LÊN GOOGLE SHEET
-    </button>
-
-    <div id="importMessage" class="msg" style="display: none; margin-top: 15px;"></div>
-  </section>
-
-  <!-- FORM IN BẢNG KÊ -->
-  <section class="search-card no-print" id="bangke-section" style="margin-top: 30px; display: none;">
-    <h1 class="search-title" style="color: #0a4b88;">📝 IN BẢNG KÊ</h1>
-    <div class="search-sub">Nhập danh sách mã vận đơn (cách nhau bằng dấu phẩy hoặc xuống dòng), hệ thống sẽ tra cứu và tổng hợp thành bảng kê.</div>
-
-    <div class="form-grid">
-      <div class="field" style="grid-column: span 2;">
-        <textarea id="bangkeInput" rows="6" placeholder="Ví dụ: RB608708026VN, RF600650965VN, CB597376467VN" style="width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px;"></textarea>
-      </div>
-    </div>
-
-    <button id="btnPrintBangKe" class="submit" type="button" onclick="submitBangKe()" style="background: linear-gradient(135deg, #10b981, #047857); margin-top: 15px;">
-      🔍 TRA CỨU VÀ TỔNG HỢP
-    </button>
-
-    <div id="bangkeMessage" class="msg"></div>
-
-    <!-- BẢNG KẾT QUẢ HIỂN THỊ -->
-    <div id="bangkeResult" style="margin-top: 20px; display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h3 style="margin: 0; color: #0a4b88;">📋 BẢNG KÊ CHI TIẾT</h3>
-        <button class="action print-btn" onclick="window.print()">🖨 IN BẢNG KÊ</button>
-      </div>
-      <table id="bangkeTable" style="width: 100%; border-collapse: collapse; font-size: 13px;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
-            <th style="padding: 10px; text-align: left;">STT</th>
-            <th style="padding: 10px; text-align: left;">Mã vận đơn</th>
-            <th style="padding: 10px; text-align: left;">Người nhận</th>
-            <th style="padding: 10px; text-align: left;">Trạng thái</th>
-            <th style="padding: 10px; text-align: left;">Ngày cập nhật</th>
-          </tr>
-        </thead>
-        <tbody id="bangkeTableBody"></tbody>
-      </table>
-    </div>
-  </section>
-</main>
-
-<!-- FOOTER WEB -->
-<footer class="screen-footer no-print">
-  © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost
-</footer>
-
-<!-- KHU VỰC IN A4 -->
-<div id="print-area"></div>
-
-<!-- JAVASCRIPT TÁCH RA -->
-<script src="/js/api.js"></script>
-<script src="/js/pdf.js"></script>
-<script src="/js/excel.js"></script>
-<script>
-  // Hàm hiển thị / ẩn form Nạp bảng kê Excel
-  function showNapBangKeSection() {
-    const section = document.getElementById('nap-bangke-section');
-    const isHidden = section.style.display === 'none';
-    section.style.display = isHidden ? 'block' : 'none';
-    if (isHidden) {
-      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
-  // Hàm hiện form In bảng kê
-  function showBangKeSection() {
-    const bangKeSection = document.getElementById('bangke-section');
-    const isHidden = bangKeSection.style.display === 'none';
-    bangKeSection.style.display = isHidden ? 'block' : 'none';
-    if (isHidden) {
-      bangKeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
-  // Hàm xử lý khi bấm "Tra cứu và tổng hợp"
-  async function submitBangKe() {
-    const input = document.getElementById('bangkeInput').value.trim();
-    const codes = input.split(/[,\n\r]+/).map(code => code.trim()).filter(code => code);
-    
-    if (codes.length === 0) {
-      const msgDiv = document.getElementById('bangkeMessage');
-      msgDiv.className = 'msg error';
-      msgDiv.style.display = 'block';
-      msgDiv.textContent = '⚠️ Vui lòng nhập danh sách mã vận đơn trước!';
-      return;
-    }
-
-    const msgDiv = document.getElementById('bangkeMessage');
-    msgDiv.className = 'msg wait';
-    msgDiv.style.display = 'block';
-    msgDiv.textContent = '⏳ Đang tra cứu ' + codes.length + ' mã vận đơn...';
-
-    // Gọi API tra cứu từng mã
-    const allResults = [];
-    for (let i = 0; i < codes.length; i++) {
-      try {
-        const code = codes[i];
-        const res = await fetch('/api/proxy?action=track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            trackingCode: code,
-            captchaText: 'auto',
-            cookie: ''
-          })
-        });
-        const data = await res.json();
+      </a>
+      <nav class="nav">
+        <a href="/">Trang chủ</a>
+        <a href="/">Tra cứu</a>
         
-        if (data && data.info) {
-          allResults.push({
-            code: code,
-            receiver: data.info.Receiver || data.info.NguoiNhan || 'Không xác định',
-            status: data.info.StatusText || 'Không xác định',
-            date: data.info.LastDate || data.info.NgayNhap || 'Không xác định'
-          });
-        } else {
-          allResults.push({
-            code: code,
-            receiver: 'Không xác định',
-            status: 'Không tìm thấy',
-            date: 'Không xác định'
-          });
-        }
-      } catch (e) {
-        allResults.push({
-          code: codes[i],
-          receiver: 'Lỗi tra cứu',
-          status: 'Lỗi hệ thống',
-          date: 'Không xác định'
-        });
-      }
-    }
+        <div class="nav-dropdown">
+          <span class="dropdown-toggle">Bảng kê ▾</span>
+          <div class="dropdown-menu">
+            <a href="/bangke-buudien.html">Bưu điện</a>
+            <a href="#" class="disabled-item" onclick="return false;">Tùy chỉnh (Sắp ra mắt)</a>
+          </div>
+        </div>
 
-    // Hiển thị kết quả thành bảng
-    const resultDiv = document.getElementById('bangkeResult');
-    const tableBody = document.getElementById('bangkeTableBody');
+        <a href="/">Giới thiệu</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- NỘI DUNG CHÍNH -->
+  <main class="page no-print">
     
-    tableBody.innerHTML = allResults.map((item, index) => `
-      <tr style="border-bottom: 1px solid #e2e8f0;">
-        <td style="padding: 8px;">${index + 1}</td>
-        <td style="padding: 8px; font-weight: 600; color: #0a4b88;">${item.code}</td>
-        <td style="padding: 8px;">${item.receiver}</td>
-        <td style="padding: 8px; color: #059669;">${item.status}</td>
-        <td style="padding: 8px;">${item.date}</td>
-      </tr>
-    `).join('');
+    <!-- KHUNG TRA CỨU -->
+    <section class="search-card">
+      <h1 class="search-title">TRA CỨU VẬN ĐƠN</h1>
+      <p class="search-sub">Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi</p>
 
-    resultDiv.style.display = 'block';
-    msgDiv.style.display = 'none';
-  }
-</script>
+      <form id="search-form" onsubmit="return false;">
+        <div class="form-grid">
+          <div class="field">
+            <label for="tracking-code">1. Mã vận đơn VNPost</label>
+            <input type="text" id="tracking-code" placeholder="Ví dụ: RB608752815VN" autocomplete="off" required>
+          </div>
+
+          <div class="field">
+            <label for="captcha-input">2. Mã xác thực (CAPTCHA)</label>
+            <div class="captcha-line">
+              <input type="text" id="captcha-input" placeholder="Nhập mã" autocomplete="off" required>
+              <div class="captcha-slot">
+                <img id="captcha-img" class="captcha-img" src="" alt="CAPTCHA">
+              </div>
+              <button type="button" id="reload-captcha" class="reload">↻ Đổi mã</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="submit-btn" class="submit">🔎 TRA CỨU VẬN ĐƠN</button>
+      </form>
+
+      <div id="msg-box" class="msg"></div>
+    </section>
+
+    <!-- NÚT THAO TÁC IN / XUẤT PDF -->
+    <div id="result-head" class="result-head">
+      <button type="button" class="action print-btn">🖨 In A4</button>
+      <button type="button" class="action pdf-btn">📥 Tải xuống PDF</button>
+    </div>
+
+    <!-- KHUNG HIỂN THỊ KẾT QUẢ TRA CỨU -->
+    <section id="result-card" class="result-card">
+      
+      <!-- CHI TIẾT BƯU GỬI -->
+      <div class="detail-box">
+        <div class="detail-title">
+          <svg class="loc-icon" viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          CHI TIẾT BƯU GỬI
+        </div>
+        <div class="detail-grid">
+          <div class="detail-item">✉ Mã vận đơn: <b id="res-id">-</b></div>
+          <div class="detail-item">⚖ Khối lượng: <b id="res-weight">0 gam</b></div>
+          <div class="detail-item">📍 Trạng thái: <span id="res-status" class="status-badge">-</span></div>
+          <div class="detail-item">🏦 Bưu cục gửi: <b id="res-bc-gui">-</b></div>
+          <div class="detail-item">📮 Bưu cục phát: <b id="res-bc-phat">-</b></div>
+          <div class="detail-item">👤 Người nhận: <b id="res-receiver" class="receiver-text">-</b></div>
+        </div>
+      </div>
+
+      <!-- LỊCH SỬ HÀNH TRÌNH -->
+      <div class="section-title">THÔNG TIN TRẠNG THÁI (<span id="event-count">0</span> SỰ KIỆN)</div>
+      <div id="timeline" class="timeline"></div>
+
+      <!-- BẢNG BẢN ĐỒ (HIỂN THỊ KHI CLICK XEM VỊ TRÍ) -->
+      <div id="map-panel" class="map-panel">
+        <div class="map-toolbar">
+          <span id="map-title">Vị trí bưu cục</span>
+          <button type="button" id="close-map" style="border:0; background:none; cursor:pointer; font-weight:bold;">✕ Đóng</button>
+        </div>
+        <iframe id="map-frame" class="map-frame" src="about:blank"></iframe>
+      </div>
+
+      <!-- THÔNG TIN PHÁT -->
+      <div class="delivery">
+        <div class="section-title">THÔNG TIN PHÁT</div>
+        
+        <!-- Hiển thị trên Desktop -->
+        <table class="delivery-table">
+          <thead>
+            <tr>
+              <th>Ngày</th>
+              <th>Bưu cục / Bưu tá</th>
+              <th>Chi tiết</th>
+            </tr>
+          </thead>
+          <tbody id="delivery-tbody">
+            <tr><td colspan="3" style="text-align:center;">Chưa có dữ liệu phát</td></tr>
+          </tbody>
+        </table>
+
+        <!-- Hiển thị trên Mobile -->
+        <div id="delivery-mobile" class="delivery-cards-mobile"></div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- CHÂN TRANG FOOTER DUY NHẤT -->
+  <footer class="screen-footer no-print" style="text-align: center; padding: 20px 0; color: var(--text-muted); font-size: 12px; border-top: 1px solid var(--border-color); margin-top: 40px;">
+    © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost
+  </footer>
+
+  <!-- KHU VỰC CHỨA KHUNG IN A4 (ẨN TRÊN MÀN HÌNH WEB) -->
+  <div id="print-area"></div>
+
+  <!-- CÁC FILE JS XỬ LÝ NHIỆM VỤ -->
+  <script src="api.js"></script>
+  <script src="pdf.js"></script>
 </body>
 </html>

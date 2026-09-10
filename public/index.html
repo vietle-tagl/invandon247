@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>InVanDon247 - Tra cứu & Tạo phiếu vận đơn A4</title>
-  <link rel="stylesheet" href="styles.css">
+  
+  <!-- File CSS chính từ thư mục public/css/ -->
+  <link rel="stylesheet" href="/css/styles.css">
   
   <!-- Các thư viện bổ trợ cục bộ từ thư mục public/libs/ -->
   <script src="/libs/JsBarcode.all.min.js"></script>
@@ -147,11 +149,11 @@
     © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost
   </footer>
 
-  <!-- KHU VỰC CHỨA KHUNG IN A4 (ẨN TRÊN MÀN HÌNH WEB) -->
-  <div id="print-area"></div>
+  <!-- KHU VỰC CHỨA KHUNG IN A4 (ẨN MẶC ĐỊNH TRÊN TRANG WEB) -->
+  <div id="print-area" style="display: none;"></div>
 
-  <!-- CÁC FILE JS XỬ LÝ NHIỆM VỤ -->
-  <script src="api.js"></script>
-  <script src="pdf.js"></script>
+  <!-- CÁC FILE JS XỬ LÝ GIAO DIỆN TỪ THƯ MỤC public/js/ -->
+  <script src="/js/api.js"></script>
+  <script src="/js/pdf.js"></script>
 </body>
 </html>

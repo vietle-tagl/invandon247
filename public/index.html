@@ -1,163 +1,147 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InVanDon247 - Tra cứu & Tạo phiếu vận đơn A4</title>
-  
-  <!-- FAVICON KHAI BÁO TỪ public/images/ -->
-  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
-  
-  <!-- File CSS chính từ thư mục public/css/ -->
-  <link rel="stylesheet" href="/css/styles.css">
-  
-  <!-- Các thư viện bổ trợ cục bộ từ thư mục public/libs/ -->
-  <script src="/libs/JsBarcode.all.min.js"></script>
-  <script src="/libs/qrcode.min.js"></script>
-  <script src="/libs/html2canvas.min.js"></script>
-  <script src="/libs/jspdf.umd.min.js"></script>
-  <script src="/libs/xlsx.full.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InVanDon247 - Công cụ tra cứu và tạo phiếu vận đơn A4</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Thư viện hỗ trợ xuất PDF (Puppeteer/jspdf nếu dùng ở frontend) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-  <!-- TOPBAR HEADER -->
-  <header class="topbar no-print">
-    <div class="topbar-inner">
-      <a href="/" class="brand">
-        <div class="brand-logo">
-          <img src="/images/logo.png" alt="InVanDon247 Logo">
-        </div>
-        <div>
-          <strong>InVanDon247</strong>
-          <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
-        </div>
-      </a>
-      <nav class="nav">
-        <a href="/">Trang chủ</a>
-        <a href="/">Tra cứu</a>
-        
-        <div class="nav-dropdown">
-          <span class="dropdown-toggle">Bảng kê ▾</span>
-          <div class="dropdown-menu">
-            <a href="/bangke-buudien.html">Bưu điện</a>
-            <a href="#" class="disabled-item" onclick="return false;">Tùy chỉnh (Sắp ra mắt)</a>
-          </div>
-        </div>
-
-        <a href="/">Giới thiệu</a>
-      </nav>
-    </div>
-  </header>
-
-  <!-- NỘI DUNG CHÍNH -->
-  <main class="page no-print">
-    
-    <!-- KHUNG TRA CỨU -->
-    <section class="search-card">
-      <h1 class="search-title">TRA CỨU VẬN ĐƠN</h1>
-      <p class="search-sub">Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi</p>
-
-      <form id="search-form" onsubmit="return false;">
-        <div class="form-grid">
-          <div class="field">
-            <label for="tracking-code">1. Mã vận đơn VNPost</label>
-            <input type="text" id="tracking-code" placeholder="Ví dụ: RB608752815VN" autocomplete="off" required>
-          </div>
-
-          <div class="field">
-            <label for="captcha-input">2. Mã xác thực (CAPTCHA)</label>
-            <div class="captcha-line">
-              <input type="text" id="captcha-input" placeholder="Nhập mã" autocomplete="off" required>
-              <div class="captcha-slot">
-                <img id="captcha-img" class="captcha-img" src="" alt="CAPTCHA">
-              </div>
-              <button type="button" id="reload-captcha" class="reload">↻ Đổi mã</button>
+    <!-- NAVBAR HEADER -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">📦</span>
+                <div>
+                    <strong>InVanDon247</strong>
+                    <div class="sub-logo">Công cụ tra cứu và tạo phiếu vận đơn A4</div>
+                </div>
             </div>
-          </div>
+            <nav class="nav-links">
+                <a href="#" class="active">Trang chủ</a>
+                <a href="#search-section">Tra cứu</a>
+                <a href="#">Bảng kê ▼</a>
+                <a href="#">Giới thiệu</a>
+            </nav>
         </div>
+    </header>
 
-        <button type="submit" id="submit-btn" class="submit">🔎 TRA CỨU VẬN ĐƠN</button>
-      </form>
-
-      <div id="msg-box" class="msg"></div>
-    </section>
-
-    <!-- NÚT THAO TÁC IN / XUẤT PDF -->
-    <div id="result-head" class="result-head">
-      <button type="button" class="action print-btn">🖨 In A4</button>
-      <button type="button" class="action pdf-btn">📥 Tải xuống PDF</button>
-    </div>
-
-    <!-- KHUNG HIỂN THỊ KẾT QUẢ TRA CỨU -->
-    <section id="result-card" class="result-card">
-      
-      <!-- CHI TIẾT BƯU GỬI -->
-      <div class="detail-box">
-        <div class="detail-title">
-          <svg class="loc-icon" viewBox="0 0 24 24">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-          </svg>
-          CHI TIẾT BƯU GỬI
-        </div>
-        <div class="detail-grid">
-          <div class="detail-item">✉ Mã vận đơn: <b id="res-id">-</b></div>
-          <div class="detail-item">⚖ Khối lượng: <b id="res-weight">0 gam</b></div>
-          <div class="detail-item">📍 Trạng thái: <span id="res-status" class="status-badge">-</span></div>
-          <div class="detail-item">🏦 Bưu cục gửi: <b id="res-bc-gui">-</b></div>
-          <div class="detail-item">📮 Bưu cục phát: <b id="res-bc-phat">-</b></div>
-          <div class="detail-item">👤 Người nhận: <b id="res-receiver" class="receiver-text">-</b></div>
-        </div>
-      </div>
-
-      <!-- LỊCH SỬ HÀNH TRÌNH -->
-      <div class="section-title">THÔNG TIN TRẠNG THÁI (<span id="event-count">0</span> SỰ KIỆN)</div>
-      <div id="timeline" class="timeline"></div>
-
-      <!-- BẢNG BẢN ĐỒ (HIỂN THỊ KHI CLICK XEM VỊ TRÍ) -->
-      <div id="map-panel" class="map-panel">
-        <div class="map-toolbar">
-          <span id="map-title">Vị trí bưu cục</span>
-          <button type="button" id="close-map" style="border:0; background:none; cursor:pointer; font-weight:bold;">✕ Đóng</button>
-        </div>
-        <iframe id="map-frame" class="map-frame" src="about:blank"></iframe>
-      </div>
-
-      <!-- THÔNG TIN PHÁT -->
-      <div class="delivery">
-        <div class="section-title">THÔNG TIN PHÁT</div>
+    <!-- MAIN CONTAINER -->
+    <main class="main-content">
         
-        <!-- Hiển thị trên Desktop -->
-        <table class="delivery-table">
-          <thead>
-            <tr>
-              <th>Ngày</th>
-              <th>Bưu cục / Bưu tá</th>
-              <th>Chi tiết</th>
-            </tr>
-          </thead>
-          <tbody id="delivery-tbody">
-            <tr><td colspan="3" style="text-align:center;">Chưa có dữ liệu phát</td></tr>
-          </tbody>
-        </table>
+        <!-- CARD TRA CỨU -->
+        <section class="card search-card" id="search-section">
+            <h2 class="card-title">TRA CỨU VẬN ĐƠN</h2>
+            <p class="card-subtitle">Nhập mã vận đơn và mã CAPTCHA để xem hành trình bưu gửi</p>
 
-        <!-- Hiển thị trên Mobile -->
-        <div id="delivery-mobile" class="delivery-cards-mobile"></div>
-      </div>
+            <form id="search-form">
+                <div class="form-grid">
+                    <!-- Ô nhập mã vận đơn -->
+                    <div class="form-group col-code">
+                        <label for="tracking-code">1. Mã vận đơn VNPost</label>
+                        <input type="text" id="tracking-code" placeholder="Ví dụ: RB608752815VN" required autocomplete="off">
+                    </div>
 
-    </section>
-  </main>
+                    <!-- Ô nhập CAPTCHA & Khung hiển thị ảnh -->
+                    <div class="form-group col-captcha">
+                        <label for="captcha-input">2. Mã xác thực (CAPTCHA)</label>
+                        <div class="captcha-wrapper">
+                            <input type="text" id="captcha-input" placeholder="Nhập mã" required autocomplete="off">
+                            
+                            <!-- Thẻ hiển thị ảnh CAPTCHA -->
+                            <div class="captcha-img-box">
+                                <img id="captcha-img" src="" alt="Mã CAPTCHA" title="Bấm vào ảnh để đổi mã khác">
+                            </div>
 
-  <!-- CHÂN TRANG FOOTER DUY NHẤT -->
-  <footer class="screen-footer no-print" style="text-align: center; padding: 20px 0; color: var(--text-muted); font-size: 12px; border-top: 1px solid var(--border-color); margin-top: 40px;">
-    © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost
-  </footer>
+                            <button type="button" id="reload-captcha" class="btn-reload" title="Đổi mã xác thực">
+                                ↻ Đổi mã
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-  <!-- KHU VỰC CHỨA KHUNG IN A4 (ẨN MẶC ĐỊNH TRÊN TRANG WEB) -->
-  <div id="print-area" style="display: none;"></div>
+                <button type="submit" id="submit-btn" class="btn-primary">
+                    🔎 TRA CỨU VẬN ĐƠN
+                </button>
+            </form>
 
-  <!-- CÁC FILE JS XỬ LÝ GIAO DIỆN TỪ THƯ MỤC public/js/ -->
-  <script src="/js/api.js"></script>
-  <script src="/js/pdf.js"></script>
+            <!-- THÔNG BÁO LỖI / TRẠNG THÁI -->
+            <div id="msg-box" class="msg" style="display: none;"></div>
+        </section>
+
+        <!-- KẾT QUẢ TRA CỨU (MẶC ĐỊNH ẨN) -->
+        <div id="result-head" class="result-header-actions" style="display: none; margin-top: 20px; justify-content: space-between; align-items: center;">
+            <h3>Kết Quả Tra Cứu</h3>
+            <div class="action-buttons">
+                <button type="button" id="btn-print" class="btn-secondary" onclick="window.print()">🖨️ In trang</button>
+                <button type="button" id="btn-pdf" class="btn-success">📥 Tải PDF A4</button>
+            </div>
+        </div>
+
+        <section class="card result-card" id="result-card" style="display: none; margin-top: 10px;">
+            <!-- CHI TIẾT BƯU GỬI -->
+            <div class="info-grid">
+                <div class="info-item"><strong>Mã vận đơn:</strong> <span id="res-id">-</span></div>
+                <div class="info-item"><strong>Khối lượng:</strong> <span id="res-weight">-</span></div>
+                <div class="info-item"><strong>Trạng thái:</strong> <span id="res-status" class="badge-status">-</span></div>
+                <div class="info-item"><strong>Bưu cục gửi:</strong> <span id="res-bc-gui">-</span></div>
+                <div class="info-item"><strong>Bưu cục phát:</strong> <span id="res-bc-phat">-</span></div>
+                <div class="info-item"><strong>Người nhận:</strong> <span id="res-receiver">-</span></div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- BẢNG THÔNG TIN PHÁT (DESKTOP) -->
+            <h4>Thông Tin Phát</h4>
+            <div class="table-responsive desktop-only">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Thời gian</th>
+                            <th>Bưu cục / Bưu tá</th>
+                            <th>Trạng thái chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody id="delivery-tbody">
+                        <tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có dữ liệu phát</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- CARD THÔNG TIN PHÁT (MOBILE) -->
+            <div id="delivery-mobile" class="mobile-only delivery-card-list"></div>
+
+            <hr class="divider">
+
+            <!-- TIMELINE HÀNH TRÌNH -->
+            <h4>Hành Trình Bưu Gửi (<span id="event-count">0</span> sự kiện)</h4>
+            <div id="timeline" class="timeline-container"></div>
+        </section>
+
+        <!-- CỬA SỔ XEM BẢN ĐỒ (BẢN ĐỒ EMBED) -->
+        <section id="map-panel" class="card map-card" style="display: none; margin-top: 20px;">
+            <div class="map-header">
+                <h4 id="map-title">Vị trí hành trình</h4>
+                <button type="button" id="close-map" class="btn-close">✖ Đóng</button>
+            </div>
+            <div class="map-body">
+                <iframe id="map-frame" src="" width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <p>© 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost</p>
+    </footer>
+
+    <!-- FILE JAVASCRIPT HỆ THỐNG -->
+    <script src="js/api.js"></script>
+    <script src="js/pdf.js"></script>
+
 </body>
 </html>

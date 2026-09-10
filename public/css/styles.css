@@ -1,5 +1,5 @@
 /* =========================================================
-   IN VANDON 247 - STYLESHEET (ĐÃ SỬA LỖI IN ẤN)
+   IN VANDON 247 - STYLESHEET
    ========================================================= */
 
 :root{
@@ -455,18 +455,8 @@ body{
 .delivery-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 8px; font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
 .delivery-card-body { display: flex; flex-direction: column; gap: 6px; }
 
-/* =========================================================
-   FOOTER BẢN QUYỀN (DÙNG CHO MÀN HÌNH VÀ BẢN IN)
-   ========================================================= */
-.site-footer{
-  text-align:center; 
-  border-top:1px solid var(--border-color); 
-  padding: 12px 0;
-  color:var(--text-muted); 
-  font-size:11px; 
-  background: var(--card-bg);
-  width: 100%;
-}
+/* FOOTER BẢN QUYỀN TRÊN WEB */
+.screen-footer{ text-align:center; border-top:1px solid var(--border-color); margin-top:20px; padding-top:12px; color:var(--text-muted); font-size:11px; }
 
 /* PRINT A4 */
 #print-area{ display:none; }
@@ -638,37 +628,15 @@ body{
   margin: 6mm 8mm 6mm 8mm;
 }
 
-/* =========================================================
-   QUY TẮC IN ẤN QUAN TRỌNG (ĐÃ SỬA)
-   ========================================================= */
 @media print {
   body { 
     background: #fff !important; 
     font-family: 'Roboto', 'Inter', Arial, Helvetica, sans-serif !important; 
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    margin: 0;
   }
-
-  /* Ẩn tất cả các thành phần không cần in */
   .no-print, .topbar, .page, .search-card, .result-head, .result-card { display: none !important; }
-
-  /* Hiện vùng chứa nội dung A4 */
   #print-area { display: block !important; width: 100%; }
-
-  /* Ép Hiển Thị Footer Bản Quyền Khi In */
-  .site-footer {
-    display: block !important;
-    position: static !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin-top: 10px;
-    font-size: 9px; /* Giảm nhẹ font chữ cho vừa trang in */
-    border-top: 1px solid #ccc !important;
-    padding: 5px 0 0 0 !important;
-    page-break-inside: avoid; /* Ngăn footer bị cắt giữa 2 trang */
-    break-inside: avoid;
-  }
 
   .print-page {
     width: 194mm;

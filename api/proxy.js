@@ -10,12 +10,10 @@ export default async function handler(req, res) {
     const { action } = req.query;
 
     try {
-
         // =====================================================
         // 1. LẤY CAPTCHA
         // =====================================================
         if (action === 'get-captcha') {
-
             const response = await fetch(
                 'https://vnpost.vn/handle-captcha/refresh-captcha',
                 {
@@ -23,10 +21,7 @@ export default async function handler(req, res) {
                     headers: {
                         'User-Agent':
                             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
-
-                        'Accept':
-                            'application/json, text/javascript, */*; q=0.01',
-
+                        'Accept': 'application/json, text/javascript, */*; q=0.01',
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 }
@@ -39,9 +34,8 @@ export default async function handler(req, res) {
                 });
             }
 
-            // Lấy toàn bộ Set-Cookie
+            // Lấy toàn bộ Cookie session từ VNPost
             let rawCookies = [];
-
             if (typeof response.headers.getSetCookie === 'function') {
                 rawCookies = response.headers.getSetCookie();
             } else {
@@ -62,22 +56,20 @@ export default async function handler(req, res) {
                 });
             }
 
-            // =================================================
-            // QUAN TRỌNG:
-            // Lấy luôn ảnh CAPTCHA thông qua SERVER
-            // và dùng đúng Cookie vừa nhận được
-            // =================================================
+            // SỬA LỖI: Đảm bảo captchaUrl luôn có domain https://vnpost.vn
+            let imgUrl = data.captcha;
+            if (imgUrl.startsWith('/')) {
+                imgUrl = 'https://vnpost.vn' + imgUrl;
+            }
 
-            const captchaResponse = await fetch(data.captcha, {
+            // Lấy ảnh CAPTCHA dạng Binary
+            const captchaResponse = await fetch(imgUrl, {
                 method: 'GET',
                 headers: {
                     'User-Agent':
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
-
                     'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-
                     'Referer': 'https://vnpost.vn/',
-
                     'Cookie': sessionCookie
                 }
             });
@@ -94,31 +86,25 @@ export default async function handler(req, res) {
             );
 
             const contentType =
-                captchaResponse.headers.get('content-type') ||
-                'image/png';
+                captchaResponse.headers.get('content-type') || 'image/png';
 
-            // Trả ảnh dạng Base64
             const captchaBase64 =
                 `data:${contentType};base64,` +
                 captchaBuffer.toString('base64');
 
+            // Trả về cả 'image' và 'captchaUrl' để tương thích hoàn toàn với Frontend
             return res.status(200).json({
+                image: captchaBase64,
                 captchaUrl: captchaBase64,
                 cookie: sessionCookie
             });
         }
 
-
         // =====================================================
         // 2. TRA CỨU VẬN ĐƠN
         // =====================================================
         if (action === 'track' && req.method === 'POST') {
-
-            const {
-                trackingCode,
-                captchaText,
-                cookie
-            } = req.body || {};
+            const { trackingCode, captchaText, cookie } = req.body || {};
 
             if (!trackingCode || !captchaText) {
                 return res.status(400).json({
@@ -141,27 +127,17 @@ export default async function handler(req, res) {
 
             const response = await fetch(targetUrl, {
                 method: 'GET',
-
                 headers: {
                     'User-Agent':
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
-
-                    'Accept':
-                        'application/json, text/javascript, */*; q=0.01',
-
-                    'X-Requested-With':
-                        'XMLHttpRequest',
-
-                    'Referer':
-                        'https://vnpost.vn/',
-
-                    'Cookie':
-                        cookie
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Referer': 'https://vnpost.vn/',
+                    'Cookie': cookie
                 }
             });
 
             const text = await response.text();
-
             let resultJson;
 
             try {
@@ -176,15 +152,12 @@ export default async function handler(req, res) {
             return res.status(200).json(resultJson);
         }
 
-
         return res.status(400).json({
             error: 'Action không hợp lệ'
         });
 
     } catch (error) {
-
         console.error(error);
-
         return res.status(500).json({
             error: 'Lỗi Proxy Server: ' + error.message
         });

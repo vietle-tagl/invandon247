@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InVanDon247 - Công cụ tra cứu và tạo phiếu vận đơn A4</title>
-    <link rel="stylesheet" href="css/style.css">
-    <!-- Thư viện hỗ trợ xuất PDF (Puppeteer/jspdf nếu dùng ở frontend) -->
+    
+    <!-- Đường dẫn tuyệt đối chuẩn Vercel (bắt đầu bằng dấu /) -->
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Thư viện html2pdf hỗ trợ xuất PDF ở Frontend -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -51,7 +54,7 @@
                         <div class="captcha-wrapper">
                             <input type="text" id="captcha-input" placeholder="Nhập mã" required autocomplete="off">
                             
-                            <!-- Thẻ hiển thị ảnh CAPTCHA -->
+                            <!-- Thẻ img nhận ảnh CAPTCHA từ /api/captcha -->
                             <div class="captcha-img-box">
                                 <img id="captcha-img" src="" alt="Mã CAPTCHA" title="Bấm vào ảnh để đổi mã khác">
                             </div>
@@ -121,7 +124,7 @@
             <div id="timeline" class="timeline-container"></div>
         </section>
 
-        <!-- CỬA SỔ XEM BẢN ĐỒ (BẢN ĐỒ EMBED) -->
+        <!-- CỬA SỔ XEM BẢN ĐỒ -->
         <section id="map-panel" class="card map-card" style="display: none; margin-top: 20px;">
             <div class="map-header">
                 <h4 id="map-title">Vị trí hành trình</h4>
@@ -139,9 +142,9 @@
         <p>© 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost</p>
     </footer>
 
-    <!-- FILE JAVASCRIPT HỆ THỐNG -->
-    <script src="js/api.js"></script>
-    <script src="js/pdf.js"></script>
+    <!-- FILE JAVASCRIPT HỆ THỐNG (Đường dẫn tuyệt đối với dấu / ở đầu) -->
+    <script src="/js/api.js"></script>
+    <script src="/js/pdf.js"></script>
 
 </body>
 </html>

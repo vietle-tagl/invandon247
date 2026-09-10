@@ -1,13 +1,15 @@
 // =============================================
-// PDF.JS - Xử lý tạo Barcode, QR Code và In/Tải PDF
+// PDF.JS - SỬA LỖI NÚT BẤM VÀ THỐNG NHẤT FOOTER
 // =============================================
 
-// Hàm thoát ký tự HTML
+// Khai báo biến toàn cục hứng dữ liệu từ api.js
+window.currentData = window.currentData || null;
+window.currentTrackingCode = window.currentTrackingCode || '';
+
 const esc = s => String(s ?? '-').replace(/[&<>"']/g, m => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
 }[m]));
 
-// Hàm xử lý trạng thái
 function cleanStatus(s){
   return String(s || '-')
     .replace(/\s*\(\d{4,7}\s*:[^)]+\)/g, '')
@@ -27,6 +29,20 @@ function getOffice(item){
   if(m) return { code:m[1], name:m[2].trim(), full:m[1]+' - '+m[2].trim() };
   const code = item?.POSCode ?? item?.POSCODE ?? item?.ToPOSCode ?? '';
   return { code:String(code || '-'), name:'', full:String(code || '-') };
+}
+
+function getOfficeForDelivery(data,d){
+  const direct = getOffice({
+    StatusText: d?.STATUSTEXT || d?.StatusText,
+    POSCode: d?.POSCODE || d?.POSCode || d?.ToPOSCode
+  });
+  if(direct.name) return direct;
+  const code = String(d?.ToPOSCode || d?.POSCode || d?.POSCODE || direct.code || '').trim();
+  if(code){
+    const found = (data?.locate || []).slice().reverse().find(x => String(x?.POSCode || x?.POSCODE || '').trim() === code);
+    if(found) return getOffice(found);
+  }
+  return direct;
 }
 
 function getDeliveryRecord(data){
@@ -75,18 +91,21 @@ function latestStatus(data){
   return loc.length ? String(loc[loc.length - 1].StatusText || '-').trim() : 'ĐANG VẬN CHUYỂN';
 }
 
-/* Tạo Barcode bằng JsBarcode */
 function generateBarcodeBase64(text) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  JsBarcode(svg, text, {
-    format: "CODE128",
-    width: 2,
-    height: 60,
-    displayValue: false,
-    margin: 6
-  });
-  const xml = new XMLSerializer().serializeToString(svg);
-  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
+  try {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    JsBarcode(svg, text, {
+      format: "CODE128",
+      width: 2,
+      height: 60,
+      displayValue: false,
+      margin: 6
+    });
+    const xml = new XMLSerializer().serializeToString(svg);
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
+  } catch(e) {
+    return '';
+  }
 }
 
 function buildPrintEventCard(item){
@@ -107,28 +126,26 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
   const left = chunk.slice(0, splitIndex);
   const right = chunk.slice(splitIndex);
 
-  const qrLink = `https://invandon247.com/?code=${info.ID || currentTrackingCode || '-'}`;
+  const trackingCode = info.ID || window.currentTrackingCode || '-';
+  const qrLink = `https://invandon247.com/?code=${trackingCode}`;
   
-  const qrEl = document.createElement('div');
-  new QRCode(qrEl, {
-    text: qrLink,
-    width: 55,
-    height: 55,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.H
-  });
-  const qrCanvas = qrEl.querySelector('canvas');
-  const qrImg = qrEl.querySelector('img');
-  const qrSrc = qrCanvas ? qrCanvas.toDataURL('image/png') : qrImg.src;
+  let qrSrc = '';
+  try {
+    const qrEl = document.createElement('div');
+    new QRCode(qrEl, {
+      text: qrLink,
+      width: 58,
+      height: 58,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    const qrCanvas = qrEl.querySelector('canvas');
+    const qrImg = qrEl.querySelector('img');
+    qrSrc = qrCanvas ? qrCanvas.toDataURL('image/png') : (qrImg ? qrImg.src : '');
+  } catch(e) {}
 
-  const barcodeBase64 = generateBarcodeBase64(info.ID || currentTrackingCode || '-');
-
-  const adBanner = `
-    <div class="p-ad-box">
-      <div class="ad-text">🔥 TUYỂN DỤNG NV GIAO HÀNG / NHÂN VIÊN BƯU CỤC - THU NHẬP 10 - 20 TRIỆU. GỌI 19006885</div>
-    </div>
-  `;
+  const barcodeBase64 = generateBarcodeBase64(trackingCode);
 
   return `
     <div class="print-page">
@@ -142,9 +159,9 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
         </div>
         <div class="p-title-wrap">
           <div class="p-title-main">THÔNG TIN VẬN ĐƠN</div>
-          <div class="p-title-code">Mã vận đơn: ${esc(info.ID || currentTrackingCode || '-')} (Đơn vị VNPOST - Bưu điện Việt Nam)</div>
+          <div class="p-title-code">Mã vận đơn: ${esc(trackingCode)} (VNPOST)</div>
         </div>
-        <img class="p-qr-code" src="${qrSrc}" alt="QR Code">
+        ${qrSrc ? `<img class="p-qr-code" src="${qrSrc}" alt="QR Code">` : ''}
       </div>
 
       ${pageIndex === 0 ? `
@@ -152,11 +169,11 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
         <div class="p-section-head">CHI TIẾT BƯU GỬI</div>
         <div class="p-grid-info">
           <div class="p-barcode-item">
-            <img class="p-barcode-img" src="${barcodeBase64}" alt="Barcode">
+            ${barcodeBase64 ? `<img class="p-barcode-img" src="${barcodeBase64}" alt="Barcode">` : ''}
           </div>
           
           <div class="p-info-item">
-            <div class="p-info-top">Mã vận đơn: <b>${esc(info.ID)}</b></div>
+            <div class="p-info-top">Mã vận đơn: <b>${esc(info.ID || trackingCode)}</b></div>
             <div>Bưu cục gửi: <b>${esc(info.BC_GUI || '-')}</b></div>
           </div>
           
@@ -218,246 +235,76 @@ function buildPrintPageHTML(data, chunk, pageIndex, totalPages, splitIndex, incl
       </div>
       ` : ''}
 
-      ${adBanner}
-
+      <!-- CHÂN TRANG ĐỒNG NHẤT KHÔNG TRÙNG LẶP -->
       <div class="p-footer">
-        <!-- ĐÃ SỬA CÂU FOOTER -->
         © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost — Trang ${pageIndex + 1}/${totalPages}
       </div>
     </div>`;
 }
 
-function createPrintMeasureRoot(){
-  const root = document.createElement('div');
-  root.id = 'print-measure-root';
-  root.style.cssText =
-    'position:absolute;left:-100000px;top:0;width:194mm;visibility:hidden;pointer-events:none;z-index:-1;';
-  document.body.appendChild(root);
-  return root;
-}
-
-function measurePrintCardHeights(data){
-  const locate = Array.isArray(data?.locate) ? data.locate : [];
-  const root = createPrintMeasureRoot();
-
-  const section = document.createElement('div');
-  section.className = 'p-section-box';
-  section.innerHTML = `
-    <div class="p-section-head">LỊCH SỬ HÀNH TRÌNH</div>
-    <div style="padding:4px;">
-      <table class="p-timeline-table">
-        <tr><td id="measure-left"></td><td id="measure-right"></td></tr>
-      </table>
-    </div>`;
-  root.appendChild(section);
-
-  const td = section.querySelector('#measure-left');
-  const heights = [];
-
-  for(const item of locate){
-    const holder = document.createElement('div');
-    holder.innerHTML = buildPrintEventCard(item);
-    const card = holder.firstElementChild;
-    td.appendChild(card);
-
-    const cs = getComputedStyle(card);
-    const marginBottom = parseFloat(cs.marginBottom) || 0;
-    heights.push(card.getBoundingClientRect().height + marginBottom);
-
-    td.removeChild(card);
-  }
-
-  root.remove();
-  return heights;
-}
-
-function measurePageBaseHeight(data, pageIndex, totalPages, includeDelivery){
-  const root = createPrintMeasureRoot();
-  root.innerHTML = buildPrintPageHTML(data, [], pageIndex, totalPages, 0, includeDelivery);
-
-  const page = root.firstElementChild;
-  const pageRect = page.getBoundingClientRect();
-  const footer = page.querySelector('.p-footer');
-
-  let contentBottom = footer
-    ? footer.getBoundingClientRect().bottom - pageRect.top
-    : 0;
-
-  contentBottom += 1;
-
-  const pageHeight = pageRect.height;
-  root.remove();
-
-  return {
-    pageHeight,
-    available: Math.max(0, pageHeight - contentBottom)
-  };
-}
-
-function findSplitForChunk(heights, start, count, capacity){
-  if(count <= 0) return 0;
-
-  const prefix = [0];
-  for(let i=0;i<count;i++){
-    prefix.push(prefix[prefix.length - 1] + (heights[start + i] || 0));
-  }
-
-  if(count === 1){
-    return prefix[1] <= capacity ? 1 : 0;
-  }
-
-  let best = -1;
-  let bestBalance = Infinity;
-
-  for(let k=1;k<count;k++){
-    const left = prefix[k];
-    const right = prefix[count] - prefix[k];
-
-    if(left <= capacity && right <= capacity){
-      const balance = Math.abs(left - right);
-      if(balance < bestBalance){
-        bestBalance = balance;
-        best = k;
-      }
-    }
-  }
-
-  return best;
-}
-
 function renderPrint(data){
-  const locate = Array.isArray(data?.locate) ? data.locate : [];
-  const printArea = document.getElementById('print-area');
-
-  if(!printArea) return;
-
-  const heights = measurePrintCardHeights(data);
-  const totalEvents = locate.length;
-  const pages = [];
-  let start = 0;
-  let pageIndex = 0;
-
-  const MEASURE_TOTAL = 999;
-
-  while(start < totalEvents || pageIndex === 0){
-    const remaining = totalEvents - start;
-
-    if(remaining > 0){
-      const lastBase = measurePageBaseHeight(data, pageIndex, MEASURE_TOTAL, true);
-      const splitAll = findSplitForChunk(heights, start, remaining, lastBase.available);
-
-      if(splitAll > 0){
-        pages.push({
-          start,
-          count: remaining,
-          split: splitAll,
-          includeDelivery: true
-        });
-        start = totalEvents;
-        break;
-      }
-    }else{
-      pages.push({
-        start: totalEvents,
-        count: 0,
-        split: 0,
-        includeDelivery: true
-      });
-      break;
-    }
-
-    const base = measurePageBaseHeight(data, pageIndex, MEASURE_TOTAL, false);
-    let maxCount = 0;
-
-    const limit = remaining > 1 ? remaining - 1 : remaining;
-
-    for(let count=1; count<=limit; count++){
-      const split = findSplitForChunk(heights, start, count, base.available);
-      if(split <= 0) break;
-      maxCount = count;
-    }
-
-    if(maxCount === 0 && remaining > 0){
-      maxCount = 1;
-    }
-
-    const split = findSplitForChunk(heights, start, maxCount, base.available);
-
-    pages.push({
-      start,
-      count: maxCount,
-      split: split > 0 ? split : 1,
-      includeDelivery: false
-    });
-
-    start += maxCount;
-    pageIndex++;
-
-    if(pageIndex > totalEvents + 5) break;
+  let printArea = document.getElementById('print-area');
+  if(!printArea){
+    printArea = document.createElement('div');
+    printArea.id = 'print-area';
+    document.body.appendChild(printArea);
   }
 
-  const totalPages = pages.length || 1;
-
-  printArea.innerHTML = pages.map((p, i) => {
-    const chunk = locate.slice(p.start, p.start + p.count);
-
-    return buildPrintPageHTML(
-      data,
-      chunk,
-      i,
-      totalPages,
-      p.split,
-      p.includeDelivery
-    );
-  }).join('');
+  const locate = Array.isArray(data?.locate) ? data.locate : [];
+  const chunkSize = 12; // Số sự kiện tối đa mỗi trang
+  const totalPages = Math.ceil(locate.length / chunkSize) || 1;
+  
+  let html = '';
+  for(let i = 0; i < totalPages; i++){
+    const chunk = locate.slice(i * chunkSize, (i + 1) * chunkSize);
+    const splitIndex = Math.ceil(chunk.length / 2);
+    const isLastPage = (i === totalPages - 1);
+    html += buildPrintPageHTML(data, chunk, i, totalPages, splitIndex, isLastPage);
+  }
+  
+  printArea.innerHTML = html;
 }
 
 function safeTrackingFilename(){
-  const raw = String(currentTrackingCode || currentData?.info?.ID || '247').trim();
+  const raw = String(window.currentTrackingCode || window.currentData?.info?.ID || '247').trim();
   return raw.replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
+// HÀM XỬ LÝ IN A4
 async function printA4(){
-  if(!currentData){
-    alert('Vui lòng tra cứu vận đơn trước.');
+  if(!window.currentData){
+    alert('Vui lòng tra cứu vận đơn trước khi thực hiện.');
     return;
   }
 
-  try{
-    if(document.fonts?.ready) await document.fonts.ready;
-  }catch(_){}
-
-  renderPrint(currentData);
-
-  logToSheet('In A4');
+  renderPrint(window.currentData);
 
   const oldTitle = document.title;
-  const printFilename = `InVanDon247_VNPost_${safeTrackingFilename()}`;
-  document.title = printFilename;
+  document.title = `InVanDon247_VNPost_${safeTrackingFilename()}`;
 
-  const restoreTitle = () => {
+  setTimeout(() => {
+    window.print();
     document.title = oldTitle;
-    window.removeEventListener('afterprint', restoreTitle);
-  };
-  window.addEventListener('afterprint', restoreTitle);
-
-  setTimeout(() => window.print(), 300);
+  }, 200);
 }
 
+// HÀM XỬ LÝ TẢI PDF
 async function downloadPDF(){
-  if(!currentData){
-    alert('Vui lòng tra cứu vận đơn trước.');
+  if(!window.currentData){
+    alert('Vui lòng tra cứu vận đơn trước khi thực hiện.');
     return;
   }
 
   const pdfBtn = document.querySelector('.pdf-btn');
-  const originalText = pdfBtn.innerHTML;
+  const originalText = pdfBtn ? pdfBtn.innerHTML : '';
 
   try{
-    pdfBtn.disabled = true;
-    pdfBtn.innerHTML = '⏳ Đang tạo PDF...';
+    if(pdfBtn){
+      pdfBtn.disabled = true;
+      pdfBtn.innerHTML = '⏳ Đang tạo PDF...';
+    }
 
-    renderPrint(currentData);
+    renderPrint(window.currentData);
     
     const printArea = document.getElementById('print-area');
     const pages = printArea.querySelectorAll('.print-page');
@@ -467,85 +314,41 @@ async function downloadPDF(){
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
-      compress: true,
+      compress: true
     });
 
-    const pageWidth = 210;
-    let pageIndex = 0;
-
-    for (const page of pages) {
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-100000px';
-      tempContainer.style.top = '0';
-      tempContainer.style.width = '210mm';
-      tempContainer.style.boxSizing = 'border-box';
-      tempContainer.style.background = '#ffffff';
-      tempContainer.style.padding = '8mm';
-      
-      const pageClone = page.cloneNode(true);
-      pageClone.style.width = '194mm';
-      pageClone.style.height = 'auto';
-      pageClone.style.overflow = 'visible';
-      pageClone.style.margin = '0';
-      pageClone.style.pageBreakAfter = 'auto';
-      pageClone.style.breakAfter = 'auto';
-
-      const imgs = pageClone.querySelectorAll('img');
-      for (const img of imgs) {
-        if (img.src.startsWith('blob:') || img.src.startsWith('http')) {
-          try {
-            const imgCanvas = document.createElement('canvas');
-            imgCanvas.width = img.naturalWidth;
-            imgCanvas.height = img.naturalHeight;
-            const ctx = imgCanvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            img.src = imgCanvas.toDataURL('image/png');
-          } catch (e) {}
-        }
-      }
-
-      tempContainer.appendChild(pageClone);
-      document.body.appendChild(tempContainer);
-
-      await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 100));
-
-      const canvas = await html2canvas(tempContainer, {
-        scale: 1.5,
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      const canvas = await html2canvas(page, {
+        scale: 2,
         useCORS: true,
-        allowTaint: false,
         logging: false,
-        backgroundColor: '#ffffff',
-        width: tempContainer.scrollWidth,
-        height: tempContainer.scrollHeight
+        backgroundColor: '#ffffff'
       });
 
-      document.body.removeChild(tempContainer);
-
       const imgData = canvas.toDataURL('image/png');
-      
-      if (pageIndex > 0) {
-        pdf.addPage();
-      }
-      
-      const imgWidth = pageWidth - 16;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 8, 8, imgWidth, imgHeight);
-      
-      pageIndex++;
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
     }
 
     pdf.save(`InVanDon247_VNPost_${safeTrackingFilename()}.pdf`);
 
-    logToSheet('Tải PDF');
-
-  }catch(error){
+  } catch(error) {
     console.error('PDF Error:', error);
-    alert('Lỗi tải PDF: ' + error.message);
-  }finally{
-    pdfBtn.disabled = false;
-    pdfBtn.innerHTML = originalText;
+    alert('Không thể tạo file PDF. Vui lòng thử chức năng "In A4" và chọn "Lưu dưới dạng PDF".');
+  } finally {
+    if(pdfBtn){
+      pdfBtn.disabled = false;
+      pdfBtn.innerHTML = originalText;
+    }
   }
 }
+
+// BẮT SỰ KIỆN NÚT BẤM KHI TRANG TẢI XONG
+document.addEventListener('DOMContentLoaded', () => {
+  const printBtn = document.querySelector('.print-btn');
+  const pdfBtn = document.querySelector('.pdf-btn');
+
+  if(printBtn) printBtn.addEventListener('click', printA4);
+  if(pdfBtn) pdfBtn.addEventListener('click', downloadPDF);
+});

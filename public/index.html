@@ -5,21 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InVanDon247 - Công cụ tra cứu và tạo phiếu vận đơn A4</title>
     
-    <!-- CSS chính của dự án -->
+    <!-- CSS chính -->
     <link rel="stylesheet" href="./css/styles.css">
 
-    <!-- Thư viện hỗ trợ tạo PDF (Đã có trong libs của bạn) -->
-    <script src="libs/html2canvas.min.js"></script>
-    <script src="libs/jspdf.umd.min.js"></script>
-    <script src="libs/html2pdf.bundle.min.js"></script> <!-- Nếu bạn có file này trong libs, nếu không dùng html2pdf.bundle thì dùng 2 file trên kết hợp -->
+    <!-- Thư viện hỗ trợ tạo PDF (Sử dụng đúng file có trong thư mục libs của bạn) -->
+    <script src="./libs/html2canvas.min.js"></script>
+    <script src="./libs/jspdf.umd.min.js"></script>
+    
+    <!-- Các thư viện khác của bạn (giữ nguyên) -->
+    <script src="./libs/JsBarcode.all.min.js"></script>
+    <script src="./libs/qrcode.min.js"></script>
 </head>
 <body>
 
-    <!-- HEADER (Điều hướng) -->
-    <header class="navbar no-print">
-        <div class="container">
-            <div class="logo">📦 InVanDon247</div>
-            <nav>
+    <!-- HEADER -->
+    <header class="topbar no-print">
+        <div class="topbar-inner">
+            <a href="#" class="brand">
+                <div class="brand-logo">
+                    <img src="./images/logo.png" alt="Logo" onerror="this.style.display='none'">
+                </div>
+                <div>
+                    <strong>InVanDon247</strong>
+                    <small>Công cụ tra cứu và tạo phiếu vận đơn A4</small>
+                </div>
+            </a>
+            <nav class="nav">
                 <a href="#">Trang chủ</a>
                 <a href="#">Tra cứu</a>
                 <a href="#">Bảng kê</a>
@@ -28,99 +39,58 @@
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="container">
-        
-        <!-- KHU VỰC TÌM KIẾM (Ẩn khi in) -->
-        <section class="search-section no-print">
-            <h2>Tra cứu vận đơn</h2>
-            <div class="input-group">
-                <input type="text" id="search-input" placeholder="Nhập mã vận đơn...">
-                <button id="search-btn">Tra cứu</button>
+    <!-- MAIN -->
+    <main class="page">
+        <!-- KHU VỰC TÌM KIẾM -->
+        <section class="search-card no-print">
+            <h2 class="search-title">Tra cứu vận đơn</h2>
+            <p class="search-sub">Nhập mã vận đơn để tra cứu thông tin</p>
+            
+            <div class="form-grid">
+                <div class="field">
+                    <label>Mã vận đơn</label>
+                    <input type="text" id="tracking-code" placeholder="Nhập mã vận đơn...">
+                </div>
+                <div class="field">
+                    <label>Mã Captcha</label>
+                    <div class="captcha-line">
+                        <input type="text" id="captcha-input" placeholder="Nhập mã...">
+                        <div class="captcha-slot">
+                            <img id="captcha-img" class="captcha-img" src="" alt="Captcha">
+                        </div>
+                        <button class="reload" id="reload-captcha">Đổi mã</button>
+                    </div>
+                </div>
             </div>
-
-            <!-- Nút HÀNH ĐỘNG: In và Tải PDF (Thuộc lớp no-print để không in ra) -->
-            <div class="action-buttons" id="action-buttons" style="display: none;">
-                <button onclick="printPage()" class="btn btn-primary">🖨️ In A4</button>
-                <button onclick="downloadPDF()" class="btn btn-secondary">⬇️ Tải Xuống PDF</button>
-            </div>
+            
+            <button class="submit" id="search-btn">Tra cứu ngay</button>
+            <div id="msg" class="msg"></div>
         </section>
 
-        <!-- KHU VỰC KẾT QUẢ (Sẽ được in và xuất PDF) -->
-        <!-- ID="print-area" quan trọng để JS biết phần nào cần in -->
-        <section id="print-area" class="result-section">
+        <!-- NÚT HÀNH ĐỘNG (Ẩn khi chưa có kết quả) -->
+        <div class="result-head no-print" id="action-buttons" style="display: none;">
+            <button class="action print-btn" onclick="printPage()">🖨️ In A4</button>
+            <button class="action pdf-btn" onclick="downloadPDF()">⬇️ Tải PDF</button>
+        </div>
+
+        <!-- KẾT QUẢ TRA CỨU (Hiển thị trên web) -->
+        <section class="result-card" id="result-container">
             <!-- Dữ liệu sẽ được JS render vào đây -->
-            <!-- Ví dụ: <div class="timeline">...</div> -->
         </section>
 
+        <!-- VÙNG IN ẤN A4 (Ẩn trên web, chỉ hiện khi in/tải PDF) -->
+        <section id="print-area">
+            <!-- Dữ liệu in sẽ được JS render vào đây -->
+        </section>
     </main>
 
-    <!-- FOOTER (CHỈ CÓ 1 LẦN DUY NHẤT, NẰM NGOÀI VÙNG IN ẤN) -->
-    <!-- Nhưng để nó hiện trong bản in, ta dùng CSS in ép nó hiển thị -->
+    <!-- FOOTER (Chỉ hiển thị 1 lần duy nhất) -->
     <footer class="site-footer">
-        <div class="container">
-            © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost.
-        </div>
+        © 2026 InVanDon247. All rights reserved. Dữ liệu được truy xuất từ hệ thống VNPost.
     </footer>
 
-    <!-- CÁC FILE JS CỦA DỰ ÁN -->
-    <!-- File xử lý API và logic tra cứu -->
-    <script src="js/api.js"></script>
-    <!-- File xử lý xuất PDF -->
-    <script src="js/pdf.js"></script>
-    <!-- File xử lý nhập Excel (nếu có) -->
-    <script src="js/excel.js"></script>
-
-    <!-- SCRIPT NỘI BỘ XỬ LÝ SỰ KIỆN IN VÀ TẢI PDF -->
-    <script>
-        // 1. Hàm In A4
-        function printPage() {
-            // Gọi hàm in của trình duyệt
-            window.print();
-        }
-
-        // 2. Hàm Tải PDF (Sử dụng thư viện html2pdf.js)
-        function downloadPDF() {
-            // Lấy đối tượng phần tử chứa kết quả cần xuất PDF
-            const element = document.getElementById('print-area');
-            
-            // Kiểm tra xem có dữ liệu để xuất không
-            if (!element || element.innerHTML.trim() === '') {
-                alert('Vui lòng tra cứu trước khi tải PDF!');
-                return;
-            }
-
-            // Cấu hình xuất file PDF khổ A4
-            const opt = {
-                margin:       10, // margin (mm)
-                filename:     'ket-qua-tra-cuu-InVanDon247.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true }, // useCORS: true để tải được ảnh bản đồ Google Maps
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                // Ngắt trang thông minh để không bị cắt chữ/khung
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } 
-            };
-
-            // Thực hiện xuất PDF
-            html2pdf().set(opt).from(element).save();
-        }
-
-        // Giả lập sự kiện khi bấm nút tra cứu (Để hiện nút In/PDF)
-        document.getElementById('search-btn').addEventListener('click', function() {
-            // ... Code gọi API lấy dữ liệu ...
-            
-            // Sau khi lấy được dữ liệu và render xong:
-            document.getElementById('action-buttons').style.display = 'block';
-            
-            // Giả lập render dữ liệu vào #print-area
-            document.getElementById('print-area').innerHTML = `
-                <h3>Kết quả tra cứu</h3>
-                <p>Mã đơn: 591520</p>
-                <p>Trạng thái: Đã phát thành công</p>
-                <div class="map-placeholder">(Vị trí bản đồ Google Maps...)</div>
-            `;
-        });
-    </script>
-
+    <!-- CÁC FILE JS -->
+    <script src="./js/api.js"></script>
+    <script src="./js/pdf.js"></script>
 </body>
 </html>
